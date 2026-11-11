@@ -13,7 +13,7 @@
   the device asks for dark) — which is exactly what the tokens already do.
 */
 .u-shell {
-  --u-on-accent: #ffffff;
+  --u-on-accent: var(--on-accent);
   background: var(--app-bg);
   color: var(--ink);
   min-height: 100vh;

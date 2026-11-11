@@ -101,33 +101,46 @@ function rawToken(selector: string, name: string): string | null {
   but not AAA fails with the number it actually missed.
 */
 /*
-  ── WHITE ON THE ACCENT, AT AAA ──
-  Every primary button, the active chip and the active tab paint white on
+  ── THE ACCENT'S INK, AT AAA ──
+  Every primary button, the active chip and the active tab paint text on
   --accent-grad; a few paint it on flat --accent. At 4.52:1 they were the
   last AAA failure standing on 8 Sep 2026, and the fix was the brand accent
-  itself: deepened per palette until white clears 7:1 on every stop. That is
-  a visible change to the purple, made on Jordan's instruction that the
-  product has to comply with AAA.
+  itself: deepened per palette until white cleared 7:1 on every stop.
+
+  Since 11 Nov 2026 the palette is monochrome and the dark theme INVERTS:
+  near-white accent, near-black ink. So the ink is a token, --on-accent,
+  and this measures each palette's own ink on its own accent rather than
+  assuming white. A palette that forgot to declare its ink falls back to the
+  light block's, which is exactly the mistake this would then catch.
 */
-describe("white clears AAA (7:1) on the accent", () => {
-  const WHITE = { r: 255, g: 255, b: 255 };
+function onAccent(selector: string) {
+  const raw = rawToken(selector, "--on-accent") ?? rawToken('[data-theme="light"] {', "--on-accent");
+  expect(raw, "no --on-accent declared in any palette").not.toBeNull();
+  const ink = parseHex(raw!);
+  expect(ink, `--on-accent did not parse: ${raw}`).not.toBeNull();
+  return ink!;
+}
+
+describe("the accent's ink clears AAA (7:1) on the accent", () => {
   for (const palette of PALETTES) {
     it(`${palette.name} --accent-grad stops`, () => {
+      const ink = onAccent(palette.selector);
       const grad = rawToken(palette.selector, "--accent-grad") ?? rawToken('[data-theme="light"] {', "--accent-grad");
       expect(grad, `${palette.name} has no --accent-grad`).not.toBeNull();
       const stops = (grad!.match(/#[0-9a-fA-F]{6}/g) ?? []).map(parseHex);
       expect(stops.length, "no stops parsed").toBeGreaterThan(0);
       for (const stop of stops) {
-        const got = contrastRatio(WHITE, stop!);
-        expect(got, `${palette.name} white on ${JSON.stringify(stop)} is ${got.toFixed(2)}:1 — AAA needs 7`).toBeGreaterThanOrEqual(7);
+        const got = contrastRatio(ink, stop!);
+        expect(got, `${palette.name} --on-accent on ${JSON.stringify(stop)} is ${got.toFixed(2)}:1 — AAA needs 7`).toBeGreaterThanOrEqual(7);
       }
     });
     it(`${palette.name} flat --accent`, () => {
+      const ink = onAccent(palette.selector);
       const raw = rawToken(palette.selector, "--accent") ?? rawToken('[data-theme="light"] {', "--accent");
       const accent = parseHex(raw!);
       expect(accent, `${palette.name} --accent did not parse: ${raw}`).not.toBeNull();
-      const got = contrastRatio(WHITE, accent!);
-      expect(got, `${palette.name} white on --accent is ${got.toFixed(2)}:1 — AAA needs 7`).toBeGreaterThanOrEqual(7);
+      const got = contrastRatio(ink, accent!);
+      expect(got, `${palette.name} --on-accent on --accent is ${got.toFixed(2)}:1 — AAA needs 7`).toBeGreaterThanOrEqual(7);
     });
   }
 });
@@ -197,26 +210,25 @@ describe("muted text clears AA in every theme", () => {
    * on the light stop, with forest and slate failing at the dark end as well.
    * Jordan chose to deepen the stops rather than accept it.
    */
-  const WHITE = parseHex("#ffffff")!;
-
   for (const palette of PALETTES) {
-    it(`${palette.name} accent gradient carries white text`, () => {
+    it(`${palette.name} accent gradient carries its accent ink`, () => {
       const at = CSS.indexOf(palette.selector);
       const block = CSS.slice(at, CSS.indexOf("\n}", at));
       const decl = /--accent-grad:[^;]*;/.exec(block);
+      // Both palettes state their own since the dark one inverted. A palette
+      // that stops declaring it would inherit the light accent under its own
+      // ink, so a missing declaration is a failure, not a skip.
+      expect(decl, `${palette.name} does not declare --accent-grad`).not.toBeNull();
 
-      // Light and dark share the purple declared on the light palette; a theme
-      // that does not restate it inherits one already asserted here.
-      if (!decl) return;
-
-      const stops = [...decl[0].matchAll(/#[0-9a-fA-F]{6}/g)].map((m) => m[0]);
+      const ink = onAccent(palette.selector);
+      const stops = [...decl![0].matchAll(/#[0-9a-fA-F]{6}/g)].map((m) => m[0]);
       expect(stops.length, "no colour stops found in --accent-grad").toBeGreaterThan(0);
 
       for (const stop of stops) {
-        const ratio = contrastRatio(WHITE, parseHex(stop)!);
+        const ratio = contrastRatio(ink, parseHex(stop)!);
         expect(
           ratio,
-          `${palette.name} --accent-grad stop ${stop} measures ${ratio.toFixed(2)}:1 against white — AA needs ${MIN_CONTRAST}`,
+          `${palette.name} --accent-grad stop ${stop} measures ${ratio.toFixed(2)}:1 against --on-accent — AA needs ${MIN_CONTRAST}`,
         ).toBeGreaterThanOrEqual(MIN_CONTRAST);
       }
     });
@@ -429,25 +441,57 @@ describe("muted text clears AA in every theme", () => {
     keeps anyone from spending it.
   */
   for (const palette of PALETTES) {
-    it(`${palette.name} white ink clears AA on every --accent-grad stop`, () => {
+    it(`${palette.name} --on-accent clears AA on every --accent-grad stop`, () => {
       const grad = rawToken(palette.selector, "--accent-grad");
-      if (!grad) return; // palette inherits one already checked
+      expect(grad, `${palette.name} does not declare --accent-grad`).not.toBeNull();
 
-      const stops = [...grad.matchAll(/#[0-9a-f]{6}/gi)].map((m) => parseHex(m[0]));
+      const ink = onAccent(palette.selector);
+      const stops = [...grad!.matchAll(/#[0-9a-f]{6}/gi)].map((m) => parseHex(m[0]));
       // A gradient nobody could read the stops out of is a broken check, not a
       // passing one — the same rule as --surface-3 above.
       expect(stops.length, `no colour stops parsed from --accent-grad ("${grad}")`).toBeGreaterThan(0);
       expect(stops.every(Boolean), "a stop failed to parse").toBe(true);
 
       for (const stop of stops) {
-        const ratio = contrastRatio(WHITE, stop!);
+        const ratio = contrastRatio(ink, stop!);
         expect(
           ratio,
-          `${palette.name} white measures ${ratio.toFixed(2)}:1 on an --accent-grad stop — AA needs ${MIN_CONTRAST}`,
+          `${palette.name} --on-accent measures ${ratio.toFixed(2)}:1 on an --accent-grad stop — AA needs ${MIN_CONTRAST}`,
         ).toBeGreaterThanOrEqual(MIN_CONTRAST);
       }
     });
   }
+
+  /*
+    ── NO LITERAL WHITE ON THE ACCENT, FROM 11 NOV 2026 ──
+    The dark palette's accent is near-white. A rule that writes #fff on
+    --accent-grad, --accent-strong or --pro-grad is white on white there,
+    and every token involved is fine on its own, so only reading the
+    stylesheets can see it. Thirteen rules did exactly that on the day the
+    palette inverted. They read var(--on-accent) now, or a local alias of it.
+  */
+  it("no rule writes literal white ink on an accent background", () => {
+    const files = stylesheets();
+    expect(files.length, "stylesheet discovery found almost nothing").toBeGreaterThan(15);
+
+    const offenders: string[] = [];
+    let accentBlocks = 0;
+    for (const file of files) {
+      const css = readFileSync(join(process.cwd(), file), "utf8").replace(/\/\*[\s\S]*?\*\//g, "");
+      for (const block of css.split("}")) {
+        const body = block.slice(block.indexOf("{") + 1);
+        if (!/background(?:-color|-image)?:\s*var\(--(accent-grad|accent-strong|pro-grad)\)/.test(body)) continue;
+        accentBlocks++;
+        if (/(?:^|[;{\s])color:\s*(#fff\b|#ffffff\b|white\b)/i.test(body)) {
+          offenders.push(`${file}: ${block.slice(0, 60).replace(/\s+/g, " ").trim()}`);
+        }
+      }
+    }
+    // The canary: dozens of rules paint the accent; finding none means the
+    // pattern stopped matching, not that the product is clean.
+    expect(accentBlocks, "no accent-background rules were found to check").toBeGreaterThan(20);
+    expect(offenders, "literal white on the accent — use var(--on-accent)").toEqual([]);
+  });
 
   /*
     ── AND NOTHING MAY PAINT WHITE ON FLAT --accent ──

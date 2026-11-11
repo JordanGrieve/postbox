@@ -3,18 +3,26 @@
     Favicon mark. One message rather than the two of the full lockup: at 16px the
     rear bubble and the gap around it collapse into noise. Scaled to fill the box,
     since a favicon has no room to waste. Thread lines are knocked through with
-    evenodd so they read on a dark tab strip as well as a light one.
+    evenodd so they show whatever the tab strip is behind them.
 
     The fill is a literal rather than var(--accent): an SVG served as its own
     document has no access to the app's stylesheet, so a custom property here
     would resolve to nothing and the mark would render invisible. Keep it in
     step with --accent in globals.css and with the PWA icons in public/ by
-    hand — this file was missed once already during the palette change and
+    hand — this file was missed once already during a palette change and
     shipped a terracotta favicon against a purple app.
+
+    Near-black since 11 Nov 2026, with a near-white fill when the browser is in
+    dark mode: a black mark on a dark tab strip is not there at all. Browsers
+    that ignore the media query get the black one.
   -->
+  <style>
+    .mark { fill: #0a0a0a; }
+    @media (prefers-color-scheme: dark) { .mark { fill: #fafafa; } }
+  </style>
   <g transform="translate(32 32) scale(1.43) translate(-35.5 -28.5)">
     <path
-      fill="#6d4aff"
+      class="mark"
       fill-rule="evenodd"
       d="M16 10H51C53.21 10 55 11.79 55 14V35C55 37.21 53.21 39 51 39H24L16 47V10ZM22 17H49V22H22ZM22 27H41V32H22Z"
     />

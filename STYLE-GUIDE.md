@@ -66,9 +66,11 @@ Rules:
 | `--surface`, `--surface-2`, `--surface-3` | Card, page ground, inset ground (inputs, chips) |
 | `--text`, `--text-2`, `--text-3`, `--text-4` | Ink, from headline to the palest AAA-passing label |
 | `--muted`, `--muted-2` | Secondary text. Already AAA on `--surface-3`; do not lighten them |
-| `--accent`, `--accent-grad` | The brand purple. White on either clears 7:1. Flat `--accent` under white text is guarded against; use the gradient for filled buttons |
-| `--accent-text`, `--accent-chip`, `--accent-soft` | Purple ink and the pale grounds it sits on |
-| `--tag-a/b/c-fg` + `-bg` | Label and source chip pairs (green / purple / amber) |
+| `--accent`, `--accent-grad` | The accent: near-black in light, near-white in dark (monochrome since 11 Nov 2026). `--accent-grad` is a flat one-colour gradient; use it for filled buttons |
+| `--on-accent` | The ink on the accent: white in light, near-black in dark. Never write `#fff` on an accent background; the dark theme would be white on white, and `tests/contrast-tokens.test.ts` fails on it |
+| `--accent-text`, `--accent-chip`, `--accent-soft` | Accent ink and the neutral grounds it sits on |
+| `--tag-a/b/c-fg` + `-bg` | Label and source chip pairs (green / neutral / amber) |
+| `--mark-rear` | The logo's rear message, grey so the two shapes stay distinct |
 | `--ok-fg`, `--warn-fg`, `--pdf-fg` | Status inks |
 | `--border`, `--border-soft`, `--border-strong` | Lines, palest to strongest |
 | `--focus-ring` | The ONLY colour a focus ring may be. Chosen to clear 3:1 on `--surface`, `--surface-3` and `--nav` at once |
@@ -173,11 +175,15 @@ vertical scroll is never captured.
 **The standard button is `.stg-button`** (app/globals.css since 11 Sep 2026 —
 it moved out of settings.css the first time a screen outside Settings needed
 it, and kept its name because nine screens carry it), the look of the
-Forms page's Create: `--accent-grad`, white text, 44px, radius 10, 0.8125rem/700.
+Forms page's Create: `--accent-grad`, `--on-accent` ink, 44px, radius 10,
+0.8125rem/700.
 `.stg-button--wide` is the full-width 48px form for a form's one committing
 action (Send invite). New screens use these classes. Quiet: `--surface-3`
-ground, `--text` ink. Destructive: `--pdf-fg` ink on `--pdf-bg`. Never white
-text on flat `--accent`.
+ground, `--text` ink. Destructive: `--pdf-fg` ink on `--pdf-bg`. On the
+always-dark brand panel (the homepage hero and closing band) the primary
+button inverts to `--brand-panel-fg` with `--brand-panel` ink, or it would be
+black on black in light. No coloured glows or gradients: `--glow` is
+transparent and every gradient token is flat.
 
 ### Focus
 

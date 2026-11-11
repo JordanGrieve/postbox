@@ -189,25 +189,35 @@
    */
   --label-bg-l: 0.93;
   --label-fg-l: 0.33;
+  /*
+   * ── MONOCHROME, FROM 11 NOVEMBER 2026 ──
+   *
+   * Jordan, 11 Nov: "the purple needs to go … should be black and white
+   * mainly." Every grey below is neutral (no hue), the accent is near-black,
+   * and the gradient tokens are flat: each is a one-colour gradient, which
+   * paints solid and stays valid wherever a stylesheet uses it as an image.
+   * Colour is left only where it carries meaning: status (ok, warning,
+   * danger), the star, label chips the client picked, and code syntax.
+   */
   /* surfaces */
-  --page-grad: linear-gradient(135deg, #dcd3f5 0%, #d5d8f0 45%, #e3d8f2 100%);
-  --screen-grad: linear-gradient(180deg, #efeafb 0%, #e9e5f7 100%);
+  --page-grad: linear-gradient(#f5f5f5, #f5f5f5);
+  --screen-grad: linear-gradient(#f5f5f5, #f5f5f5);
   --surface: #ffffff;
-  --surface-2: #f6f3fc;
-  --surface-3: #f1edf9;
+  --surface-2: #f5f5f5;
+  --surface-3: #ececec;
   --sel: #ffffff;
   --glass: rgba(255, 255, 255, 0.92);
 
   /* lines */
-  --border: #e6e1f1;
-  --border-soft: #ede9f6;
-  --border-strong: #ded6f5;
+  --border: #e5e5e5;
+  --border-soft: #ededed;
+  --border-strong: #d4d4d4;
 
   /* type */
-  --text: #221b3a;
-  --text-2: #3a3350;
-  --text-3: #463e5e;
-  --text-4: #4e4961;
+  --text: #0a0a0a;
+  --text-2: #262626;
+  --text-3: #333333;
+  --text-4: #404040;
   /* Raised to clear WCAG AA (4.5:1) on the PALEST ground these sit on.
      Measured, not adjusted by eye: the old values rendered muted text at
      2.21:1 on the bento panel and 2.55:1 on white — the marketing page's
@@ -215,11 +225,18 @@
      theme. The floor is set against #f1edf9, the palest surface, so the
      commoner white ground has margin (5.25:1) rather than sitting exactly
      on the line. */
-  --muted: #4d4b58;
-  --muted-2: #4e4a5c;
+  --muted: #4a4a4a;
+  --muted-2: #474747;
 
   /* accent */
-  --accent: #583cce;
+  --accent: #0a0a0a;
+  /*
+   * Ink ON the accent. White here, near-black in dark, where the accent
+   * inverts to near-white. Every rule that paints text on the accent reads
+   * this rather than writing #fff, because #fff on the dark theme's accent
+   * would be white on white.
+   */
+  --on-accent: #ffffff;
   /* Accent ink. Deepened from #6d4aff: it is most often painted on
      --accent-soft (chips, tags, the pill on the marketing page), where it
      measured 4.29:1 rather than the 4.5 AA needs. On white it was already
@@ -230,20 +247,25 @@
      under AA. The other four palettes clear it comfortably (5.77 to 7.13);
      light is the tight one because the chip lifts a pale ground toward a
      mid-tone ink. 4.81:1 now, against the palest ground it is painted on. */
-  --accent-text: #4730a8;
-  --accent-strong: #5535dd;
-  --accent-soft: #ede7fe;
-  --accent-chip: #e8e1fd;
-  --accent-line: #e7deff;
+  --accent-text: #0a0a0a;
+  --accent-strong: #0a0a0a;
+  --accent-soft: #ececec;
+  --accent-chip: #e5e5e5;
+  --accent-line: #d4d4d4;
+  /* The rear message in the logo mark (components/Logo.tsx). It used to be
+     --accent-strong, which is now the same near-black as the front one. */
+  --mark-rear: #8a8a8a;
     /* Both stops carry white text (buttons, the send control, the nav's active
      row), so both have to clear 4.5:1 against white — measured, not judged.
      The light stops were 2.10 to 3.72:1; forest and slate failed at the dark
      end too. Deepening the light stop is the minimum change that fixes it:
      the hue is unchanged and purple, the default brand, moves by an amount
      that is hard to see. Asserted in tests/contrast-tokens.test.ts. */
-  --accent-grad: linear-gradient(145deg, #5c47a9, #583cce);
-  --glow: rgba(109, 74, 255, 0.18);
-  --hero-grad: linear-gradient(140deg, #e9e1ff, #d6ccff);
+  --accent-grad: linear-gradient(#0a0a0a, #0a0a0a);
+  /* No glow. A coloured halo behind a button was most of the "generated"
+     look; transparent keeps every box-shadow that reads it valid. */
+  --glow: rgba(0, 0, 0, 0);
+  --hero-grad: linear-gradient(#ececec, #ececec);
   /*
    * The Postbox Pro card. Points at the accent rather than carrying its own
    * purple: this was the ONE gradient in the product defined only here and
@@ -253,7 +275,7 @@
    * --accent-grad is per-theme, so one indirection fixes every theme.
    */
   --pro-grad: var(--accent-grad);
-  --pro-shadow: rgba(70, 40, 180, 0.28);
+  --pro-shadow: rgba(0, 0, 0, 0.12);
 
   /*
     ── THE NAVIGATION FOLLOWS THE THEME, FROM 11 SEPTEMBER 2026 ──
@@ -278,11 +300,11 @@
     same in both; the moment this ground changed, dark would have inherited
     ink chosen for a light column.
   */
-  --nav: #f6f3fc;
+  --nav: #f5f5f5;
   /* The inset inside the nav — the search field. Deliberately barely there,
-     as it is in dark (1.02:1 between the two): the field reads as a well in
-     the column rather than a box on it. */
-  --nav-deep: #ebe5f7;
+     as it is in dark: the field reads as a well in the column rather than a
+     box on it. */
+  --nav-deep: #ececec;
 
   /*
     The dark brand panel. FIXED in both themes, on purpose.
@@ -292,8 +314,8 @@
     prefers light still gets the dark band, which is the design. The install
     page's code block is here for the same reason a terminal is dark.
   */
-  --brand-panel: #1c1830;
-  --brand-panel-deep: #15122a;
+  --brand-panel: #111111;
+  --brand-panel-deep: #0a0a0a;
   /*
     Ink ON the brand panel — light, always, because the panel is dark, always.
 
@@ -302,9 +324,9 @@
     --nav-badge-fg, which in light is now #3f2b93. Dark purple on #1c1830.
     A fixed surface needs fixed ink, or it is only half fixed.
   */
-  --brand-panel-fg: #ece6ff;
-  --brand-panel-pill-fg: #c7b6ff;
-  --brand-panel-pill-bg: rgba(124, 92, 255, 0.18);
+  --brand-panel-fg: #fafafa;
+  --brand-panel-pill-fg: #e5e5e5;
+  --brand-panel-pill-bg: rgba(255, 255, 255, 0.12);
   /*
    * ── INK FOR THE LIGHT NAVIGATION COLUMN ──
    *
@@ -320,15 +342,14 @@
    * --nav-deep, not --surface, so they are measured against those. The values
    * below carry those measurements.
    */
-  --nav-fg: #221b3a;
-  /* 8.24:1 on --nav and 7.36:1 on --nav-deep. #4d4b58, the page's --muted,
-     measured 6.94 on the deeper ground — under AAA, and this ink is used at
-     11px in the search field's placeholder. */
-  --nav-muted: #494757;
-  --nav-active-bg: #e8e1fd;
-  /* The same pairing as --accent-text on --accent-chip, which is already held
-     to AAA elsewhere: 7.37:1 on the active row, 8.49:1 on the column. */
-  --nav-active-fg: #4730a8;
+  --nav-fg: #0a0a0a;
+  /* 8.79:1 on --nav and 8.1:1 on --nav-deep. This ink is used at 11px in
+     the search field's placeholder, so it gets the full AAA bar. */
+  --nav-muted: #454545;
+  /* The active row is solid ink with white text: the one strong mark in
+     the column, which is what "you are here" should be. */
+  --nav-active-bg: #0a0a0a;
+  --nav-active-fg: #ffffff;
   /*
    * The dot beside an active nav row. It was USED by app/admin.css and defined
    * nowhere, which does not fail loudly: an undefined var() makes the whole
@@ -344,11 +365,11 @@
   /* The hairline and chip ground knocked out of the nav — a folder's hover,
      the count pill, the divider. It was a fixed white 8% because the column
      was always dark; on a pale column white-on-white is nothing at all. */
-  --nav-line: rgba(34, 27, 58, 0.08);
-  --nav-badge-on: #ddd2fb;
-  /* 7.42:1 on the badge. The count is 11px, so it gets the full AAA bar for
-     small text rather than the large-text concession. */
-  --nav-badge-fg: #3f2b93;
+  --nav-line: rgba(10, 10, 10, 0.08);
+  --nav-badge-on: #e5e5e5;
+  /* The count is 11px, so it gets the full AAA bar for small text rather
+     than the large-text concession. */
+  --nav-badge-fg: #0a0a0a;
 
   /*
    * ── THE CODE BLOCK, PER THEME ──
@@ -371,33 +392,33 @@
    * Colour is decoration here, never information (1.4.1): the prompt is text
    * to be copied, and nothing in it means something different for being amber.
    */
-  --code-bg: #f3f1f9;
-  --code-border: #e2ddf0;
-  --code-fg: #201c33;
+  --code-bg: #f5f5f5;
+  --code-border: #e5e5e5;
+  --code-fg: #0a0a0a;
   --code-head: #6b21a8;
-  --code-comment: #4a4560;
+  --code-comment: #4a4a4a;
   --code-str: #0f5132;
   --code-num: #7a3500;
   --code-url: #0a4a94;
   --code-key: #5b21b6;
   --code-tag: #13457f;
   --code-attr: #0b4f56;
-  --code-punct: #3d3654;
+  --code-punct: #404040;
 
   /*
    * The keyboard focus ring, as its own token.
    *
    * It used to fall back to --accent, which on 8 Sep 2026 deepened for AAA
    * text and took the ring under 3:1 on the nav (1.4.11). A ring has to
-   * clear 3:1 on white, the palest wash AND the near-black nav at once, and
-   * #7c5dff does: 4.31 / 3.74 / 3.98. The dark palette declares its own.
+   * clear 3:1 on white, the inset ground AND the nav at once. Near-black
+   * clears all three by a wide margin; the dark palette declares its own.
    */
-  --focus-ring: #7c5dff;
+  --focus-ring: #0a0a0a;
 
   /* elevation */
-  --shadow: rgba(70, 45, 140, 0.1);
-  --shadow-2: rgba(70, 45, 140, 0.14);
-  --shell-shadow: rgba(70, 45, 140, 0.2);
+  --shadow: rgba(0, 0, 0, 0.08);
+  --shadow-2: rgba(0, 0, 0, 0.12);
+  --shell-shadow: rgba(0, 0, 0, 0.16);
 
   /* semantic */
   /* Success ink, deepened from #2e9e68 — 3.38:1 on white. It carries
@@ -426,7 +447,7 @@
   --pdf-bg: #ffe9ee;
   --pdf-fg: #802f40;
   --star: #ffb627;
-  --star-off: #cfc9e0;
+  --star-off: #d4d4d4;
 
   /* tags */
   --tag-a-bg: #eaf7ef;
@@ -442,8 +463,10 @@
      palette declares these as rgba() overlays rather than hex and is checked
      by rendering instead. */
   --tag-a-fg: #195838;
-  --tag-b-bg: #f1edff;
-  --tag-b-fg: #4b33b3;
+  /* The third chip was purple. Neutral now, so the product's only hues
+     are the ones that mean something: green, amber, red. */
+  --tag-b-bg: #ececec;
+  --tag-b-fg: #262626;
   --tag-c-bg: #fff3e2;
   --tag-c-fg: #6c4600;
 
@@ -478,26 +501,34 @@
   Both selectors carry the same declarations via a shared custom-property set.
 */
 [data-theme="dark"] {
-  /* The ring only. --accent is inherited from :root and is unchanged; painted
-     as a focus ring on --surface-3 it measured 2.64:1, under the 3:1 WCAG
-     1.4.11 needs for a non-text indicator. 3.16:1 at this value. */
-  --focus-ring: #7c5dff;
+  /* Monochrome, inverted: near-white accent with near-black ink on it. The
+     accent, its gradient and --on-accent are stated here rather than
+     inherited from :root, whose values are the light ones. */
+  --focus-ring: #fafafa;
+  --accent: #fafafa;
+  --on-accent: #0a0a0a;
+  --accent-grad: linear-gradient(#fafafa, #fafafa);
+  --hero-grad: linear-gradient(#262626, #262626);
+  --pro-shadow: rgba(0, 0, 0, 0.4);
   --label-bg-l: 0.30;
   --label-fg-l: 0.9;
-  --page-grad: linear-gradient(135deg, #141126 0%, #1c1830 50%, #241d3e 100%);
-  --screen-grad: linear-gradient(180deg, #1b1731 0%, #221c3b 100%);
-  --surface: #241f3c;
-  --surface-2: #1e1a33;
-  --surface-3: rgba(255, 255, 255, 0.05);
-  --sel: #2b2549;
-  --glass: rgba(36, 31, 60, 0.94);
-  --border: rgba(255, 255, 255, 0.08);
+  --page-grad: linear-gradient(#0a0a0a, #0a0a0a);
+  --screen-grad: linear-gradient(#0a0a0a, #0a0a0a);
+  --surface: #171717;
+  --surface-2: #0a0a0a;
+  /* Opaque, where it was a 5% white wash. A wash lifted the ground toward
+     the ink every time two were stacked (the admin console's tile inside a
+     card), and muted text had to be retuned twice for it. */
+  --surface-3: #262626;
+  --sel: #262626;
+  --glass: rgba(23, 23, 23, 0.94);
+  --border: rgba(255, 255, 255, 0.1);
   --border-soft: rgba(255, 255, 255, 0.06);
-  --border-strong: rgba(255, 255, 255, 0.18);
-  --text: #f3f0ff;
-  --text-2: #cfc8e6;
-  --text-3: #c2bbdb;
-  --text-4: #c5bed9;
+  --border-strong: rgba(255, 255, 255, 0.2);
+  --text: #fafafa;
+  --text-2: #e5e5e5;
+  --text-3: #d4d4d4;
+  --text-4: #d4d4d4;
   /* ── Lightened again 6 Sep: ONE wash was not the worst case ──
      The 31 Aug pass below measured both muted inks against a single
      --surface-3 (a 5% white wash) over the panel. The admin console stacks
@@ -516,23 +547,18 @@
      tokens end up close together because at this ground there is not much
      room below AA to be dim in — that is the palette being honest rather than
      the distinction being lost. */
-  --muted: #c4bfd7;
-  /* Lightened 31 Aug: measured 4.04:1 (dark), 4.39:1 (slate) and 4.37:1
-     (ocean) against the translucent --surface-3, under AA. --surface-3 is a
-     white wash over the panel, which lifts the ground toward the ink, and
-     --muted-2 is the darker of the two muted inks — the one the contrast test
-     did NOT cover until today. It carries the explanatory prose on cards and
-     chips. Least adjustment that clears 4.5. */
-  --muted-2: #c5bfd9;
-  --accent-text: #d6caff;
-  /* Deeper sibling of --accent. Dark inherits
-     --accent (#6d4aff) from :root because the palette is the same purple, but
-     --accent-strong has to be stated or it silently leaks the light value. */
-  --accent-strong: #5535dd;
-  --accent-soft: rgba(124, 92, 255, 0.14);
-  --accent-chip: rgba(124, 92, 255, 0.22);
-  --accent-line: rgba(124, 92, 255, 0.3);
-  --nav: #17142b;
+  --muted: #bdbdbd;
+  /* The darker of the two muted inks. It carries the explanatory prose on
+     cards and chips, so it is measured on --surface-3 as well as the page. */
+  --muted-2: #bababa;
+  --accent-text: #fafafa;
+  /* Stated, not inherited: :root's value is the light accent. */
+  --accent-strong: #fafafa;
+  --accent-soft: #262626;
+  --accent-chip: #2e2e2e;
+  --accent-line: #404040;
+  --mark-rear: #737373;
+  --nav: #0a0a0a;
   /*
     The navigation, stated rather than inherited.
   
@@ -541,34 +567,30 @@
     It is not any more: light has a pale column, and inherited ink
     chosen for it would be dark-on-dark here.
   */
-  --nav-deep: #15122a;
-  --nav-fg: #f3f0ff;
-  --nav-muted: #d6d2e5;
-  --nav-active-bg: rgba(124, 92, 255, 0.18);
-  --nav-active-fg: #c7b6ff;
+  --nav-deep: #171717;
+  --nav-fg: #fafafa;
+  --nav-muted: #b5b5b5;
+  --nav-active-bg: #fafafa;
+  --nav-active-fg: #0a0a0a;
   --nav-line: rgba(255, 255, 255, 0.08);
-  --nav-badge-on: rgba(124, 92, 255, 0.32);
-  /* #ece6ff from #dcd1ff: the count on the ACTIVE row sits on two purple
-     washes stacked over the nav and read 6.69:1 at 11px — AAA wants 7. */
-  --nav-badge-fg: #ece6ff;
+  --nav-badge-on: #262626;
+  --nav-badge-fg: #fafafa;
 
-  /* The code block in dark. The ground is --brand-panel's old value, because
-     that part of it was right — this is the one surface where a near-black
-     slab is what people expect. The inks are far brighter than an editor's:
+  /* The code block in dark. The inks are far brighter than an editor's:
      7:1 on a ground this dark needs a relative luminance around 0.38, which
      rules out every saturated mid-tone Dark+ uses. */
-  --code-bg: #1c1830;
-  --code-border: #2b2545;
-  --code-fg: #ece6ff;
+  --code-bg: #171717;
+  --code-border: #262626;
+  --code-fg: #fafafa;
   --code-head: #e2c9ff;
-  --code-comment: #b3aac9;
+  --code-comment: #bdbdbd;
   --code-str: #9be8b8;
   --code-num: #ffd08a;
   --code-url: #8fd0ff;
   --code-key: #d9b8ff;
   --code-tag: #7cc9f0;
   --code-attr: #86e5d5;
-  --code-punct: #c9c2e0;
+  --code-punct: #d4d4d4;
   --shadow: rgba(0, 0, 0, 0.28);
   --shadow-2: rgba(0, 0, 0, 0.34);
   --ok-fg: #7ee0b2;
@@ -576,73 +598,110 @@
   --warn-fg: #f6cd8b;
   --pdf-bg: rgba(255, 95, 126, 0.18);
   --pdf-fg: #ffb7c5;
+  --star-off: #525252;
   --tag-a-bg: rgba(46, 158, 104, 0.18);
   --tag-a-fg: #7ee0b2;
-  --tag-b-bg: rgba(124, 92, 255, 0.22);
-  --tag-b-fg: #d6caff;
+  --tag-b-bg: rgba(255, 255, 255, 0.1);
+  --tag-b-fg: #e5e5e5;
   --tag-c-bg: rgba(208, 135, 0, 0.2);
   --tag-c-fg: #f6cd8b;
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
-  --label-bg-l: 0.30;
-  --label-fg-l: 0.9;
-    --page-grad: linear-gradient(135deg, #141126 0%, #1c1830 50%, #241d3e 100%);
-    --screen-grad: linear-gradient(180deg, #1b1731 0%, #221c3b 100%);
-    --surface: #241f3c;
-    --surface-2: #1e1a33;
-    --surface-3: rgba(255, 255, 255, 0.05);
-    --sel: #2b2549;
-    --glass: rgba(36, 31, 60, 0.94);
-    --border: rgba(255, 255, 255, 0.08);
+    /* Generated from the [data-theme="dark"] block above and identical to
+       it. Change that block, then copy it here; tests/dark-mirror checks
+       the two agree. */
+    /* Monochrome, inverted: near-white accent with near-black ink on it. The
+       accent, its gradient and --on-accent are stated here rather than
+       inherited from :root, whose values are the light ones. */
+    --focus-ring: #fafafa;
+    --accent: #fafafa;
+    --on-accent: #0a0a0a;
+    --accent-grad: linear-gradient(#fafafa, #fafafa);
+    --hero-grad: linear-gradient(#262626, #262626);
+    --pro-shadow: rgba(0, 0, 0, 0.4);
+    --label-bg-l: 0.30;
+    --label-fg-l: 0.9;
+    --page-grad: linear-gradient(#0a0a0a, #0a0a0a);
+    --screen-grad: linear-gradient(#0a0a0a, #0a0a0a);
+    --surface: #171717;
+    --surface-2: #0a0a0a;
+    /* Opaque, where it was a 5% white wash. A wash lifted the ground toward
+       the ink every time two were stacked (the admin console's tile inside a
+       card), and muted text had to be retuned twice for it. */
+    --surface-3: #262626;
+    --sel: #262626;
+    --glass: rgba(23, 23, 23, 0.94);
+    --border: rgba(255, 255, 255, 0.1);
     --border-soft: rgba(255, 255, 255, 0.06);
-    --border-strong: rgba(255, 255, 255, 0.18);
-    --text: #f3f0ff;
-    --text-2: #cfc8e6;
-    --text-3: #c2bbdb;
-    --text-4: #c5bed9;
-    /* Kept in step with the [data-theme="dark"] block above — see the note
-       there about the doubly washed ground in the admin console. */
-    --muted: #c4bfd7;
-    --muted-2: #c5bfd9;
-    --accent-text: #d6caff;
-    --accent-strong: #5535dd;
-    --accent-soft: rgba(124, 92, 255, 0.14);
-    --accent-chip: rgba(124, 92, 255, 0.22);
-    --accent-line: rgba(124, 92, 255, 0.3);
-    --nav: #17142b;
+    --border-strong: rgba(255, 255, 255, 0.2);
+    --text: #fafafa;
+    --text-2: #e5e5e5;
+    --text-3: #d4d4d4;
+    --text-4: #d4d4d4;
+    /* ── Lightened again 6 Sep: ONE wash was not the worst case ──
+       The 31 Aug pass below measured both muted inks against a single
+       --surface-3 (a 5% white wash) over the panel. The admin console stacks
+       TWO — a .pba-tile inside a .pba-card, each carrying the wash — and every
+       additional layer lifts the ground further toward the ink. On that doubly
+       washed ground --muted measured 3.97:1 and --muted-2 3.92:1, both under
+       AA, which is where every table column header and every tile label in the
+       console lives: the labels that say what each number means.
+
+       Measured on the composited ground, not the declared one. A helper that
+       reads only the nearest background reported a working pill in this product
+       at 1.61:1 when it was really 4.63:1, so the stack is composited properly
+       or the number is fiction.
+
+       Now 4.86:1 on two washes, 5.66:1 on one, 6.98:1 on the page. The two
+       tokens end up close together because at this ground there is not much
+       room below AA to be dim in — that is the palette being honest rather than
+       the distinction being lost. */
+    --muted: #bdbdbd;
+    /* The darker of the two muted inks. It carries the explanatory prose on
+       cards and chips, so it is measured on --surface-3 as well as the page. */
+    --muted-2: #bababa;
+    --accent-text: #fafafa;
+    /* Stated, not inherited: :root's value is the light accent. */
+    --accent-strong: #fafafa;
+    --accent-soft: #262626;
+    --accent-chip: #2e2e2e;
+    --accent-line: #404040;
+    --mark-rear: #737373;
+    --nav: #0a0a0a;
     /*
       The navigation, stated rather than inherited.
-    
+  
       These were declared once in the light block and inherited here,
       which was safe only while --nav was the same near-black in both.
       It is not any more: light has a pale column, and inherited ink
       chosen for it would be dark-on-dark here.
     */
-    --nav-deep: #15122a;
-    --nav-fg: #f3f0ff;
-    --nav-muted: #d6d2e5;
-    --nav-active-bg: rgba(124, 92, 255, 0.18);
-    --nav-active-fg: #c7b6ff;
+    --nav-deep: #171717;
+    --nav-fg: #fafafa;
+    --nav-muted: #b5b5b5;
+    --nav-active-bg: #fafafa;
+    --nav-active-fg: #0a0a0a;
     --nav-line: rgba(255, 255, 255, 0.08);
-    --nav-badge-on: rgba(124, 92, 255, 0.32);
-    /* #ece6ff from #dcd1ff: the count on the ACTIVE row sits on two purple
-       washes stacked over the nav and read 6.69:1 at 11px — AAA wants 7. */
-    --nav-badge-fg: #ece6ff;
-    /* Mirrors the dark block above, values and all. */
-    --code-bg: #1c1830;
-    --code-border: #2b2545;
-    --code-fg: #ece6ff;
+    --nav-badge-on: #262626;
+    --nav-badge-fg: #fafafa;
+
+    /* The code block in dark. The inks are far brighter than an editor's:
+       7:1 on a ground this dark needs a relative luminance around 0.38, which
+       rules out every saturated mid-tone Dark+ uses. */
+    --code-bg: #171717;
+    --code-border: #262626;
+    --code-fg: #fafafa;
     --code-head: #e2c9ff;
-    --code-comment: #b3aac9;
+    --code-comment: #bdbdbd;
     --code-str: #9be8b8;
     --code-num: #ffd08a;
     --code-url: #8fd0ff;
     --code-key: #d9b8ff;
     --code-tag: #7cc9f0;
     --code-attr: #86e5d5;
-    --code-punct: #c9c2e0;
+    --code-punct: #d4d4d4;
     --shadow: rgba(0, 0, 0, 0.28);
     --shadow-2: rgba(0, 0, 0, 0.34);
     --ok-fg: #7ee0b2;
@@ -650,10 +709,11 @@
     --warn-fg: #f6cd8b;
     --pdf-bg: rgba(255, 95, 126, 0.18);
     --pdf-fg: #ffb7c5;
+    --star-off: #525252;
     --tag-a-bg: rgba(46, 158, 104, 0.18);
     --tag-a-fg: #7ee0b2;
-    --tag-b-bg: rgba(124, 92, 255, 0.22);
-    --tag-b-fg: #d6caff;
+    --tag-b-bg: rgba(255, 255, 255, 0.1);
+    --tag-b-fg: #e5e5e5;
     --tag-c-bg: rgba(208, 135, 0, 0.2);
     --tag-c-fg: #f6cd8b;
   }
@@ -1106,7 +1166,7 @@ summary:focus-visible,
   background: var(--accent-grad);
   border: 1px solid transparent;
   border-radius: 10px;
-  color: var(--pbm-on-dark, #fff);
+  color: var(--on-accent);
   cursor: pointer;
   font: inherit;
   font-size: 0.8125rem;

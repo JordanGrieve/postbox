@@ -160,7 +160,7 @@
   place-items: center;
   font-size: 0.78125rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--on-accent);
   background: var(--accent-grad);
   /* Overlapped, as an avatar stack reads. The ring is the cell's own surface,
      so they separate on any theme without a hardcoded colour. */

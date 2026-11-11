@@ -221,7 +221,7 @@
 .pshot-bubble--out {
   align-self: flex-end;
   background: var(--accent-grad);
-  color: #fff;
+  color: var(--on-accent);
 }
 .pshot-meta {
   margin: 3px 0 10px;

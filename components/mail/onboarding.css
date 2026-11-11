@@ -91,7 +91,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .pbo-step[data-done="true"] .pbo-check {
@@ -154,7 +154,7 @@
   font-size: 0.78125rem;
   font-weight: 700;
   background: var(--accent-grad);
-  color: #fff;
+  color: var(--on-accent);
   white-space: nowrap;
 }
 
