@@ -47,8 +47,8 @@ monthly email allowances (3,000 / 15,000 / 80,000) are enforced at send time;
 the ticket and subscriber caps are metered but never block a customer.
 
 **Quality gates.** CI runs typecheck, lint, 1,731 tests across 121 files, and
-a production build on every push. `main` has no branch protection, so a merge
-does not wait for CI unless somebody waits for it. Five render harnesses draw every signed-in
+a production build on every push. Since 11 November `main` is protected: that
+check must pass before anything merges, and force-pushes are blocked. Five render harnesses draw every signed-in
 screen without a login so the accessibility probes can sweep them. The
 product is held to WCAG 2.2 AAA (`STYLE-GUIDE.md`).
 
@@ -77,6 +77,7 @@ not been run.
 - **Line endings** (PR 8, open at the time of writing). A `.gitattributes`
   pins every checkout to LF. Without it, a new worktree on Windows checked out
   CRLF and four tests that compare source text failed there and nowhere else.
+- **Branch protection on `main`.** The CI check is required before a merge.
 - **Housekeeping.** Eight merged local branches and two stale worktrees
   removed.
 
