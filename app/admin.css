@@ -23,9 +23,9 @@
 */
 
 .pba-root {
-  /* The one colour that is not a palette token: text sitting on the accent
-     gradient, which is white in every theme. */
-  --on-accent: #ffffff;
+  /* --on-accent, the ink on the accent, is a palette token in globals.css
+     since 11 Nov 2026: white in light, near-black in dark, where the accent
+     inverts. It was declared here as white for every theme. */
   /*
     ── AAA INK FOR THE CONSOLE'S OWN GROUNDS ──
     The console is dark in every theme and paints its cards as a 5% white
@@ -107,7 +107,10 @@
   font-size: 1rem;
   font-weight: 800;
   letter-spacing: -0.01em;
-  color: var(--on-accent);
+  /* The name sits on the navigation column, not on the accent tile beside
+     it. It read --on-accent, which was white on a light column: 1:1 in the
+     light theme, found by the AAA sweep on 11 Nov 2026. */
+  color: var(--nav-fg);
   line-height: 1.15;
 }
 

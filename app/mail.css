@@ -23,7 +23,9 @@
     reading this for nav text, the workspace name and the account email,
     rendered white on a #f6f3fc column at 1.1:1. They take --nav-fg now.
   */
-  --pbm-on-dark: #fff;
+  /* The accent is near-white in dark since 11 Nov 2026, so this follows
+     the palette rather than being white. */
+  --pbm-on-dark: var(--on-accent);
   /* The nav's hairline, per palette — see --nav-line in globals.css. This
      alias keeps the five rules that use it spelled the way they were. */
   --pbm-nav-line: var(--nav-line);
@@ -2836,7 +2838,7 @@
   /* --accent-grad, not --accent: white on the flat accent is 3.20:1 in forest
      and 3.01:1 in slate. See the note on .pbo-go in onboarding.css. */
   background: var(--accent-grad);
-  color: #fff;
+  color: var(--on-accent);
   font-size: 0.78125rem;
   font-weight: 700;
   cursor: pointer;

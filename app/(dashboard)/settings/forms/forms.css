@@ -145,7 +145,7 @@
 .pbf-btn--primary {
   background: var(--accent-grad);
   border-color: transparent;
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .pbf-new {

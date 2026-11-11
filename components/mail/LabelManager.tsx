@@ -316,7 +316,7 @@ export default function LabelManager({
         /* Lit when the custom colour is the one in force, so
            exactly one swatch in this group is ever ringed. */
         data-on={row.colorHex !== null || undefined}
-        value={row.colorHex ?? "#8b6bff"}
+        value={row.colorHex ?? "#737373"}
         onChange={(e) =>
           void patch(row.id, { colorHex: e.target.value })
         }
@@ -535,7 +535,7 @@ export default function LabelManager({
                 className="pbm-label-pick"
                 aria-label="Pick any colour for the new label"
                 data-on={newHex !== null || undefined}
-                value={newHex ?? "#8b6bff"}
+                value={newHex ?? "#737373"}
                 onChange={(e) => setNewHex(e.target.value)}
               />
             </div>

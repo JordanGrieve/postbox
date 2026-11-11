@@ -42,23 +42,18 @@ export default function manifest(): MetadataRoute.Manifest {
     // of landscape on a tablet.
     orientation: "any",
 
-    // A SINGLE static value has to sit under both themes, light and dark.
-    // Picking a light surface (#FFFFFF) gives the dark theme a white title
-    // bar; picking a dark surface (#241F3C) gives the light theme a dark one.
-    // Either reads as broken. The brand accent is the least-wrong answer: a
-    // saturated purple chrome bar reads as deliberate branding against every
-    // theme rather than as a mismatched surface.
-    //
-    // The genuinely correct fix is a media-scoped pair of <meta name="theme-color">
-    // tags via a `viewport` export in app/layout.tsx, which the manifest value
-    // then only backstops. That file is owned by another agent — see the report.
-    theme_color: "#6D4AFF",
+    // A SINGLE static value has to sit under both themes. The media-scoped
+    // pair in app/layout.tsx's `viewport` export is what browsers actually
+    // use; this only backstops it. Near-black since the palette went
+    // monochrome on 11 Nov 2026: a black chrome bar reads as deliberate in
+    // either theme, as the purple one did before it.
+    theme_color: "#0A0A0A",
 
-    // Paints the Android splash screen behind the icon. Same one-value-six-themes
-    // problem, resolved the other way: a dark splash flashing before a light app
-    // is far less unpleasant than a full-brightness flash before a dark app, and
-    // the purple/white icon has good contrast on it.
-    background_color: "#241F3C",
+    // Paints the Android splash screen behind the icon. Dark, because a dark
+    // splash before a light app is far less unpleasant than a full-brightness
+    // flash before a dark one, and the black tile with its white mark sits
+    // on it as one shape.
+    background_color: "#0A0A0A",
 
     categories: ["business", "productivity"],
     lang: "en",
@@ -66,7 +61,7 @@ export default function manifest(): MetadataRoute.Manifest {
 
     icons: [
       // "any" — rendered as-is (Chrome install prompt, desktop, older Android).
-      // Purple squircle plate so the mark never floats on an unknown wallpaper.
+      // Near-black squircle plate so the mark never floats on an unknown wallpaper.
       { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
       // "maskable" — Android applies its own shape mask (often a circle) and

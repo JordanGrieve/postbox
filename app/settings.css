@@ -66,7 +66,7 @@
   border: none;
   border-radius: 13px;
   background: var(--accent-grad);
-  color: var(--pbm-on-dark, #fff);
+  color: var(--on-accent);
   font-size: 0.8125rem;
   font-weight: 700;
   cursor: pointer;
@@ -660,7 +660,7 @@
 
 .pbs-tab[data-active="true"] {
   background: var(--accent-grad);
-  color: #fff;
+  color: var(--on-accent);
   box-shadow: 0 4px 10px var(--glow);
 }
 
@@ -1548,8 +1548,11 @@
   color: var(--code-url);
 }
 
+/* Weight, not hue: keywords were purple until 11 Nov 2026, and a grey that
+   only differs from the ink by a shade would not mark them at all. */
 .sti-code .hl-key {
   color: var(--code-key);
+  font-weight: 700;
 }
 
 .sti-code .hl-tag {

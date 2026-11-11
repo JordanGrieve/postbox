@@ -105,7 +105,7 @@
   border: 0;
   border-radius: 12px;
   background: var(--accent-grad);
-  color: #ffffff;
+  color: var(--on-accent);
   font: inherit;
   font-size: 0.9375rem;
   font-weight: 700;

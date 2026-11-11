@@ -44,8 +44,8 @@ export default function OpengraphImage() {
           justifyContent: "center",
           // The dark brand ground, matching the manifest's background_color so
           // the card and an installed app's splash screen agree.
-          background: "#241F3C",
-          color: "#F3F0FF",
+          background: "#0A0A0A",
+          color: "#FAFAFA",
           padding: "72px 80px",
           fontFamily:
             'system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
@@ -68,7 +68,7 @@ export default function OpengraphImage() {
               width: 64,
               height: 64,
               borderRadius: 18,
-              background: "#6D4AFF",
+              background: "#FAFAFA",
             }}
           />
           <div style={{ fontSize: 40, fontWeight: 700, letterSpacing: -1 }}>
@@ -92,7 +92,7 @@ export default function OpengraphImage() {
           style={{
             fontSize: 30,
             lineHeight: 1.4,
-            color: "#A79FD0",
+            color: "#BDBDBD",
             marginTop: 28,
             maxWidth: 860,
           }}

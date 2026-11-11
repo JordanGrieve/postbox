@@ -11,7 +11,7 @@
   asks for it, which the tokens already handle.
 */
 .s-shell {
-  --s-on-accent: #ffffff;
+  --s-on-accent: var(--on-accent);
   background: var(--app-bg);
   color: var(--ink);
   min-height: 100vh;

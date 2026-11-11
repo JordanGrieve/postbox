@@ -21,7 +21,10 @@ export type MarkColors = {
 };
 
 export const TOKEN_COLORS: MarkColors = {
-  rear: "var(--accent-strong)",
+  // Its own token since the palette went monochrome: --accent-strong and
+  // --accent are the same near-black now, and the two messages would merge
+  // into one shape.
+  rear: "var(--mark-rear)",
   front: "var(--accent)",
   knockout: "var(--app-bg)",
 };
@@ -38,9 +41,10 @@ export const TOKEN_COLORS: MarkColors = {
  * --accent-strong and --surface-2 by hand; nothing enforces it.
  */
 export const LITERAL_COLORS: MarkColors = {
-  rear: "#5636e0",
-  front: "#6d4aff",
-  knockout: "#1e1a33",
+  // The dark palette's values: these paint on ErrorShell's near-black page.
+  rear: "#737373",
+  front: "#fafafa",
+  knockout: "#0a0a0a",
 };
 
 export function PostboxMark({

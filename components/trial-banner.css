@@ -122,7 +122,7 @@
      and 3.01:1 in slate, under AA. See the note on .pbo-go in onboarding.css. */
   background: var(--accent-grad);
   /* Not --accent-text: this sits ON the accent, not beside it. */
-  color: #fff;
+  color: var(--on-accent);
   white-space: nowrap;
 }
 
