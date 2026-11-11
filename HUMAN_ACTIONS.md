@@ -1,7 +1,7 @@
 # Human actions — Postbox
 
-**Date:** 11 October 2026 (replaces the 3 August / 22 August / 30 August
-versions). Things only Jordan can do; everything code-side is handled.
+**Date:** 11 November 2026 (updates the 11 October version). Things only
+Jordan can do; everything code-side is handled.
 Ordered by leverage within each group. Tick as you go, and when something is
 done, say so here, because nothing in the repo can tell.
 
@@ -11,6 +11,13 @@ up, confirm or reply to on the AWS side any more.
 
 ## 1 · Do now
 
+- [ ] **Sign in once as a brand-new user** — new on 11 Nov. Since the
+  security fixes that day, a first-time sign-in needs a *verified* primary
+  email address in Clerk; an unverified one is sent to /no-access. Clerk
+  documents Google addresses as verified, but nobody has tried it with a
+  real sign-in. Invite a test address from the operator console and sign in
+  with it once. Existing users are matched by their Clerk id and are not
+  affected. **5 min.**
 - [ ] **Rotate the three exposed secrets** — Clerk `sk_live`, the Neon
   database password and the Resend API key all passed through AI chat
   transcripts during setup in August. Open since 3 August and the oldest
@@ -44,8 +51,10 @@ up, confirm or reply to on the AWS side any more.
 
 - [ ] **Set up staging** — ten minutes of dashboard clicks, documented in
   `DEPLOYMENT.md`: a Neon branch, a Preview-scoped `DATABASE_URL`, dev-instance
-  Clerk keys for previews. Until then every push to `main` deploys straight to
-  the live clients.
+  Clerk keys for previews. Until then every merge to `main` deploys straight
+  to the live clients. Branch protection (11 Nov) now makes that merge wait
+  for CI, which catches a broken build but not a change that works and is
+  wrong.
 - [ ] **Read your Neon CU-hours for last month** — the one number
   `PRICING.md` could not compute. Three scheduled jobs wake the compute on a
   fixed cadence (auto-reply sweep every 15 minutes, campaign sweep hourly,
@@ -56,9 +65,13 @@ up, confirm or reply to on the AWS side any more.
   storage (needs a bucket and keys from you, in secrets, not chat); accept
   the risk. Recommendation: the dump.
 - [ ] **Have the Terms and Privacy pages reviewed by a human** — honest and
-  tailored, written by an AI. The privacy page lists Neon, Clerk, Resend,
-  Vercel, Cloudflare, Sentry and Stripe as sub-processors and describes
-  operator access and the access log; check it still matches what you run.
+  tailored, written by an AI, and rewritten again on 11 Nov 2026 because the
+  live privacy policy still said campaign sending was off and named Amazon
+  SES as a sub-processor. It now lists Neon, Clerk, Resend, Vercel,
+  Cloudflare, Sentry and Stripe, describes single opt-in as the default, and
+  describes operator access and the access log; check it matches what you
+  run. The terms lost a sentence saying nothing in them was "an offer of a
+  working send today", which was a contractual statement, not only a fact.
 - [ ] **Write the acceptable-use warranty** — the clause where each client
   warrants that their subscriber list was consented. Under PECR, Postbox is
   liable as the party that transmits or instigates a marketing email; the
@@ -67,6 +80,12 @@ up, confirm or reply to on the AWS side any more.
 - [ ] **Decide the Sentry plan** — the free Developer tier (5,000 errors a
   month) is enough. Let the trial lapse rather than upgrading; nothing in the
   code depends on paid features.
+- [ ] **Keep the repository active** — GitHub switches off scheduled
+  workflows in a repository with no commits for 60 days, and the auto-reply
+  sweep, the campaign sweep and the daily health check are all scheduled
+  workflows. Nothing in the product notices when they stop. The project went
+  29 days without a commit before 11 Nov 2026. Next deadline, if nothing is
+  committed: about 10 January 2027. Any commit resets it.
 - [ ] **Check the `.help` renewal** — year one was £1.99; renewal is roughly
   £20–30. Confirm auto-renew and a valid card at the registrar. Everything
   dies with the domain.
@@ -115,3 +134,9 @@ reads but cannot report on.
 - Amazon SES removed, campaigns sending through Resend (14 Sep).
 - Contact page and the Postbox workspace it posts into (30 Aug; key status
   unverified, see §3).
+- Branch protection on `main` (11 Nov): the CI check must pass before a
+  merge; force-pushes and deleting `main` are blocked. No approval is
+  required, since GitHub will not let you approve your own PR, and as admin
+  you can still override with `gh pr merge --admin` in an emergency.
+- Next.js 16.4.6 (11 Nov), which closed a critical advisory published while
+  the project was idle.
