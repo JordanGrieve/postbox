@@ -1,15 +1,16 @@
 # Postbox — Project Status
 
-**Date:** 11 October 2026
-**Repo:** `JordanGrieve/Ticket-System` (public) · **Live:** https://postbox.help
+**Date:** 11 November 2026 (updates the 11 October version)
+**Repo:** `JordanGrieve/postbox` (public; renamed from `Ticket-System`, which
+still redirects) · **Live:** https://postbox.help
 
-This replaces the 23 August version in full. That one described a product
-waiting on Amazon SES; SES has since been removed, campaigns have sent to real
-subscribers through Resend, billing and usage limits exist, and the whole
-interface was rebuilt to WCAG 2.2 AAA. Nearly every section of the old
-document was wrong, so it was rewritten rather than patched. `BACKEND-REVIEW.md`
+The product did not change between 13 October and 11 November; nothing was
+committed. This update records one day's work after that pause: the legal
+pages brought up to date, a critical Next.js advisory closed, and the three
+security gaps that led the known-gaps list closed. `BACKEND-REVIEW.md`
 (11 Sep) carries a status note at the top saying which of its findings still
-stand; `docs/NEWSLETTER.md` is current as of today.
+stand; `docs/NEWSLETTER.md` is current as of 11 October and nothing since has
+changed it.
 
 ## What Postbox is
 
@@ -20,7 +21,7 @@ customer responses thread back into the same ticket. Since September it also
 carries the client's newsletter: a signup form, a welcome email, a composer
 with an image and products, and a send pipeline.
 
-Built on Next.js 16.3.8, React 19.2, Neon Postgres (Drizzle), Clerk (production
+Built on Next.js 16.4.6, React 19.2, Neon Postgres (Drizzle), Clerk (production
 instance, Google OAuth), Resend (all mail, inbound and outbound), Stripe
 (billing), Sentry. Deployed on Vercel in London next to the database.
 
@@ -45,17 +46,41 @@ tickets, 100 subscribers and 500 emails, whichever runs out first. Per-plan
 monthly email allowances (3,000 / 15,000 / 80,000) are enforced at send time;
 the ticket and subscriber caps are metered but never block a customer.
 
-**Quality gates.** CI runs typecheck, lint, 1,697 tests across 116 files, and
-a production build on every push. Five render harnesses draw every signed-in
+**Quality gates.** CI runs typecheck, lint, 1,731 tests across 121 files, and
+a production build on every push. `main` has no branch protection, so a merge
+does not wait for CI unless somebody waits for it. Five render harnesses draw every signed-in
 screen without a login so the accessibility probes can sweep them. The
 product is held to WCAG 2.2 AAA (`STYLE-GUIDE.md`).
 
-**Dependencies.** Next.js 16.3.8 as of 11 October, which closed seven
-advisories including an SSRF in image optimisation. `npm audit` shows five
-highs, all one root cause (braces, reached through eslint-config-next) with no
-patched version published anywhere; lint-time only.
+**Dependencies.** Next.js 16.4.6 as of 11 November, which closed a critical
+advisory against `next` that was published while the project was idle.
+`npm audit` shows 18: 16 moderate and two high. The highs are `happy-dom`
+(test-only) and `zod` (transitive); `npm audit fix` is offered for both and has
+not been run.
 
-## What changed since 23 August, by theme
+## What changed since 11 October
+
+- **Legal pages** (PR 6). The privacy policy was dated 31 August and still said
+  campaign sending was not live, named Amazon SES as a sub-processor, described
+  double opt-in as the only way onto a list, and never mentioned Stripe. All
+  false. Rewritten against the code, with the terms brought into line. Three
+  further corrections came from review: a soft bounce is not recorded in the
+  campaign report, the trash purge is daily rather than at day 30 exactly, and
+  the welcome email can be switched off.
+- **Next.js 16.3.8 to 16.4.6** (PR 6), with `eslint-config-next` to match.
+- **Three security gaps closed** (PR 7), the first three of the old known-gaps
+  list. A workspace invite and the operator lookup now need Clerk's verified
+  primary address (`lib/clerk-email.ts`). `/api/inbound` has a workspace bucket
+  and a per-sender bucket and answers 429, so Resend redelivers. Test send
+  reads the billing entitlement and answers 402. Each new test was run against
+  the code with its fix removed and went red.
+- **Line endings** (PR 8, open at the time of writing). A `.gitattributes`
+  pins every checkout to LF. Without it, a new worktree on Windows checked out
+  CRLF and four tests that compare source text failed there and nowhere else.
+- **Housekeeping.** Eight merged local branches and two stale worktrees
+  removed.
+
+## What changed between 23 August and 11 October, by theme
 
 **Mail provider.** Amazon denied SES production access on 26 August. On 11
 September `CAMPAIGN_DELIVERY_MODE=resend` was added and on 14 September the SES
@@ -101,33 +126,32 @@ without casts. See `AGENTS.md` for the rules each of these produced.
 
 ## Known gaps
 
-Ordered by how much they matter. The first three, from `BACKEND-REVIEW.md`,
-were closed on 11 November 2026 and are kept here so the numbering below
-still matches older references.
+Ordered by how much they matter. The three that led this list on 11 October
+(email verification, the inbound rate limit, the test-send entitlement) were
+closed on 11 November; see above.
 
-1. ~~Email verification is never checked when an address claims an invite or
-   elevates to super-admin.~~ Fixed: a verified primary address is required.
-2. ~~`/api/inbound` has no rate limit.~~ Fixed: two durable buckets, 429 on
-   refusal so Resend redelivers.
-3. ~~Test sends bypass the plan entitlement.~~ Fixed: 402 when sending is
-   blocked.
-4. **Stripe webhook has no event dedupe and ignores invoice events.**
+1. **Nothing detects a dead sweep.** GitHub disables scheduled workflows in a
+   repository with no commits for 60 days, and health can say "not
+   configured" but not "no tick for three days". It came close: the project
+   went 29 days without a commit before 11 November. Next deadline, if nothing
+   is committed: about 10 January 2027.
+2. **Stripe webhook has no event dedupe and ignores invoice events.**
    Out-of-order delivery can write stale plan data over newer state.
-5. **Consent is enforced in application code only**, at materialisation.
+3. **Consent is enforced in application code only**, at materialisation.
    Suppression has three SQL backstops; consent has none.
-6. **Nothing detects a dead sweep.** GitHub disables scheduled workflows after
-   60 days without a commit; health can say "not configured" but not "no tick
-   for three days".
-7. **Auto-reply delays of 5 minutes and 1 hour are in the type and nothing
+4. **Auto-reply delays of 5 minutes and 1 hour are in the type and nothing
    schedules them.** Hidden in the UI; `SUPPORTED_DELAYS` is still immediate
    only.
-8. **Invites have no token and no expiry.** No Clerk webhook, so a deleted
+5. **Invites have no token and no expiry.** No Clerk webhook, so a deleted
    Clerk user leaves a live agent row.
-9. **No integration tests run SQL.** Every query is mocked. The next serious
-    bug will be in a query and nothing would catch it.
-10. **No staging.** Pushes to `main` deploy straight to production with live
-    clients aboard. `DEPLOYMENT.md` has the ten-minute setup.
-11. **Backups** are Neon's built-ins only.
+6. **No integration tests run SQL.** Every query is mocked. The next serious
+   bug will be in a query and nothing would catch it.
+7. **No staging.** Pushes to `main` deploy straight to production with live
+   clients aboard. `DEPLOYMENT.md` has the ten-minute setup.
+8. **Backups** are Neon's built-ins only.
+9. **The welcome-email test send is not gated on billing.** Left on purpose:
+   real welcome emails are never blocked for billing, so the test follows them.
+   A decision to revisit, not an oversight.
 
 ## Things only Jordan can do
 
@@ -137,9 +161,15 @@ live key, Neon password, Resend key), and turn on 2FA for the Google account
 and the Clerk dashboard. Nothing in the repo can tell whether either has
 happened, which is why every review keeps raising them.
 
+New on 11 November: **sign in once as a brand-new user.** A first-time
+sign-in now needs a verified primary address in Clerk. Clerk documents Google
+addresses as verified, but this has not been tried with a real sign-in.
+Invite a test address and sign in with it. Existing users are matched by
+their Clerk id and are not affected.
+
 ## Risks
 
-- **Repo is public.** No secrets in code or history (verified again 11 Oct),
+- **Repo is public.** No secrets in code or history (last verified 11 Oct),
   but the documents in it describe the product's own weaknesses. Keep PII in
   the database and keep this file honest rather than flattering.
 - **Bus factor 1.** One operator, one admin account.
@@ -168,7 +198,9 @@ happened, which is why every review keeps raising them.
   server values as arguments and never import `lib/config`.
 - **Documentation drifts silently and dangerously.** A safety claim that has
   become false is load-bearing for the next person's judgement. This file
-  carries a date for that reason; distrust it past a month.
+  carries a date for that reason; distrust it past a month. The public
+  privacy policy proved it: by November it described a mail provider that
+  had been removed two months earlier, to anybody who read it.
 - **Use the feature once, in a browser, before saying it is done.** The first
   real campaign showed a From line of "newsletter" and a doubled comma in the
   postal address. No test in the repo could have seen either.
