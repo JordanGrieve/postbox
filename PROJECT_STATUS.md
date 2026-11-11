@@ -74,9 +74,14 @@ not been run.
   and a per-sender bucket and answers 429, so Resend redelivers. Test send
   reads the billing entitlement and answers 402. Each new test was run against
   the code with its fix removed and went red.
-- **Line endings** (PR 8, open at the time of writing). A `.gitattributes`
+- **Line endings** (PR 8). A `.gitattributes`
   pins every checkout to LF. Without it, a new worktree on Windows checked out
   CRLF and four tests that compare source text failed there and nowhere else.
+- **Black and white** (PR 10). The purple palette is replaced by neutral
+  greys with a near-black accent that inverts to near-white in dark; colour
+  is kept only for status, the star, client-picked labels and code. Colour
+  only, no layout change. Swept at AAA across all 51 harness surfaces in
+  both themes.
 - **Branch protection on `main`.** The CI check is required before a merge.
 - **Housekeeping.** Eight merged local branches and two stale worktrees
   removed.
