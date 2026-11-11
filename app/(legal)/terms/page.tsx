@@ -15,7 +15,7 @@ export default function TermsPage() {
         Terms of Service
       </h1>
       <p style={{ color: "var(--muted)", marginTop: 0 }}>
-        Last updated: 23 August 2026
+        Last updated: 11 November 2026
       </p>
 
       <h2 style={h2}>1. The service</h2>
@@ -27,24 +27,12 @@ export default function TermsPage() {
         invite-only basis.
       </p>
       <p>
-        Postbox is also a mailing-list product. It hosts a double opt-in signup
-        form for your workspace, keeps the subscribers who confirm through it,
-        and is built to send newsletters and campaigns to those lists. Sections
-        5 and 6 set out the terms for that.
+        Postbox is also a mailing-list product. It hosts a signup form for your
+        workspace, keeps the people who subscribe through it, sends them a
+        welcome email, and sends the newsletters and campaigns you compose to
+        them. Both halves are live: campaigns are delivered to real subscribers.
+        Sections 5 and 6 set out the terms for that.
       </p>
-      <div style={notBuilt}>
-        <strong>Signup is available. Sending is not yet.</strong>{" "}
-        The two halves have different statuses. Your signup form works today and
-        real people are confirming subscriptions through it, so sections 5 and 6
-        already bind you in respect of the addresses you collect. Campaign{" "}
-        <em>delivery</em> is switched off: the composer, audience selection,
-        scheduling, unsubscribe handling and the delivery integration are all
-        built, but the system is configured to record what a campaign would have
-        sent and to transmit nothing, and our sending account is still
-        restricted to test addresses. No campaign has been delivered to anyone.
-        Nothing in these terms is an offer of a working send today, or a
-        commitment to a date.
-      </div>
 
       <h2 style={h2}>2. Accounts</h2>
       <p>
@@ -120,8 +108,9 @@ export default function TermsPage() {
         As things stand, those rules are easier to keep than they sound, because
         Postbox gives you no way to break them: there is no import feature and
         no way to add a subscriber by hand. The only route onto one of your
-        lists is someone entering their address on your signup form and then
-        confirming it from their own mailbox. If we add an import, these rules
+        lists is someone entering their address on your signup form (and, where
+        we have set your workspace to double opt-in, confirming it from their
+        own mailbox). If we add an import, these rules
         are what will govern it, and the consent evidence it demands will not be
         optional.
       </p>
@@ -207,21 +196,4 @@ const h2: React.CSSProperties = {
   fontSize: "1.0625rem",
   fontWeight: 700,
   margin: "26px 0 6px",
-};
-
-/**
- * Status marker. Mirrors the one on /privacy, and for the same corrected
- * reason: signup is LIVE and delivery is not, so a single "none of this exists
- * yet" box would understate the obligations that already bite on the addresses
- * a client is collecting today.
- */
-const notBuilt: React.CSSProperties = {
-  background: "var(--warn-bg)",
-  // See the note on /privacy: --warn-fg is a badge colour and is not contrasty
-  // enough for a paragraph, so it carries the rule and --text carries the copy.
-  color: "var(--text)",
-  borderLeft: "3px solid var(--warn-fg)",
-  borderRadius: "0 8px 8px 0",
-  padding: "10px 14px",
-  margin: "10px 0 14px",
 };

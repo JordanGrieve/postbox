@@ -16,7 +16,7 @@ export default function PrivacyPage() {
         Privacy Policy
       </h1>
       <p style={{ color: "var(--muted)", marginTop: 0 }}>
-        Last updated: 31 August 2026
+        Last updated: 11 November 2026
       </p>
 
       <h2 style={h2}>Who is responsible for what</h2>
@@ -63,12 +63,12 @@ export default function PrivacyPage() {
         the <strong>date and time</strong> it was captured, a{" "}
         <strong>description of where</strong> it came from (normally the URL of
         the page the signup form was on), and the{" "}
-        <strong>IP address</strong> the confirmation click arrived from.
+        <strong>IP address</strong> the signup arrived from.
       </p>
       <p>
         The IP address is named separately because it is personal data in its
         own right and it is easy to miss in a list. It is recorded once, at the
-        moment someone confirms their subscription, and never updated after
+        moment someone subscribes, and never updated after
         that. It is stored exactly as our host handed it to us and is never
         matched against anything, geolocated, or used to identify anyone
         outside of a question about whether a particular subscription was real.
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
       <p>
         Solely to operate the service: creating tickets, sending replies and
         notifications, threading conversations, and sending campaigns our
-        clients compose to lists they own. We do not sell data, use it for
+        clients compose to their own subscribers. We do not sell data, use it for
         advertising, or train models on it. We do not mail anyone on our own
         behalf from a client&rsquo;s list, and we never combine one
         client&rsquo;s data with another&rsquo;s.
@@ -187,41 +187,47 @@ export default function PrivacyPage() {
       </p>
 
       <h2 style={h2}>Marketing email</h2>
-      <div style={notBuilt}>
-        <strong>Signup forms are live. Sending is not.</strong>{" "}
-        These two halves have different statuses and it matters which one you
-        are asking about. The hosted signup form is live: people are confirming
-        subscriptions today, and everything described in this section about
-        collection, consent and unsubscribing applies to them now. Campaign{" "}
-        <em>delivery</em>{" "}
-        is not yet available to clients. The composer,
-        audience selection, the scheduler, the unsubscribe endpoint and the
-        Amazon SES integration are all built and switched on, and on 23 August
-        2026 we sent one test message through them &mdash; to our own operator
-        address, to check it arrived correctly. Our Amazon account is still
-        restricted to addresses we have verified ourselves, so no campaign has
-        been delivered to a subscriber, and no subscriber has received anything
-        beyond the confirmation email they asked for.
-      </div>
       <p>
-        <strong>How someone gets on a list.</strong>{" "}
-        There is exactly one way, and it is double opt-in. Someone enters their
-        address on a signup form; we write nothing at all; we send one email
-        containing a link; they open it and press a button on the page it leads
-        to. Only then does a subscriber record come into existence. If the link
-        is never clicked, no record of that submission is ever created &mdash;
-        an unconfirmed signup leaves nothing behind. The link is a signed token,
-        so nobody can mint one for an address they do not control, and it
-        expires after 14 days.
+        Signup forms and campaign sending are both live. Our clients collect
+        subscribers through a signup form we host for them and send newsletters
+        to those subscribers from within Postbox; the first campaign was
+        delivered on 14 September 2026. Everything in this section describes
+        what happens today.
       </p>
       <p>
-        Two details are deliberate. Clicking the link in your mail client does
-        not subscribe you on its own &mdash; a button press on the page does,
-        because corporate mail scanners open every link in a message and we will
-        not let a scanner consent on your behalf. And the consent timestamp we
-        record is the moment of <em>confirmation</em>, not of submission:
-        somebody typing an address into a form is not evidence that the person
-        who owns it agreed.
+        <strong>How someone gets on a list.</strong>{" "}
+        There is exactly one way in, the signup form, and it works in one of
+        two modes. The default is single opt-in: someone enters their address
+        on the form, a subscriber record is created at that moment, and a
+        welcome email goes out straight away. A workspace can instead be set to
+        double opt-in, and that setting is ours to switch on, not the
+        client&rsquo;s. In that mode we write nothing at all on submission; we
+        send one email containing a link; the person opens it and presses a
+        button on the page it leads to, and only then does a subscriber record
+        come into existence. If the link is never clicked, no record of that
+        submission is ever created. The link is a signed token, so nobody can
+        mint one for an address they do not control, and it expires after 14
+        days.
+      </p>
+      <p>
+        The consent record says which of the two happened, in words, and its
+        timestamp and IP address belong to that same act: the form submission
+        under single opt-in, the button press under double opt-in. Under double
+        opt-in, clicking the link in your mail client does not subscribe you on
+        its own &mdash; the button press on the page does, because corporate
+        mail scanners open every link in a message and we will not let a
+        scanner consent on your behalf.
+      </p>
+      <p>
+        <strong>The welcome email.</strong>{" "}
+        A signup form is public, so under single opt-in anybody can type
+        somebody else&rsquo;s address into one. The welcome email is what puts
+        that right: it is sent the moment an address is added, it says which
+        business it came from, and it carries the same unsubscribe link and
+        one-click unsubscribe headers as every campaign. If you received one
+        you did not ask for, unsubscribing from it stops everything from that
+        business. A client can switch the welcome email off; the unsubscribe
+        link on every later campaign still applies.
       </p>
       <p>
         <strong>There is currently no import feature.</strong>{" "}
@@ -261,10 +267,8 @@ export default function PrivacyPage() {
       <p>
         <strong>What an unsubscribe does.</strong>{" "}
         It takes effect in the same request, with no confirmation step for the
-        one-click version, and it applies to the whole workspace rather than to
-        the one list the campaign drew from. Someone who opts out has not
-        consented to the next message from the same sender under a different
-        list name. The address is added to that workspace&rsquo;s suppression
+        one-click version, and it applies to the whole workspace: every
+        campaign and the welcome email from that business. The address is added to that workspace&rsquo;s suppression
         list and the subscriber record is marked unsubscribed, together, in a
         single database statement, so there is no window in which one happened
         and the other did not. Unsubscribing twice is harmless. Unsubscribing
@@ -274,17 +278,18 @@ export default function PrivacyPage() {
       </p>
       <p>
         <strong>Bounces and complaints.</strong>{" "}
-        Amazon tells us when a message hard-bounces or when a recipient presses
+        Resend tells us when a campaign message hard-bounces or when a recipient presses
         their mail client&rsquo;s spam button. Both are treated as permanent:
         the address is added to that workspace&rsquo;s suppression list and the
         subscriber record is marked accordingly, and it will not be mailed
         again. Temporary failures &mdash; a full mailbox, a server that was down
         &mdash; are recorded against the individual message for the
         client&rsquo;s delivery report and block nothing, because a temporary
-        failure is not evidence that an address is bad. The feedback we receive
-        is the address, the failure type and the provider&rsquo;s diagnostic
-        text; the diagnostic is stored with the suppression and can be seen by
-        the client.
+        failure is not evidence that an address is bad. What we keep from that
+        feedback is the address and the kind of failure the provider reported,
+        stored with the suppression where the client can see it. A bounced
+        support reply is a different matter and suppresses nothing: it is
+        between a business and its own customer.
       </p>
       <p>
         <strong>Retention of subscriber data.</strong>{" "}
@@ -314,34 +319,35 @@ export default function PrivacyPage() {
       <p>
         Postbox runs on infrastructure providers acting as sub-processors:
         Vercel (hosting), Neon (database), Clerk (authentication and sign-in),
-        Resend (transactional email &mdash; sending and receiving), Amazon Web
-        Services (marketing email delivery, see below), Cloudflare (DNS only,
-        which does not carry message content), and Sentry (error monitoring).
+        Resend (all email &mdash; sending and receiving), Stripe (payments,
+        see below), Cloudflare (DNS only, which does not carry message
+        content), and Sentry (error monitoring).
         The application and the database are hosted in London, in the UK. Where
         a provider offers a regional choice we take a UK or EU one; the specific
         regions are named below where they differ.
       </p>
       <p>
         <strong>Resend</strong>{" "}
-        carries all transactional mail: ticket replies,
-        auto-replies, notifications, workspace invitations, and the double
-        opt-in confirmation email sent to someone who fills in a signup form.
-        That last one is worth stating plainly &mdash; a prospective
-        subscriber&rsquo;s address passes through Resend before any campaign
-        machinery is involved. Resend also receives inbound customer email on
-        our clients&rsquo; behalf.
+        carries every email Postbox sends: ticket replies, auto-replies,
+        notifications, workspace invitations, the welcome or confirmation
+        email sent to someone who fills in a signup form, and marketing
+        campaigns. For each message it receives the recipient&rsquo;s email
+        address and the full content &mdash; including, for a campaign, any
+        personalised fields and the unsubscribe link unique to that recipient
+        &mdash; and returns delivery, bounce and complaint information about
+        that address. Resend also receives inbound customer email on our
+        clients&rsquo; behalf. We used to name Amazon Web Services here as the
+        provider for marketing email; that integration was removed on 14
+        September 2026 without ever having sent a campaign to a subscriber.
       </p>
       <p>
-        <strong>Amazon Simple Email Service</strong>{" "}
-        is the provider configured
-        to carry marketing campaigns, in the AWS Europe (Ireland) region. When a
-        campaign sends, SES receives the recipient&rsquo;s email address and the
-        full content of the message &mdash; including any personalised fields
-        and the unsubscribe link unique to that recipient &mdash; and returns
-        delivery, bounce and complaint information about that address. It does
-        not carry ticket replies, notifications or confirmation emails; those go
-        through Resend. As set out above, campaign delivery is currently
-        switched off, so nothing has yet been sent through it.
+        <strong>Stripe</strong>{" "}
+        takes payment for paid plans. When a client starts a subscription we
+        give Stripe the email address of the person signing up and the name of
+        their workspace; card and billing details are entered on Stripe&rsquo;s
+        own pages and never reach our servers. What we keep is Stripe&rsquo;s
+        reference for the customer and the state of their subscription. Stripe
+        sees nothing about a client&rsquo;s customers or subscribers.
       </p>
 
       <h2 style={h2}>Error monitoring</h2>
@@ -376,13 +382,18 @@ export default function PrivacyPage() {
       <p>
         Deleting a workspace permanently removes its tickets, messages,
         contacts, subscribers, lists, suppressions, campaigns and send logs.
-        That is a real, immediate deletion and it is the only one the product
-        performs today. Clients can ask us to do it at any time.
+        That is a real, immediate deletion. Clients can ask us to do it at any
+        time.
       </p>
       <p>
-        Below that level, the honest position is that the software has no
+        A client can also delete a single conversation. It moves to the trash,
+        where it can be restored for 30 days, and after that it is permanently
+        deleted together with every message in it.
+      </p>
+      <p>
+        Beyond that, the honest position is that the software has no
         delete button. There is no way for a client to delete an individual
-        subscriber, contact or ticket from the dashboard, and no self-service
+        subscriber or contact from the dashboard, and no self-service
         route for an individual to erase themselves. A request to remove one
         person is carried out by hand, by us, against the database. We do
         honour verified requests and we will confirm when it is done, but we
@@ -434,24 +445,4 @@ const h2: React.CSSProperties = {
   fontSize: "1.0625rem",
   fontWeight: 700,
   margin: "26px 0 6px",
-};
-
-/**
- * Explicit "the status here is not what you would assume" marker. Rule 5 of
- * AGENTS.md applied to prose: a policy that describes an unbuilt feature in the
- * present tense is a lie with a legal shape, and a policy that describes a LIVE
- * feature as unbuilt is the same mistake pointed the other way. Signup is live
- * and delivery is not, so the box now separates them rather than covering the
- * whole section in one "not yet".
- */
-const notBuilt: React.CSSProperties = {
-  background: "var(--warn-bg)",
-  // Body copy takes --text, not --warn-fg: the warn pair is tuned for small
-  // badges and drops under 4.5:1 for a paragraph in the light themes. The
-  // warning colour carries the rule instead, where contrast doesn't apply.
-  color: "var(--text)",
-  borderLeft: "3px solid var(--warn-fg)",
-  borderRadius: "0 8px 8px 0",
-  padding: "10px 14px",
-  margin: "10px 0 14px",
 };
