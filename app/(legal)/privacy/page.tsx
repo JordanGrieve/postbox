@@ -283,11 +283,11 @@ export default function PrivacyPage() {
         the address is added to that workspace&rsquo;s suppression list and the
         subscriber record is marked accordingly, and it will not be mailed
         again. Temporary failures &mdash; a full mailbox, a server that was down
-        &mdash; are recorded against the individual message for the
-        client&rsquo;s delivery report and block nothing, because a temporary
-        failure is not evidence that an address is bad. What we keep from that
-        feedback is the address and the kind of failure the provider reported,
-        stored with the suppression where the client can see it. A bounced
+        &mdash; suppress nobody, because a temporary failure is not evidence
+        that an address is bad, and they are not recorded against the campaign.
+        For a hard bounce or a complaint, what we keep is the address and the
+        kind of failure the provider reported, stored with the suppression
+        where the client can see it. A bounced
         support reply is a different matter and suppresses nothing: it is
         between a business and its own customer.
       </p>
@@ -387,8 +387,9 @@ export default function PrivacyPage() {
       </p>
       <p>
         A client can also delete a single conversation. It moves to the trash,
-        where it can be restored for 30 days, and after that it is permanently
-        deleted together with every message in it.
+        where it can be restored until it is permanently deleted. After 30 days
+        it and every message in it are due for permanent deletion, which a
+        daily job carries out, normally within a day.
       </p>
       <p>
         Beyond that, the honest position is that the software has no

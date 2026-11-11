@@ -29,8 +29,8 @@ export default function TermsPage() {
       <p>
         Postbox is also a mailing-list product. It hosts a signup form for your
         workspace, keeps the people who subscribe through it, sends them a
-        welcome email, and sends the newsletters and campaigns you compose to
-        them. Both halves are live: campaigns are delivered to real subscribers.
+        welcome email unless you have switched it off, and sends the
+        newsletters and campaigns you compose to them. Both halves are live: campaigns are delivered to real subscribers.
         Sections 5 and 6 set out the terms for that.
       </p>
 
@@ -153,8 +153,8 @@ export default function TermsPage() {
       </p>
       <p>
         Temporary delivery failures are treated differently and do not suppress
-        anyone: a full mailbox is recorded against that message in your report
-        and nothing is blocked.
+        anyone: a full mailbox blocks nothing, and it is not recorded in your
+        campaign report.
       </p>
       <p>
         We may throttle, pause or stop a campaign that is generating bounces or
