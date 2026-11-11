@@ -15,6 +15,7 @@ import {
 } from "./impersonation";
 import { getAgentWithWorkspaceByClerkId, getWorkspaceById } from "./data";
 import { claimInviteForEmail, resolveWorkspace } from "./workspace";
+import { verifiedPrimaryEmail } from "./clerk-email";
 
 /**
  * The signed-in viewer. Three states:
@@ -53,14 +54,13 @@ export type Viewer =
 /** Cookie holding the workspace id an admin is currently viewing. */
 export const ADMIN_WS_COOKIE = "pb_admin_ws";
 
+// Empty when the account has no verified primary address. Every use below
+// already treats "" as "matches nobody": the admin lookup is skipped and
+// resolveWorkspace applies the same rule itself. See lib/clerk-email.ts.
 function primaryEmail(
   user: Awaited<ReturnType<typeof currentUser>>,
 ): string {
-  return (
-    user?.primaryEmailAddress?.emailAddress ??
-    user?.emailAddresses?.[0]?.emailAddress ??
-    ""
-  ).toLowerCase();
+  return verifiedPrimaryEmail(user) ?? "";
 }
 
 /**

@@ -101,16 +101,16 @@ without casts. See `AGENTS.md` for the rules each of these produced.
 
 ## Known gaps
 
-Ordered by how much they matter. The first three are from `BACKEND-REVIEW.md`
-and are still open.
+Ordered by how much they matter. The first three, from `BACKEND-REVIEW.md`,
+were closed on 11 November 2026 and are kept here so the numbering below
+still matches older references.
 
-1. **Email verification is never checked when an address claims an invite or
-   elevates to super-admin.** Safe today only because sign-in is Google OAuth
-   alone. Half an hour to fix.
-2. **`/api/inbound` has no rate limit.** Every other public write path has two
-   durable buckets.
-3. **Test sends bypass the plan entitlement.** They count against the daily
-   quota but an expired trial can still send one message per call.
+1. ~~Email verification is never checked when an address claims an invite or
+   elevates to super-admin.~~ Fixed: a verified primary address is required.
+2. ~~`/api/inbound` has no rate limit.~~ Fixed: two durable buckets, 429 on
+   refusal so Resend redelivers.
+3. ~~Test sends bypass the plan entitlement.~~ Fixed: 402 when sending is
+   blocked.
 4. **Stripe webhook has no event dedupe and ignores invoice events.**
    Out-of-order delivery can write stale plan data over newer state.
 5. **Consent is enforced in application code only**, at materialisation.

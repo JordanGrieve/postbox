@@ -7,6 +7,7 @@ import { workspaces, agents, type Workspace, type Agent } from "@/db/schema";
 import { INBOUND_DOMAIN, OPEN_SIGNUP } from "./config";
 import { forwardedIp } from "./http";
 import { rateLimitDurable } from "./rate-limit-store";
+import { verifiedPrimaryEmail } from "./clerk-email";
 
 import { seedStarterLabels } from "./labels";
 
@@ -207,13 +208,15 @@ async function _resolveWorkspace(): Promise<ResolvedWorkspace | null> {
   }
 
   const user = await currentUser();
-  const email = (
-    user?.primaryEmailAddress?.emailAddress ??
-    user?.emailAddresses?.[0]?.emailAddress ??
-    "owner@example.com"
-  )
-    .trim()
-    .toLowerCase();
+  // No verified primary address means no identity to match an invite on, and
+  // none to put on a new workspace as its sending address. This used to fall
+  // back to any address on the account and then to a made-up one, so an
+  // unverified address could claim an invite. Null sends them to /no-access.
+  const email = verifiedPrimaryEmail(user);
+  if (!email) {
+    console.warn("[workspace] sign-in with no verified primary email; no access");
+    return null;
+  }
 
   // 2. Claim a pending invite (or demo seed) that was prepared for this email.
   const claimed = await claimInviteForEmail(email, userId);

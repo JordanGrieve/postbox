@@ -1,6 +1,7 @@
 import { json } from "@/lib/http";
 import { verifySvixSignature } from "@/lib/svix";
 import { tokensEqual } from "@/lib/tokens";
+import { rateLimitDurable } from "@/lib/rate-limit-store";
 import {
   getWorkspaceByInboundEmail,
   getWorkspaceById,
@@ -138,6 +139,8 @@ export async function POST(req: Request) {
     if (ref != null) {
       const ticket = await lookupTicketAnyWorkspace(ref.id);
       if (ticket && ticket.replyToken && ref.token && tokensEqual(ref.token, ticket.replyToken)) {
+        const limited = await inboundLimited(ticket.workspaceId, sender.email);
+        if (limited) return limited;
         // The customer's reply tells us the real Message-ID SES assigned to
         // OUR last reply (their In-Reply-To). Learn it so future replies can
         // reference the full chain.
@@ -165,6 +168,8 @@ export async function POST(req: Request) {
   for (const addr of recipients) {
     const workspace = await getWorkspaceByInboundEmail(addr);
     if (workspace) {
+      const limited = await inboundLimited(workspace.id, sender.email);
+      if (limited) return limited;
       const { source, orderId } = classifyInbound(subject, body);
       await upsertContact(
         workspace.id,
@@ -194,6 +199,62 @@ export async function POST(req: Request) {
 
   // Nothing matched — acknowledge so Resend doesn't retry endlessly.
   return json({ ok: true, ignored: true });
+}
+
+// ── rate limit ───────────────────────────────────────────────────
+
+/**
+ * Two durable buckets, the same pair the form route uses, checked at the point
+ * a message is about to be written. Every accepted message here writes a row,
+ * sends the workspace a notification and may send the customer an auto-reply,
+ * and until 11 Nov 2026 nothing bounded how often.
+ *
+ * The workspace bucket is the real bound: it stops a flood at one client from
+ * spending the shared mail allowance. The sender bucket is the cheap one that
+ * catches a single runaway mailbox first; a From address is forgeable, so it
+ * cannot be the only one.
+ *
+ * There is no IP bucket because every delivery comes from Resend.
+ *
+ * A refusal is a 429 with Retry-After, never a 200. Resend redelivers a
+ * webhook that was not acknowledged, so a real customer's email caught by this
+ * arrives late; answering 200 would drop it for good.
+ *
+ * Returns the response to send, or null to carry on.
+ */
+const INBOUND_PER_SENDER = { max: 10, windowMs: 60_000 };
+
+async function inboundLimited(
+  workspaceId: number,
+  senderEmail: string,
+): Promise<Response | null> {
+  const buckets: Array<[string, { max: number; windowMs: number } | undefined]> = [
+    [`inbound:ws:${workspaceId}`, undefined],
+    // Capped: the address is the sender's to choose and this is a key.
+    [`inbound:from:${workspaceId}:${senderEmail.slice(0, 254)}`, INBOUND_PER_SENDER],
+  ];
+  for (const [bucket, opts] of buckets) {
+    const limit = opts
+      ? await rateLimitDurable(bucket, opts)
+      : await rateLimitDurable(bucket);
+    if (!limit.ok) {
+      // Logged with the workspace so the operator can see WHOSE inbox is being
+      // throttled. The sender is left out: it is a customer's address.
+      console.warn(
+        "[inbound] rate limited: workspace %d, bucket %s",
+        workspaceId,
+        bucket.startsWith("inbound:ws:") ? "workspace" : "sender",
+      );
+      return json(
+        { error: "Too many messages. Try again shortly." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(limit.retryAfterSeconds) },
+        },
+      );
+    }
+  }
+  return null;
 }
 
 // ── auth helpers ─────────────────────────────────────────────────

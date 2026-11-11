@@ -24,7 +24,11 @@ Read §3 first if you only read one part. It answers the question you asked.
 > - **S3: done.** The reply-token compare went constant-time on 11 Oct; the
 >   query-string secret was removed and the header compare made constant-time
 >   on 13 Oct.
-> - **Still open:** S1, S2, S4, S5, M2, M5, M6, L1, L2, L4, L7, and Phase 4
+> - **S1, S2, S4: done** on 11 Nov. A workspace invite and the operator
+>   lookup now need a verified primary address (`lib/clerk-email.ts`);
+>   `/api/inbound` has a workspace bucket and a sender bucket and answers 429;
+>   test-send reads the entitlement and answers 402.
+> - **Still open:** S5, M2, M5, M6, L1, L2, L4, L7, and Phase 4
 >   (no test runs SQL). L3's exit columns are still outside the chain. L5, L6
 >   and L8 were not re-checked.
 > - The test count is 1,697 across 116 files now, still all mocked.

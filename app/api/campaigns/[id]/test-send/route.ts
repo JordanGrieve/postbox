@@ -3,6 +3,8 @@ import { json } from "@/lib/http";
 import { rateLimitDurable } from "@/lib/rate-limit-store";
 import { APP_URL } from "@/lib/config";
 import { resolveViewer } from "@/lib/viewer";
+import { getWorkspaceEntitlement } from "@/lib/billing-query";
+import { describeBlock } from "@/lib/trial";
 import { getCampaign } from "@/lib/campaign-send";
 import { generateUnsubscribeToken } from "@/lib/tokens";
 import {
@@ -83,6 +85,23 @@ export async function POST(
     return json(
       { error: "Your account has no email address on it." },
       { status: 400 },
+    );
+  }
+
+  // The same billing gate as the real send (sendCampaignBatch). A test send is
+  // a real email out of the shared account, and without this an expired trial
+  // or a lapsed card could still make mail leave, one message per call. Null
+  // means the workspace row could not be read and does not block, which is
+  // getWorkspaceEntitlement's documented contract.
+  const billing = await getWorkspaceEntitlement(workspace.id);
+  if (billing && !billing.maySendCampaigns) {
+    return json(
+      {
+        error: billing.blockedReason
+          ? describeBlock(billing.blockedReason)
+          : "Newsletter sending is paused for this workspace.",
+      },
+      { status: 402 },
     );
   }
 
