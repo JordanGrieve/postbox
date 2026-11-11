@@ -1548,8 +1548,11 @@
   color: var(--code-url);
 }
 
+/* Weight, not hue: keywords were purple until 11 Nov 2026, and a grey that
+   only differs from the ink by a shade would not mark them at all. */
 .sti-code .hl-key {
   color: var(--code-key);
+  font-weight: 700;
 }
 
 .sti-code .hl-tag {

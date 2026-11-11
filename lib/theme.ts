@@ -62,8 +62,8 @@ export const STATUS_ORDER: TicketStatus[] = ["open", "in_progress", "closed"];
  * always carries an explicit data-theme — see themeAttr.
  */
 export const THEMES = [
-  { key: "light", label: "Light", note: "Lavender, always light" },
-  { key: "dark", label: "Dark", note: "Purple ink" },
+  { key: "light", label: "Light", note: "Black on white" },
+  { key: "dark", label: "Dark", note: "White on black" },
 ] as const;
 
 export type ThemeKey = (typeof THEMES)[number]["key"];

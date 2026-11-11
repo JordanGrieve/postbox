@@ -61,7 +61,7 @@ export default function manifest(): MetadataRoute.Manifest {
 
     icons: [
       // "any" — rendered as-is (Chrome install prompt, desktop, older Android).
-      // Purple squircle plate so the mark never floats on an unknown wallpaper.
+      // Near-black squircle plate so the mark never floats on an unknown wallpaper.
       { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
       { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
       // "maskable" — Android applies its own shape mask (often a circle) and
