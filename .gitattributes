@@ -1,0 +1,18 @@
+# Every text file is LF, in the repository and in every checkout.
+#
+# The repository was already LF throughout. What this fixes is the checkout:
+# with core.autocrlf=true on a Windows machine, a fresh worktree was written
+# out with CRLF, and four tests that compare source text against LF strings
+# failed there while passing on main and in CI. eol=lf overrides autocrlf, so
+# a checkout matches the repository on every machine.
+* text=auto eol=lf
+
+# Binary, so they are never touched.
+*.png binary
+*.ico binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.woff binary
+*.woff2 binary
