@@ -5,7 +5,6 @@ import { recentFeedbackDrops } from "@/lib/feedback-log";
 // signing out from here left their impersonation row open forever.
 import AuditedSignOutButton from "@/components/AuditedSignOutButton";
 import { resolveViewer } from "@/lib/viewer";
-import { listAdmins } from "@/lib/admin";
 import { listWorkspaceSummaries } from "@/lib/data";
 import { recentAccessByWorkspace } from "@/lib/impersonation";
 import { readsForSessions } from "@/lib/impersonation-reads";
@@ -23,7 +22,6 @@ import {
 import type { ConsoleGates } from "./sections";
 import AccountsBrowser from "./AccountsBrowser";
 import {
-  AdminsCard,
   BillingSection,
   DeliverabilitySection,
   OverviewSection,
@@ -115,9 +113,8 @@ export default async function AdminHomePage({
 }) {
   const params = await searchParams;
   const viewer = await resolveViewer();
-  const [accounts, admins, rejections, drops, usage] = await Promise.all([
+  const [accounts, rejections, drops, usage] = await Promise.all([
     listWorkspaceSummaries(),
-    listAdmins(),
     // Fetched for every section rather than only Deliverability: it is three
     // aggregated rows, and a conditional read here would mean the console's
     // data shape changed with the tab, which is a bug waiting to be written.
@@ -332,11 +329,12 @@ export default async function AdminHomePage({
             <main className="pba-content">
               <Banners params={params} />
 
+              {/* The "Postbox admins" card went on 16 Nov 2026: Jordan is the
+                  only operator. Admins are still rows in the admins table and
+                  the viewer still reads them; there is just no screen for
+                  adding or removing one. */}
               {section === "overview" && (
-                <>
-                  <OverviewSection accounts={accounts} gates={gates} />
-                  <AdminsCard admins={admins} viewerEmail={viewer.email} />
-                </>
+                <OverviewSection accounts={accounts} gates={gates} />
               )}
               {section === "billing" && (
                 <BillingSection

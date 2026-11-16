@@ -11,15 +11,16 @@
   Tokens only. No colour is invented here.
 */
 
-/* Company · Owner · Plan · Enquiries · Open · Created · Status.
-   Was six columns; Plan joined it when workspaces.plan gained a writer. */
+/* Company · Owner · Plan · Enquiries · Open · Created · Status · Details.
+   Was six columns; Plan joined it when workspaces.plan gained a writer, and
+   the Details button on 16 Nov 2026, when the side drawer became a modal. */
 .pba-root .pba-row-accounts {
-  grid-template-columns: 1.8fr 1.3fr 1.1fr 0.8fr 0.7fr 1fr 1.1fr;
+  grid-template-columns: 1.8fr 1.3fr 1.1fr 0.8fr 0.7fr 1fr 1.1fr auto;
 }
 
-/* A column wider than the 700px the other tables get away with. */
+/* Wider than the 700px the other tables get away with. */
 .pba-root .pba-grid-accounts {
-  min-width: 880px;
+  min-width: 960px;
 }
 
 /* Workspace · Plan · Stripe says · Paid through · Subscribers · Enquiries */

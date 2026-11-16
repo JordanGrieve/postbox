@@ -25,8 +25,9 @@ import {
 } from "./ui";
 
 /**
- * The panels that hang off a selected account: the drawer, and the two
- * type-the-name confirmations (delete, and replace the ingestion key).
+ * The panels that hang off an account: its details (shown in a modal since
+ * 16 Nov 2026, see AccountsBrowser.tsx), and the two type-the-name
+ * confirmations (delete, and replace the ingestion key).
  *
  * ── WHY THEY ARE NOT IN sections.tsx ──
  *
@@ -144,7 +145,12 @@ function duration(session: ImpersonationSession, state: SessionState): string {
   return `${formatDuration(session.startedAt, session.lastSeenAt)}+`;
 }
 
-export function AccountDrawer({
+/**
+ * One account's details: addresses, plan, counts, operator access, and the
+ * actions that act on it. The body of the account modal; the heading, the
+ * close button and the dialog itself belong to AccountsBrowser.
+ */
+export function AccountDetails({
   account,
   teamSize,
   query,
@@ -152,7 +158,7 @@ export function AccountDrawer({
   reads,
   usage,
 }: {
-  account: WorkspaceSummary | null;
+  account: WorkspaceSummary;
   /** Agents attached to this workspace — real, from listAgentEmails. */
   teamSize: number;
   query: AdminQuery;
@@ -163,30 +169,19 @@ export function AccountDrawer({
   /** This workspace's confirmed subscribers and trial-window tickets. */
   usage: WorkspaceUsage | null;
 }) {
-  if (!account) {
-    return (
-      <aside className="pba-drawer">
-        <p className="pba-card-sub">Pick an account from the table to see its details.</p>
-      </aside>
-    );
-  }
-
   const status = accountStatus(account);
   const closed = account.totalCount - account.openCount;
   const now = new Date();
   const state = billingState(account, now);
 
   return (
-    <aside className="pba-drawer">
-      <div className="pba-drawer-head">
-        <h2 className="pba-drawer-name">{account.name}</h2>
-        <form action={selectWorkspaceAction}>
-          <input type="hidden" name="workspaceId" value={account.id} />
-          <button type="submit" className="pba-linkbtn">
-            Open workspace →
-          </button>
-        </form>
-      </div>
+    <>
+      <form action={selectWorkspaceAction} className="pba-modal-open">
+        <input type="hidden" name="workspaceId" value={account.id} />
+        <button type="submit" className="pba-linkbtn">
+          Open workspace →
+        </button>
+      </form>
 
       <div className="pba-card">
         <dl className="pba-dl">
@@ -303,7 +298,7 @@ export function AccountDrawer({
         )}
       </div>
 
-      <div className="pba-drawer-actions">
+      <div className="pba-modal-actions">
         {/* The reason is optional — making it mandatory only teaches people to
             type "support". It is recorded exactly as given, or as "none". */}
         <form action={selectWorkspaceAction}>
@@ -377,6 +372,6 @@ export function AccountDrawer({
           Delete workspace…
         </Link>
       </div>
-    </aside>
+    </>
   );
 }

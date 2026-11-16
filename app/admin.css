@@ -401,7 +401,7 @@
   color: var(--pdf-fg);
 }
 
-/* ── Body: content + drawer ───────────────────────────────────────────── */
+/* ── Body ─────────────────────────────────────────────────────────────── */
 
 .pba-body {
   flex: 1;
@@ -417,13 +417,95 @@
   padding: 22px;
 }
 
-.pba-drawer {
-  width: 320px;
-  flex: 0 0 320px;
-  border-left: 1px solid var(--border);
+/*
+  ── The account details modal ──
+
+  Replaced a 320px drawer that was always open down the right of the accounts
+  pane (16 Nov 2026). A native <dialog> opened with showModal(), so the page
+  behind is inert and the browser handles focus and Escape.
+
+  The dialog itself has no padding and the inner box scrolls, so a long
+  operator-access list scrolls inside the modal rather than the modal growing
+  past the viewport. A click on the padding of the dialog would count as a
+  click on the dialog, which AccountsBrowser reads as "backdrop"; with no
+  padding on it, only the real backdrop can be that click.
+*/
+.pba-modal {
+  width: min(600px, calc(100vw - 32px));
+  max-height: calc(100vh - 48px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 22px;
   background: var(--surface-2);
+  color: var(--text);
+  box-shadow: 0 24px 60px var(--shadow-2);
+}
+
+.pba-modal::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+}
+
+.pba-modal-inner {
+  max-height: calc(100vh - 50px);
   overflow-y: auto;
-  padding: 20px 18px;
+  padding: 20px 22px 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pba-modal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.pba-modal-title {
+  font-size: 1.125rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+/* 44px, like every other control here. The cross is drawn, not a glyph, so
+   it is the same shape in every font. */
+.pba-modal-close {
+  flex: none;
+  width: var(--tap-min, 44px);
+  height: var(--tap-min, 44px);
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-3);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.pba-modal-close:hover {
+  border-color: var(--border-strong);
+}
+
+.pba-modal-close svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+}
+
+/* "Open workspace" sits right under the title, where the drawer had it. */
+.pba-modal-open {
+  margin-top: -8px;
+}
+
+/* The table's Details button: the same chrome as the rest, sized to the
+   44px floor the other controls on this screen already meet. */
+.pba-btn-details {
+  min-height: var(--tap-min, 44px);
 }
 
 /* ── KPI grid ─────────────────────────────────────────────────────────── */
@@ -592,22 +674,6 @@
   margin-bottom: 14px;
 }
 
-.pba-cols {
-  display: flex;
-  gap: 16px;
-  align-items: flex-start;
-}
-
-.pba-col-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.pba-col-side {
-  width: 360px;
-  flex: 0 0 360px;
-}
-
 /* ── Tables ───────────────────────────────────────────────────────────── */
 
 .pba-table {
@@ -654,20 +720,6 @@
 
 .pba-tbody .pba-row + .pba-row {
   border-top: 1px solid var(--border-soft);
-}
-
-.pba-rowlink {
-  color: inherit;
-  display: block;
-}
-
-.pba-rowlink:hover {
-  color: inherit;
-  background: var(--surface-3);
-}
-
-.pba-rowlink.is-selected {
-  background: var(--accent-soft);
 }
 
 .pba-td {
@@ -740,56 +792,7 @@
   color: var(--muted-2);
 }
 
-/* ── Lists ────────────────────────────────────────────────────────────── */
-
-.pba-list {
-  display: flex;
-  flex-direction: column;
-}
-
-.pba-list-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 0;
-  font-size: 0.8125rem;
-  color: var(--text-2);
-}
-
-.pba-list-row + .pba-list-row {
-  border-top: 1px solid var(--border-soft);
-}
-
-.pba-list-main {
-  flex: 1;
-  min-width: 0;
-}
-
-.pba-list-name {
-  font-size: 0.84375rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.pba-list-sub {
-  font-size: 0.71875rem;
-  color: var(--muted-2);
-  margin-top: 2px;
-  overflow-wrap: anywhere;
-}
-
-/* ── Drawer internals ─────────────────────────────────────────────────── */
-
-.pba-drawer-name {
-  font-size: 1rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  margin: 0;
-}
-
-.pba-drawer-head {
-  margin-bottom: 16px;
-}
+/* ── Account details internals ────────────────────────────────────────── */
 
 .pba-dl {
   margin: 0;
@@ -841,11 +844,21 @@
   margin-top: 4px;
 }
 
-.pba-drawer-actions {
+.pba-modal-actions {
   display: flex;
   flex-direction: column;
   gap: 9px;
-  margin-top: 16px;
+}
+
+/* Three across in the modal, where the drawer only had room for two. */
+.pba-modal .pba-tiles {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 560px) {
+  .pba-modal .pba-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* The opt-in switch: a line of state, then the button that changes it. The
@@ -890,13 +903,6 @@
 
 .pba-input-grow {
   flex: 2 1 220px;
-}
-
-/* Forms that follow a list inside a card (add-admin) need their own gap. */
-.pba-list + .pba-form {
-  margin-top: 14px;
-  padding-top: 14px;
-  border-top: 1px solid var(--border-soft);
 }
 
 .pba-banner {
@@ -979,34 +985,6 @@
   .pba-kpis {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .pba-cols {
-    flex-direction: column;
-    /*
-      ── THE AXIS MOVED, AND align-items CAME WITH IT ──
-      .pba-cols sets `align-items: flex-start` for the two-column desktop
-      layout, where it keeps the side column from stretching to the main
-      column's height. Turning the flex direction to `column` here turns the
-      cross axis from vertical to HORIZONTAL, so that same declaration stopped
-      meaning "don't stretch the height" and started meaning "shrink-wrap the
-      width".
-
-      .pba-col-main then sized to its own max-content — 740px — inside a 375px
-      viewport, and .pba-shell's `overflow: hidden` clipped the excess with
-      nothing to scroll. Half of every card on the overview pane was cut off
-      and unreachable on a phone. .pba-col-side escaped only because it was
-      handed an explicit `width: 100%` below; the main column had `flex: 1`,
-      which governs the main axis and does nothing here.
-
-      Stretch is what stacked columns want in both dimensions.
-    */
-    align-items: stretch;
-  }
-
-  .pba-col-side {
-    width: 100%;
-    flex: 1 1 auto;
-  }
 }
 
 @media (max-width: 980px) {
@@ -1077,14 +1055,6 @@
     overflow-y: visible;
     padding: 16px;
   }
-
-  .pba-drawer {
-    width: 100%;
-    flex: 1 1 auto;
-    border-left: none;
-    border-top: 1px solid var(--border);
-    overflow-y: visible;
-  }
 }
 
 @media (max-width: 560px) {
@@ -1122,19 +1092,25 @@
   cursor: pointer;
 }
 
+/*
+  The same height as the filter pills beside it. The pills are lifted to the
+  44px touch floor by globals.css; this box was a fixed 34px and sat a step
+  shorter than the row it belongs to. Jordan, 16 Nov 2026: "the search bar
+  should be the same size as the pills", and a little wider.
+*/
 .pba-tabsearch {
   position: relative;
   display: flex;
   align-items: center;
   margin-left: auto;
-  min-width: 220px;
+  min-width: 280px;
 }
 
 .pba-tabsearch svg {
   position: absolute;
-  left: 12px;
-  width: 15px;
-  height: 15px;
+  left: 14px;
+  width: 16px;
+  height: 16px;
   fill: none;
   stroke: var(--muted);
   stroke-width: 2;
@@ -1144,8 +1120,8 @@
 
 .pba-tabsearch input {
   width: 100%;
-  height: 34px;
-  padding: 0 12px 0 34px;
+  height: var(--tap-min, 44px);
+  padding: 0 14px 0 38px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--surface-3);
@@ -1155,22 +1131,6 @@
 
 .pba-tabsearch input::placeholder {
   color: var(--muted);
-}
-
-/*
-  A row is a <button> now, not an <a>: it selects a row in a table already on
-  screen rather than going anywhere. Buttons bring their own chrome, so it is
-  taken back off — and `text-align: left` matters, because a button centres its
-  contents and every cell in the table would shift.
-*/
-.pba-rowlink {
-  width: 100%;
-  text-align: left;
-  font: inherit;
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
 }
 
 /*
