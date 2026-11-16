@@ -2,14 +2,13 @@ import { describe, it, expect } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 import { writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
-import type { Admin } from "../db/schema";
 import type { ImpersonationSessionRow } from "../lib/impersonation";
 import type { WorkspaceSummary } from "../lib/data";
 import type { ImpersonationReadRow } from "../lib/impersonation-reads";
 import type { WorkspaceUsage } from "../app/(admin)/admin/queries";
 import type { ConsoleGates } from "../app/(admin)/admin/sections";
 import AccountsBrowser from "../app/(admin)/admin/AccountsBrowser";
-import { AccountDrawer } from "../app/(admin)/admin/account-panels";
+import { AccountDetails } from "../app/(admin)/admin/account-panels";
 import type { ProviderAllowance } from "../app/(admin)/admin/queries";
 import { quotaState } from "../lib/email-quota";
 import type { AdminQuery } from "../app/(admin)/admin/ui";
@@ -17,7 +16,6 @@ import type { IngestionFailureRow } from "../lib/ingestion-log";
 import type { FeedbackDropRow } from "../lib/feedback-log";
 import type { TransactionalTotals, CampaignTotals } from "../app/(admin)/admin/queries";
 import {
-  AdminsCard,
   BillingSection,
   DeliverabilitySection,
   OverviewSection,
@@ -190,10 +188,6 @@ const gates = {
   contactFormLive: false,
 } satisfies ConsoleGates;
 
-const admins = [
-  { id: 1, email: "jordangrieve.dev@gmail.com", clerkUserId: "user_2abc", createdAt: ago(2000) },
-] satisfies Admin[];
-
 /**
  * A harness page for one console pane.
  *
@@ -253,7 +247,6 @@ function shell(pane: string) {
 }
 
 const panes: Record<string, React.ReactElement> = {
-  admins: <AdminsCard admins={admins} viewerEmail="jordangrieve.dev@gmail.com" />,
       accounts: (
         <AccountsBrowser
           accounts={accounts}
@@ -307,15 +300,41 @@ const panes: Record<string, React.ReactElement> = {
           banners={null}
         />
       ),
-      drawer: (
-        <AccountDrawer
-          account={accounts[0]!}
-          teamSize={2}
-          query={query}
-          recentAccess={sessions}
-          reads={reads}
-          usage={usage.get(3)!}
-        />
+      /*
+        The account details modal, open. In the product it is a <dialog>
+        opened with showModal() on a click, which static markup cannot do, so
+        this renders the same markup AccountsBrowser does inside a dialog that
+        is already open. The positioning is the browser's (non-modal "open"
+        places it in the flow); the content, sizes and colours are the real
+        ones, which is what the probes measure.
+      */
+      details: (
+        <dialog open className="pba-modal" aria-labelledby="pba-modal-title">
+          <div className="pba-modal-inner">
+            <div className="pba-modal-head">
+              <h2 id="pba-modal-title" className="pba-modal-title">
+                {accounts[0]!.name}
+              </h2>
+              <button
+                type="button"
+                className="pba-modal-close"
+                aria-label="Close account details"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              </button>
+            </div>
+            <AccountDetails
+              account={accounts[0]!}
+              teamSize={2}
+              query={query}
+              recentAccess={sessions}
+              reads={reads}
+              usage={usage.get(3)!}
+            />
+          </div>
+        </dialog>
       ),
       overview: <OverviewSection accounts={accounts} gates={gates} />,
       billing: <BillingSection accounts={accounts} usage={usage} gates={gates} />,

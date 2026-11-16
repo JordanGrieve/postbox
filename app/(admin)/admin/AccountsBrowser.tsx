@@ -1,13 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { WorkspaceSummary } from "@/lib/data";
 import type { ImpersonationSessionRow } from "@/lib/impersonation";
 import type { ImpersonationReadRow } from "@/lib/impersonation-reads";
 import type { WorkspaceUsage } from "./queries";
 import { describePlan } from "./billing-rollup";
 import { createClientAction } from "./actions";
-import { AccountDrawer, DeletePanel, RotateKeyPanel } from "./account-panels";
+import { AccountDetails, DeletePanel, RotateKeyPanel } from "./account-panels";
 import {
   accountStatus,
   formatDate,
@@ -19,7 +19,22 @@ import {
 } from "./ui";
 
 /**
- * The accounts pane — table, drawer and all — driven from state in the browser.
+ * The accounts pane — table, details modal and all — driven from state in the
+ * browser.
+ *
+ * ── DETAILS IN A MODAL, FROM 16 NOV 2026 ──
+ *
+ * An account's details sat in a 320px drawer down the right of the screen,
+ * always open, always showing whichever row was selected. Jordan, 16 Nov:
+ * "this side bar here should be a modal that we click on the table … we can
+ * remove that side bar which gives us space". So the table now runs the full
+ * width, each row ends in a Details button, and the details open in a native
+ * <dialog>. showModal() gives focus containment, Escape to close, an inert
+ * page behind it and focus returned to the button afterwards, all without a
+ * library — the four things a hand-rolled modal most often gets wrong.
+ *
+ * The notes below about state rather than URLs still hold; "drawer" in them
+ * now means the modal.
  *
  * ── WHY THIS IS A CLIENT COMPONENT ──
  *
@@ -116,9 +131,12 @@ export default function AccountsBrowser({
 }) {
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
-  const [selectedId, setSelectedId] = useState<number | null>(
-    accounts[0]?.id ?? null,
-  );
+  // The account whose details are open, or null for none. Looked up in the
+  // full list rather than the filtered one: typing in the search box behind
+  // an open modal is not possible, and if a refresh drops the row the modal
+  // closes rather than describing something no longer there.
+  const [openId, setOpenId] = useState<number | null>(null);
+  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const needle = q.trim().toLowerCase();
 
@@ -141,15 +159,20 @@ export default function AccountsBrowser({
     return accounts.filter((w) => accountStatus(w) === f).length;
   };
 
-  /*
-    The selection follows the filtering.
+  const open = accounts.find((w) => w.id === openId) ?? null;
 
-    Without this, narrowing the table to rows that exclude the selected client
-    leaves the drawer describing an account that is no longer on screen, and the
-    operator reads it as the row they can see. Derived rather than stored, so
-    the two cannot disagree; the stored id is only a preference.
+  /*
+    Drive the native dialog from state. showModal() can only be called on a
+    connected, closed dialog, hence the checks; close() fires the dialog's own
+    "close" event, which is where state is cleared, so Escape, the close
+    button and a click on the backdrop all end up in the same place.
   */
-  const selected = visible.find((w) => w.id === selectedId) ?? visible[0] ?? null;
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+    if (open && !dialog.open) dialog.showModal();
+    if (!open && dialog.open) dialog.close();
+  }, [open]);
 
   // One clock for the whole table. Read per row, two workspaces either side of
   // a period boundary could be judged against different instants.
@@ -228,6 +251,8 @@ export default function AccountsBrowser({
                   <div>Open</div>
                   <div>Created</div>
                   <div>Status</div>
+                  {/* Named for screen readers; the buttons below say it. */}
+                  <div className="stg-sr-only">Details</div>
                 </div>
               </div>
               <div className="pba-tbody">
@@ -242,34 +267,38 @@ export default function AccountsBrowser({
                 )}
                 {visible.map((w) => (
                   /*
-                    A button, not a link. It selects a row in a table that is
-                    already on screen; it does not go anywhere. Written as a
-                    button so the keyboard gets Enter and Space for free and
-                    assistive technology is told what it does, which a clickable
-                    <div> would have to reimplement and usually does not.
+                    A plain row with one button at the end, rather than the
+                    whole row as a button. The row used to be the button when
+                    clicking it only highlighted it; now a click opens a modal,
+                    and a control that size with no visible label is a surprise.
+                    The button names the account so a screen reader hears
+                    "Details for Amoria", not six "Details" in a row.
                   */
-                  <button
-                    key={w.id}
-                    type="button"
-                    onClick={() => setSelectedId(w.id)}
-                    className={`pba-rowlink${selected?.id === w.id ? " is-selected" : ""}`}
-                    aria-pressed={selected?.id === w.id}
-                  >
-                    <div className="pba-row pba-row-accounts">
-                      <div>
-                        <div className="pba-cell-main">{w.name}</div>
-                        <div className="pba-cell-sub">{w.inboundEmail}</div>
-                      </div>
-                      <div className="pba-td">{w.ownerEmail ?? "—"}</div>
-                      <div className="pba-td">{describePlan(w, now)}</div>
-                      <div className="pba-num">{w.totalCount}</div>
-                      <div className="pba-num">{w.openCount}</div>
-                      <div className="pba-td">{formatDate(w.createdAt)}</div>
-                      <div>
-                        <StatusPill status={accountStatus(w)} />
-                      </div>
+                  <div key={w.id} className="pba-row pba-row-accounts">
+                    <div>
+                      <div className="pba-cell-main">{w.name}</div>
+                      <div className="pba-cell-sub">{w.inboundEmail}</div>
                     </div>
-                  </button>
+                    <div className="pba-td">{w.ownerEmail ?? "—"}</div>
+                    <div className="pba-td">{describePlan(w, now)}</div>
+                    <div className="pba-num">{w.totalCount}</div>
+                    <div className="pba-num">{w.openCount}</div>
+                    <div className="pba-td">{formatDate(w.createdAt)}</div>
+                    <div>
+                      <StatusPill status={accountStatus(w)} />
+                    </div>
+                    <div>
+                      <button
+                        type="button"
+                        className="pba-btn pba-btn-details"
+                        onClick={() => setOpenId(w.id)}
+                        aria-haspopup="dialog"
+                        aria-label={`Details for ${w.name}`}
+                      >
+                        Details
+                      </button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -309,14 +338,63 @@ export default function AccountsBrowser({
         </div>
       </main>
 
-      <AccountDrawer
-        account={selected}
-        teamSize={selected ? (teamSizes[selected.id] ?? 0) : 0}
-        query={query}
-        recentAccess={selected ? (recentAccess[selected.id] ?? []) : []}
-        reads={readsMap}
-        usage={selected ? (usage[selected.id] ?? null) : null}
-      />
+      {/*
+        Rendered always, so the ref exists before the first click; empty until
+        an account is open. aria-labelledby points at the heading inside, so
+        the dialog is announced by the account's name.
+
+        A click on the backdrop lands on the <dialog> element itself, never on
+        its content, which is what the target check below relies on. A click
+        on a link inside (Replace ingestion key, Delete workspace) navigates to
+        a confirmation panel on the page behind, so the modal closes first or
+        it would sit on top of the panel it just opened.
+
+        The lint rules below ask for a keyboard twin of a click handler on a
+        non-interactive element. This one has two built in: Escape closes a
+        modal <dialog> natively, and the close button is the first control
+        inside. The click handler only adds the mouse-only backdrop gesture.
+      */}
+      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
+      <dialog
+        ref={dialogRef}
+        className="pba-modal"
+        aria-labelledby="pba-modal-title"
+        onClose={() => setOpenId(null)}
+        onClick={(e) => {
+          const target = e.target as Element;
+          if (target === e.currentTarget || target.closest("a")) {
+            e.currentTarget.close();
+          }
+        }}
+      >
+        {open && (
+          <div className="pba-modal-inner">
+            <div className="pba-modal-head">
+              <h2 id="pba-modal-title" className="pba-modal-title">
+                {open.name}
+              </h2>
+              <button
+                type="button"
+                className="pba-modal-close"
+                onClick={() => dialogRef.current?.close()}
+                aria-label="Close account details"
+              >
+                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+                  <path d="M6 6l12 12M18 6 6 18" />
+                </svg>
+              </button>
+            </div>
+            <AccountDetails
+              account={open}
+              teamSize={teamSizes[open.id] ?? 0}
+              query={query}
+              recentAccess={recentAccess[open.id] ?? []}
+              reads={readsMap}
+              usage={usage[open.id] ?? null}
+            />
+          </div>
+        )}
+      </dialog>
     </>
   );
 }

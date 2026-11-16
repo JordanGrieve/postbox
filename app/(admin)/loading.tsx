@@ -131,33 +131,8 @@ export default function AdminLoading() {
                 </div>
               </div>
             </main>
-
-            <aside className="pba-drawer" aria-hidden>
-              <div className="pba-drawer-head">
-                <div className="pba-drawer-name pbk-text" style={{ width: "68%" }}>
-                  &nbsp;
-                </div>
-              </div>
-
-              <div className="pba-tiles">
-                {[0, 1, 2, 3].map((i) => (
-                  <div key={i} className="pba-tile">
-                    <div className="pba-tile-value pbk-text" style={{ width: 42 }}>
-                      &nbsp;
-                    </div>
-                    <div className="pba-tile-label pbk-text" style={{ width: 74, marginTop: 4 }}>
-                      &nbsp;
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <div className="pba-drawer-actions">
-                {[0, 1, 2].map((i) => (
-                  <span key={i} className="pba-btn pba-btn-block pbk-fill" />
-                ))}
-              </div>
-            </aside>
+            {/* No side panel: account details open in a modal since
+                16 Nov 2026, so the table runs the full width. */}
           </div>
         </div>
       </div>

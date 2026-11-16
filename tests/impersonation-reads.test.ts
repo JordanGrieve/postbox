@@ -126,12 +126,16 @@ describe("impersonation reads — ids, not content", () => {
      * our audit trail to make a nicer screen is the thing this guards against.
      *
      * Scoped to the operator-access card rather than the whole file, because
-     * the drawer around it legitimately renders a workspace's own owner email.
+     * the details around it legitimately render a workspace's own owner email.
      */
     const start = panels.indexOf("Operator access");
-    expect(start, "the drawer no longer shows operator access at all").
+    expect(start, "the account details no longer show operator access at all").
       toBeGreaterThan(-1);
-    const card = panels.slice(start, panels.indexOf("pba-drawer-actions", start));
+    const end = panels.indexOf("pba-modal-actions", start);
+    // Without the end marker the slice would run to the end of the file and
+    // the check below would read far more than the card.
+    expect(end, "the account details lost their actions block").toBeGreaterThan(start);
+    const card = panels.slice(start, end);
     expect(card).toMatch(/records?/);
     expect(card).not.toMatch(/subject|customerName|customerEmail/);
   });

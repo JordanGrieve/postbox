@@ -1,4 +1,3 @@
-import type { Admin } from "@/db/schema";
 import type { WorkspaceSummary } from "@/lib/data";
 import type { IngestionFailureRow } from "@/lib/ingestion-log";
 import type { IngestionFailureReason } from "@/db/schema";
@@ -15,14 +14,8 @@ import type {
 import type { QuotaState } from "@/lib/email-quota";
 import "./console.css";
 import {
-  addAdminAction,
-  removeAdminAction,
-} from "./actions";
-import {
-  accountStatus,
   formatDate,
   KpiGrid,
-  StatusPill,
 } from "./ui";
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -91,10 +84,6 @@ export function OverviewSection({
   accounts: WorkspaceSummary[];
   gates: ConsoleGates;
 }) {
-  const newest = [...accounts]
-    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
-    .slice(0, 6);
-
   const now = new Date();
   // WorkspaceSummary is a superset of BillingRow — it IS the workspace row —
   // so this needs no mapping. The rollup only ever reads the three billing
@@ -136,9 +125,10 @@ export function OverviewSection({
       )}
 
       <KpiGrid accounts={accounts} />
-      <div className="pba-cols">
-        <div className="pba-col-main">
-          <div className="pba-card">
+      {/* One column since 16 Nov 2026. The "Newest workspaces" list that sat
+          beside this card repeated the Accounts table in smaller type, and was
+          removed on Jordan's call. */}
+      <div className="pba-card">
             <div className="pba-card-head">
               <h2 className="pba-card-title">Subscriptions by plan</h2>
             </div>
@@ -206,31 +196,6 @@ export function OverviewSection({
                 zero here forever and look like a tier nobody wants.
               </p>
             )}
-          </div>
-        </div>
-        <div className="pba-col-side">
-          <div className="pba-card">
-            <div className="pba-card-head">
-              <h2 className="pba-card-title">Newest workspaces</h2>
-            </div>
-            <div className="pba-list">
-              {newest.length === 0 && (
-                <div className="pba-list-row">No workspaces yet.</div>
-              )}
-              {newest.map((w) => (
-                <div key={w.id} className="pba-list-row">
-                  <div className="pba-list-main">
-                    <div className="pba-list-name">{w.name}</div>
-                    <div className="pba-list-sub">
-                      {formatDate(w.createdAt)} · {w.ownerEmail ?? w.inboundEmail}
-                    </div>
-                  </div>
-                  <StatusPill status={accountStatus(w)} />
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
     </>
   );
@@ -629,66 +594,6 @@ export function DeliverabilitySection({
    DRAWER (accounts only)
    ──────────────────────────────────────────────────────────────────────── */
 
-
-/*
- * The Postbox admins card. It lived on the Support pane, which was retired on
- * 9 Sep 2026 (an operator support queue is not built); the one real thing on
- * that pane was this list, and it moved here rather than going with it.
- * Adding an admin takes effect immediately and is the only account-level
- * permission the product has.
- */
-export function AdminsCard({
-  admins,
-  viewerEmail,
-}: {
-  admins: Admin[];
-  viewerEmail: string;
-}) {
-  return (
-    <div className="pba-card">
-      <div className="pba-card-head">
-        <h2 className="pba-card-title">Postbox admins</h2>
-      </div>
-      <div className="pba-list">
-        {admins.map((a) => (
-          <div key={a.id} className="pba-list-row">
-            <div className="pba-list-main">
-              <div className="pba-list-name">{a.email}</div>
-              <div className="pba-list-sub">
-                {a.clerkUserId ? "Signed in" : "Has not signed in yet"}
-              </div>
-            </div>
-            {a.email === viewerEmail ? (
-              <span className="pba-list-sub">you</span>
-            ) : (
-              <form action={removeAdminAction}>
-                <input type="hidden" name="adminId" value={a.id} />
-                <button type="submit" className="pba-linkbtn pba-linkbtn-danger">
-                  Remove
-                </button>
-              </form>
-            )}
-          </div>
-        ))}
-      </div>
-      <form action={addAdminAction} className="pba-form">
-        {/* Named, because a placeholder stops naming a field the moment
-            anyone types. */}
-        <input
-          type="email"
-          name="email"
-          required
-          aria-label="Email address of the admin to add"
-          placeholder="teammate@example.com"
-          className="pba-input pba-input-grow"
-        />
-        <button type="submit" className="pba-btn pba-btn-primary">
-          Add admin
-        </button>
-      </form>
-    </div>
-  );
-}
 
 /* ────────────────────────────────────────────────────────────────────────
    PROVIDER ALLOWANCE
