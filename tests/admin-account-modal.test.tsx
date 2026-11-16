@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent, within } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { WorkspaceSummary } from "../lib/data";
 import type { AdminQuery } from "../app/(admin)/admin/ui";
 
@@ -137,6 +139,20 @@ describe("account details modal", () => {
     fireEvent.click(screen.getByRole("button", { name: "Details for Open Door Bakery" }));
     fireEvent.click(dialog);
     expect(dialog.open).toBe(false);
+  });
+
+  it("is centred: its rule puts back the margin the base reset removes", () => {
+    /*
+      happy-dom does not lay out from stylesheets, so this reads the rule.
+      The reset in globals.css zeroes every element's margin, and a modal
+      dialog is centred by `margin: auto`; without it the modal shipped
+      pinned to the top-left of the live console.
+    */
+    const css = readFileSync(join(process.cwd(), "app/admin.css"), "utf8");
+    const at = css.indexOf(".pba-modal {");
+    expect(at, "app/admin.css has no .pba-modal rule").toBeGreaterThan(-1);
+    const rule = css.slice(at, css.indexOf("}", at));
+    expect(rule).toMatch(/(^|;|\s)margin:\s*auto;/);
   });
 
   it("stays open on a click inside its content", () => {
