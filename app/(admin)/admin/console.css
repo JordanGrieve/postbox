@@ -13,9 +13,15 @@
 
 /* Company · Owner · Plan · Enquiries · Open · Created · Status · Details.
    Was six columns; Plan joined it when workspaces.plan gained a writer, and
-   the Details button on 16 Nov 2026, when the side drawer became a modal. */
+   the Details button on 16 Nov 2026, when the side drawer became a modal.
+
+   The last track is a fixed width, not `auto`. Every row is its own grid, so
+   an `auto` track sized to the button in body rows and to nothing in the
+   header, whose Details label is screen-reader-only; the seven fr columns
+   then split different widths and every heading sat off its column. Found
+   in review on PR 11. */
 .pba-root .pba-row-accounts {
-  grid-template-columns: 1.8fr 1.3fr 1.1fr 0.8fr 0.7fr 1fr 1.1fr auto;
+  grid-template-columns: 1.8fr 1.3fr 1.1fr 0.8fr 0.7fr 1fr 1.1fr 7rem;
 }
 
 /* Wider than the 700px the other tables get away with. */
