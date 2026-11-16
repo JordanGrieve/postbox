@@ -433,6 +433,13 @@
 .pba-modal {
   width: min(600px, calc(100vw - 32px));
   max-height: calc(100vh - 48px);
+  /*
+    The browser centres a modal dialog with `margin: auto`. The reset at the
+    top of globals.css sets every element's margin to 0, which pinned this
+    one to the top-left corner on the live console (16 Nov 2026). Put back
+    explicitly. tests/admin-account-modal.test.tsx pins it.
+  */
+  margin: auto;
   padding: 0;
   border: 1px solid var(--border);
   border-radius: 22px;
