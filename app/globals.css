@@ -183,6 +183,14 @@
 :root,
 [data-theme="light"] {
   /*
+   * What the BROWSER draws (scrollbars, native controls) follows the theme
+   * too. Unset until 17 Nov 2026, so the dark theme had light scrollbars: a
+   * white bar down the side of every dark page and inside every dark scroll
+   * box, the "white bar" the console's details sheet sat beside. Stated in
+   * all three palette blocks.
+   */
+  color-scheme: light;
+  /*
    * How light a user-picked label chip is. The HUE comes from their colour;
    * these two decide the rest, which is what stops any pick being unreadable.
    * See the data-custom rules in app/mail.css.
@@ -506,6 +514,8 @@
   Both selectors carry the same declarations via a shared custom-property set.
 */
 [data-theme="dark"] {
+  /* Dark scrollbars and native controls; see the light block. */
+  color-scheme: dark;
   /* Monochrome, inverted: near-white accent with near-black ink on it. The
      accent, its gradient and --on-accent are stated here rather than
      inherited from :root, whose values are the light ones. */
@@ -617,6 +627,8 @@
     /* Generated from the [data-theme="dark"] block above and identical to
        it. Change that block, then copy it here; tests/dark-mirror checks
        the two agree. */
+    /* Dark scrollbars and native controls; see the light block. */
+    color-scheme: dark;
     /* Monochrome, inverted: near-white accent with near-black ink on it. The
        accent, its gradient and --on-accent are stated here rather than
        inherited from :root, whose values are the light ones. */
