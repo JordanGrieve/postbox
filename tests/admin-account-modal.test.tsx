@@ -162,3 +162,111 @@ describe("account details modal", () => {
     expect(dialog.open).toBe(true);
   });
 });
+
+/*
+  17 Nov 2026: the impersonate reason gets a visible label, the newsletter
+  state line goes, and on a phone the modal is a bottom sheet that drags
+  down to close.
+*/
+function openAmoria() {
+  const dialog = show();
+  fireEvent.click(screen.getByRole("button", { name: "Details for Amoria" }));
+  expect(dialog.open).toBe(true);
+  return dialog;
+}
+
+describe("account details content", () => {
+  it("names the impersonate reason field with a visible label", () => {
+    const dialog = openAmoria();
+    const field = within(dialog).getByLabelText(/why are you going in/i);
+    expect(field.getAttribute("name")).toBe("reason");
+    // A real <label> element, not only an aria-label: it is on screen.
+    expect(dialog.querySelector(`label[for="${field.id}"]`)).not.toBeNull();
+  });
+
+  it("no longer states the newsletter signup mode above its button", () => {
+    const dialog = openAmoria();
+    expect(within(dialog).queryByText(/newsletter signups/i)).toBeNull();
+    // The switch itself is still there.
+    expect(
+      within(dialog).getByRole("button", { name: /require a confirmation link/i }),
+    ).toBeTruthy();
+  });
+});
+
+describe("the bottom sheet's grab bar", () => {
+  function grip(dialog: HTMLElement) {
+    const el = within(dialog).getByRole("button", {
+      name: "Drag down to close account details",
+    });
+    // happy-dom builds a PointerEvent but has no pointer capture.
+    el.setPointerCapture = vi.fn();
+    el.hasPointerCapture = vi.fn(() => false);
+    el.releasePointerCapture = vi.fn();
+    return el;
+  }
+
+  it("closes the sheet when dragged down past the threshold", () => {
+    const dialog = openAmoria();
+    const el = grip(dialog);
+    fireEvent.pointerDown(el, { clientY: 100, pointerId: 1 });
+    fireEvent.pointerMove(el, { clientY: 260, pointerId: 1 });
+    fireEvent.pointerUp(el, { pointerId: 1 });
+    expect(dialog.open).toBe(false);
+  });
+
+  it("springs back on a short drag, and the sheet follows the finger meanwhile", () => {
+    const dialog = openAmoria();
+    const el = grip(dialog);
+    fireEvent.pointerDown(el, { clientY: 100, pointerId: 1 });
+    fireEvent.pointerMove(el, { clientY: 150, pointerId: 1 });
+    expect(dialog.style.transform).toBe("translateY(50px)");
+    fireEvent.pointerUp(el, { pointerId: 1 });
+    expect(dialog.open).toBe(true);
+    expect(dialog.style.transform).toBe("");
+  });
+});
+
+describe("dragging the sheet by its body, at phone width", () => {
+  // The body gesture is wired only where the CSS makes it a sheet.
+  const matchMedia = vi.spyOn(window, "matchMedia");
+  afterEach(() => matchMedia.mockReset());
+
+  function phone(matches: boolean) {
+    matchMedia.mockImplementation(
+      (query: string) =>
+        ({
+          matches: query === "(max-width: 640px)" ? matches : false,
+          media: query,
+          onchange: null,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+          addListener: () => {},
+          removeListener: () => {},
+          dispatchEvent: () => false,
+        }) satisfies MediaQueryList,
+    );
+  }
+
+  function pull(body: Element, from: number, to: number) {
+    fireEvent.touchStart(body, { touches: [{ clientX: 50, clientY: from }] });
+    fireEvent.touchMove(body, { touches: [{ clientX: 50, clientY: to }] });
+    fireEvent.touchEnd(body, { touches: [] });
+  }
+
+  it("closes on a long downward pull from the top of the body", () => {
+    phone(true);
+    const dialog = openAmoria();
+    const body = dialog.querySelector(".pba-modal-inner")!;
+    expect(body, "the sheet has no scrolling body").not.toBeNull();
+    pull(body, 100, 300);
+    expect(dialog.open).toBe(false);
+  });
+
+  it("does nothing above phone width, where it is a centred modal", () => {
+    phone(false);
+    const dialog = openAmoria();
+    pull(dialog.querySelector(".pba-modal-inner")!, 100, 300);
+    expect(dialog.open).toBe(true);
+  });
+});

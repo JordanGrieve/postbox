@@ -9,6 +9,7 @@ import type { WorkspaceUsage } from "../app/(admin)/admin/queries";
 import type { ConsoleGates } from "../app/(admin)/admin/sections";
 import AccountsBrowser from "../app/(admin)/admin/AccountsBrowser";
 import { AccountDetails } from "../app/(admin)/admin/account-panels";
+import SheetGrip from "../components/mail/SheetGrip";
 import type { ProviderAllowance } from "../app/(admin)/admin/queries";
 import { quotaState } from "../lib/email-quota";
 import type { AdminQuery } from "../app/(admin)/admin/ui";
@@ -310,6 +311,12 @@ const panes: Record<string, React.ReactElement> = {
       */
       details: (
         <dialog open className="pba-modal" aria-labelledby="pba-modal-title">
+          <SheetGrip
+            onClose={() => {}}
+            onOffset={() => {}}
+            label="Drag down to close account details"
+            className="pba-sheet-grip"
+          />
           <div className="pba-modal-inner">
             <div className="pba-modal-head">
               <h2 id="pba-modal-title" className="pba-modal-title">
