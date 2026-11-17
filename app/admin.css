@@ -62,6 +62,14 @@
 }
 
 .pba-shell {
+  /*
+    The height of the top band, shared by the page header and the sidebar's
+    brand block so their two rules are one line across the console. Jordan,
+    17 Nov 2026: "make these line up so the lines are together". The
+    sidebar's rule used to land wherever its padding, the brand's text and an
+    18px margin added up to, which was not where the header's border was.
+  */
+  --pba-head-h: 74px;
   display: flex;
   height: 100%;
   border-radius: 28px;
@@ -79,15 +87,26 @@
   background: var(--nav);
   display: flex;
   flex-direction: column;
-  padding: 20px 14px 16px;
+  /* No top padding: the brand block below is the top band itself. */
+  padding: 0 14px 16px;
   overflow-y: auto;
 }
 
+/*
+  Exactly as tall as the header beside it, less the 1px rule: the header's
+  border is INSIDE its 74px (border-box), so its line is the 74th pixel,
+  and the .pba-divider that follows this block has to be that same pixel.
+*/
 .pba-brand {
   display: flex;
   align-items: center;
   gap: 11px;
   padding: 0 6px;
+  height: calc(var(--pba-head-h) - 1px);
+  flex: none;
+}
+.pba-brand + .pba-divider {
+  margin-top: 0;
 }
 
 .pba-brand-tile {
@@ -262,8 +281,8 @@
 }
 
 .pba-header {
-  height: 74px;
-  flex: 0 0 74px;
+  height: var(--pba-head-h);
+  flex: 0 0 var(--pba-head-h);
   display: flex;
   align-items: center;
   gap: 14px;
@@ -1140,6 +1159,14 @@
     width: 100%;
     flex: 1 1 auto;
     padding: 16px 14px;
+  }
+  /* Stacked above the page here, so there is no header beside it to line
+     up with: the brand goes back to its own height and the rule to its gap. */
+  .pba-brand {
+    height: auto;
+  }
+  .pba-brand + .pba-divider {
+    margin-top: 18px;
   }
 
   /*
