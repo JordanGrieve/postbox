@@ -91,16 +91,6 @@ function MailListSkeleton() {
           </span>
         </div>
 
-        {/* Real chips: 7px/12px padding around an 11.5px line box. Widths are
-            border-box, so these are the finished chip widths. */}
-        <div className="pbm-chips">
-          {[46, 68, 66, 74, 62, 96].map((w, i) => (
-            <span key={i} className="pbm-chip pbk-fill" style={{ width: w }}>
-              &nbsp;
-            </span>
-          ))}
-        </div>
-
         <p className="pbm-list-meta pbk-text" style={{ width: 74 }}>
           &nbsp;
         </p>

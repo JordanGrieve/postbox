@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { useDismiss } from "@/lib/use-dismiss";
 import { labelChipProps } from "./label-style";
 import { useRouter } from "next/navigation";
@@ -63,6 +63,23 @@ export default function LabelPicker({
   }
 
   useDismiss(open, () => setOpen(false), menuRef);
+
+  /*
+    The menu opens under "+ Label", starting at its left edge. When the
+    button has wrapped to the right of a narrow screen (x=257 of 375 on a
+    phone) that would run the menu off the side, so it lines up with the
+    button's RIGHT edge instead. The boundary is the thread pane, not the
+    window: on a desktop the contact column sits to its right.
+  */
+  const dropRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const menu = dropRef.current;
+    if (!open || !menu) return;
+    menu.removeAttribute("data-align");
+    const pane = menu.closest(".pbm-thread") ?? document.documentElement;
+    const limit = Math.min(pane.getBoundingClientRect().right, document.documentElement.clientWidth);
+    if (menu.getBoundingClientRect().right > limit - 8) menu.setAttribute("data-align", "end");
+  }, [open]);
 
   const onIds = new Set(current.map((l) => l.id));
 
@@ -140,6 +157,14 @@ export default function LabelPicker({
         </span>
       ))}
 
+      {/*
+        The button and its menu share a positioned box, so the menu opens
+        under "+ Label". .pbm-labels is display: contents and has no box to
+        anchor to, so the menu used to hang from the chip row's left edge,
+        well away from the button that opened it. Jordan, 17 Nov 2026: "it
+        should come under the label button not far left".
+      */}
+      <span className="pbm-label-anchor">
       <button
         type="button"
         className="pbm-label-add"
@@ -153,7 +178,7 @@ export default function LabelPicker({
       </button>
 
       {open && (
-        <div className="pbm-menu pbm-menu--labels" role="menu">
+        <div className="pbm-menu pbm-menu--labels" role="menu" ref={dropRef}>
           {allLabels.length === 0 && (
             <p className="pbm-menu-note">
               No labels yet. Make the first one below.
@@ -227,6 +252,7 @@ export default function LabelPicker({
           )}
         </div>
       )}
+      </span>
     </div>
   );
 }

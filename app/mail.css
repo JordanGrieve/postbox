@@ -30,8 +30,10 @@
      alias keeps the five rules that use it spelled the way they were. */
   --pbm-nav-line: var(--nav-line);
   /* Overlay veil behind a drawer or sheet. An ink wash, not a palette colour —
-     it has to darken every theme, including the already-dark ones. */
-  --pbm-scrim: rgba(14, 10, 28, 0.46);
+     it has to darken every theme, including the already-dark ones. Pure
+     black since 17 Nov 2026: it was rgba(14, 10, 28), an indigo left from the
+     purple palette, and the Labels modal opened on a purple wash. */
+  --pbm-scrim: rgba(0, 0, 0, 0.5);
   /* Selected mail card lift. --shadow is already theme-aware. */
   --pbm-lift: 0 10px 22px var(--shadow-2);
 }
@@ -46,7 +48,6 @@
 .pbm-folder:focus-visible {
   border-radius: 18px;
 }
-.pbm-chip:focus-visible,
 .pbm-label-add:focus-visible,
 .pbm-label-create:focus-visible,
 .pbm-confirm-btn:focus-visible,
@@ -62,9 +63,12 @@
 .pbm-label-icon:focus-visible {
   border-radius: 10px;
 }
-.pbm-label-x:focus-visible,
-.pbm-label-swatch--pick:focus-visible {
+.pbm-label-x:focus-visible {
   border-radius: 50%;
+}
+.pbm-label-swatch--pick:focus-visible,
+.pbm-label-pick:focus-visible {
+  border-radius: 10px;
 }
 .pbm-label-input:focus-visible {
   border-radius: 10px;
@@ -226,7 +230,7 @@
   text-align: left;
   border: none;
   background: transparent;
-  color: var(--nav-muted, #a9a3c4);
+  color: var(--nav-muted, #a3a3a3);
   cursor: pointer;
   transition: background 0.16s ease, color 0.16s ease;
 }
@@ -275,7 +279,7 @@
   font-weight: 800;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--nav-muted, #a9a3c4);
+  color: var(--nav-muted, #a3a3a3);
   /*
     No opacity knock-back. It was `opacity: 0.75`, which cost this 11px
     heading a different amount in each theme: fading LIGHT ink toward a dark
@@ -309,7 +313,7 @@
   border-radius: 14px;
   border: none;
   background: transparent;
-  color: var(--nav-muted, #a9a3c4);
+  color: var(--nav-muted, #a3a3a3);
   cursor: pointer;
   text-align: left;
 }
@@ -525,46 +529,6 @@
    lists every folder already. The phone block below shows it. */
 .pbm-folder-strip {
   display: none;
-}
-
-.pbm-chips {
-  display: flex;
-  gap: 7px;
-  overflow-x: auto;
-  /* The chip row scrolls rather than wrapping: in a 336px pane, wrapping
-     pushed the first mail card below the fold. */
-  scrollbar-width: none;
-  /*
-    ── WHY 10px AND NOT 2 ──
-    `overflow-x: auto` does not clip only sideways. A `visible` cross axis
-    computes to `auto` beside it, so this box clips VERTICALLY too, and at 2px
-    it was cutting the bottom off the selected chip — its `box-shadow:
-    0 3px 8px` reaches 11px below the chip — and off any focus ring, which sits
-    at outline-offset 2px. Jordan, 26 Sep 2026: "some of these buttons look cut
-    off." They were: the chips are the right size, the box around them was not.
-  */
-  padding-bottom: 10px;
-}
-.pbm-chips::-webkit-scrollbar {
-  display: none;
-}
-.pbm-chip {
-  flex: none;
-  padding: 7px 12px;
-  border: none;
-  border-radius: 11px;
-  font-size: 0.71875rem;
-  font-weight: 700;
-  cursor: pointer;
-  background: var(--surface-3);
-  color: var(--text-4);
-  box-shadow: 0 0 0 1px var(--border);
-  transition: background 0.16s ease, color 0.16s ease;
-}
-.pbm-chip[data-on="true"] {
-  background: var(--accent-grad);
-  color: var(--pbm-on-dark);
-  box-shadow: 0 3px 8px var(--glow);
 }
 
 .pbm-list-meta {
@@ -917,7 +881,12 @@
   border-top: 6px solid transparent;
   background-clip: padding-box;
   padding: 6px 10px;
-  border-radius: 12px;
+  /* A rectangle with even 6px corners. Jordan, 17 Nov 2026: "looks edgy,
+     should be more rectangular". The transparent border-top above is
+     subtracted from the TOP corners' vertical radius, so a plain 12px drew
+     them as squashed 12x6 ellipses, which was the odd look. Vertical radii of
+     12 on top (12 - 6 = 6) make all four corners the same circle. */
+  border-radius: 6px 6px 6px 6px / 12px 12px 6px 6px;
   background-color: var(--text);
   color: var(--surface);
   font-size: 0.75rem;
@@ -1242,9 +1211,10 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
 }
 .pbm-rail-scrim {
   display: none;
+  /* In step with the rail it sits behind. */
   transition:
-    opacity 220ms ease,
-    display 220ms allow-discrete;
+    opacity 360ms ease,
+    display 360ms allow-discrete;
 }
 .pbm-rail {
   width: 290px;
@@ -1257,10 +1227,34 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   display: flex;
   flex-direction: column;
   gap: 13px;
+  /*
+    360ms, not the 220 the style guide gives sheets and drawers. Jordan,
+    17 Nov 2026: "when you close this it should be a slower animation so you
+    can actually see it". At 220 the column was gone before the eye found it.
+  */
   transition:
-    opacity 220ms ease,
-    transform 220ms cubic-bezier(0.4, 0, 0.2, 1),
-    display 220ms allow-discrete;
+    opacity 360ms ease,
+    transform 360ms cubic-bezier(0.4, 0, 0.2, 1),
+    margin-right 360ms cubic-bezier(0.4, 0, 0.2, 1),
+    display 360ms allow-discrete;
+}
+/*
+  On a wide screen the rail is a column, so a fade alone left the thread
+  jumping wider the instant it closed. Instead the column slides out past the
+  right edge: a negative margin as wide as the rail takes its space away
+  gradually, the thread widens with it, and the rail keeps its own width so
+  its contents never reflow mid-slide. The page clips it (.pbm-page has
+  overflow-x hidden). Opening runs the same slide in reverse.
+*/
+@media (min-width: 1181px) {
+  .pbm-rail[data-rail="closed"] {
+    margin-right: -290px;
+  }
+  @starting-style {
+    .pbm-rail[data-rail="open"] {
+      margin-right: -290px;
+    }
+  }
 }
 .pbm-rail-grip {
   display: none;
@@ -1498,7 +1492,14 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   border: none;
   padding: 0;
 }
+/*
+  A colour you can pick is a BUTTON, and buttons here are rounded squares.
+  The dot in front of a label's name stays round: it is a mark, not a
+  control. Jordan, 17 Nov 2026: "we have no circle buttons anywhere else,
+  make these more on theme".
+*/
 .pbm-label-swatch--pick {
+  border-radius: 10px;
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -1581,6 +1582,17 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
 */
 .pbm-labels {
   display: contents;
+}
+/* "+ Label" and its menu: the box the menu hangs from (LabelPicker.tsx). */
+.pbm-label-anchor {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+/* Set by LabelPicker when the menu would cross the pane's right edge. */
+.pbm-menu--labels[data-align="end"] {
+  left: auto;
+  right: 0;
 }
 .pbm-label-add {
   position: relative;
@@ -1704,6 +1716,7 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   position: relative;
   width: 24px;
   height: 24px;
+  border-radius: 6px;
 }
 .pbm-label-new .pbm-label-swatch--pick::after {
   content: "";
@@ -1748,7 +1761,7 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   border: none;
   border-radius: 8px;
   background: var(--pbm-nav-line);
-  color: var(--nav-muted, #a9a3c4);
+  color: var(--nav-muted, #a3a3a3);
   font-size: 0.6875rem;
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -2147,7 +2160,7 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   }
   .pbm-topbar-sub {
     font-size: 0.6875rem;
-    color: var(--nav-muted, #a9a3c4);
+    color: var(--nav-muted, #a3a3a3);
   }
 
   /* One pane at a time: the list on /inbox, the thread on /tickets/[id]. */
@@ -2200,21 +2213,13 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
     font-size: 0.875rem;
   }
   /*
-    ── FOLDERS UNDER THE SEARCH BOX, NOT REFINE CHIPS ──
-    The refine chips filter the page already loaded, and on a phone they read
-    as "only three options" when the person was looking for Snoozed, Archived,
-    Closed and Trash — which live in the drawer, two taps away. So the strip
-    here is the folders (components/mail/MessageList.tsx, MOBILE_FOLDERS), and
-    the refine chips step aside; Unread and Starred are folders in their own
-    right, so nothing is lost.
-
-    44px tall for 2.5.5. The row scrolls sideways rather than wrapping, as the
-    chip row always has — eleven folders wrapped would push the first card
-    below the fold.
+    ── FOLDERS UNDER THE SEARCH BOX ──
+    On a phone the strip under the search box is every folder
+    (components/mail/MessageList.tsx, MOBILE_FOLDERS), because the column
+    that lists them is a drawer two taps away. 44px tall for 2.5.5. It scrolls
+    sideways rather than wrapping: eleven folders wrapped would push the
+    first card below the fold.
   */
-  .pbm-chips {
-    display: none;
-  }
   /*
     .pbm-folder-strip, NOT .pbm-folders. The strip shipped under the drawer's
     class name on 8 Sep 2026, and this block turned every folder group in the
@@ -2264,12 +2269,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   .pbm-folder-chip[data-on] {
     background: var(--accent-grad);
     color: var(--pbm-on-dark, #fff);
-  }
-  .pbm-chip {
-    padding: 8px 15px;
-    font-size: 0.78125rem;
-    background: var(--surface);
-    box-shadow: 0 4px 10px var(--shadow);
   }
   .pbm-list-scroll {
     /* No longer the scroller here — see .pbm-list above. */
@@ -2621,7 +2620,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
 
 @media (prefers-reduced-motion: reduce) {
   .pbm-folder,
-  .pbm-chip,
   .pbm-card,
   .pbm-card-star,
   .pbm-label-add {
@@ -3240,7 +3238,7 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
     Hover goes to --nav-fg for the same reason: the resting state must not be
     the more legible of the two.
   */
-  color: var(--nav-muted, #a9a3c4);
+  color: var(--nav-muted, #a3a3a3);
 }
 .pbm-folder--more:hover {
   color: var(--nav-fg, #f3f0ff);
@@ -3353,7 +3351,8 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   flex: none;
   padding: 0;
   border: 1px solid var(--border-strong);
-  border-radius: 50%;
+  /* The preset swatches' shape (.pbm-label-swatch--pick). */
+  border-radius: 10px;
   background: none;
   cursor: pointer;
   overflow: hidden;
@@ -3367,20 +3366,20 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   border-color: transparent;
 }
 /* Chrome and Safari draw their own swatch inside; strip it back to the
-   circle so it matches the three preset dots beside it. */
+   rounded square so it matches the three preset swatches beside it. */
 .pbm-label-pick::-webkit-color-swatch-wrapper {
   padding: 0;
 }
 .pbm-label-pick::-webkit-color-swatch {
   border: none;
-  border-radius: 50%;
+  border-radius: 9px;
 }
 .pbm-label-pick::-moz-color-swatch {
   border: none;
-  border-radius: 50%;
+  border-radius: 9px;
 }
 .pbm-label-pick:focus-visible {
-  outline: 2px solid var(--accent-text);
+  outline: 2px solid var(--focus-ring, var(--accent));
   outline-offset: 2px;
 }
 
