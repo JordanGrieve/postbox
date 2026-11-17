@@ -329,8 +329,9 @@ a.psb-row:hover {
   text-decoration: none;
 }
 
+/* Hover darkens the ink; no underline on a button (17 Nov 2026). */
 .psb-back:hover {
-  text-decoration: underline;
+  color: var(--text);
 }
 
 .psb-identity {

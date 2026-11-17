@@ -199,8 +199,7 @@
   cursor: pointer;
   border-radius: 8px;
 }
+/* Hover darkens the ink; no underline on a button (17 Nov 2026). */
 .pbo-dismiss:hover {
   color: var(--text-2);
-  text-decoration: underline;
-  text-underline-offset: 3px;
 }
