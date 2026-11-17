@@ -486,6 +486,17 @@
   background: rgba(0, 0, 0, 0.55);
 }
 
+/*
+  The page behind an open account modal does not scroll. It did, so its
+  scrollbar stayed up beside the sheet and a swipe that ran off the sheet
+  moved the table underneath. Jordan, 17 Nov 2026: the modal "goes in front
+  of the white bar". (The bar was white because no color-scheme was set;
+  see globals.css.)
+*/
+html:has(.pba-modal[open]) {
+  overflow: hidden;
+}
+
 /* The sheet's grab bar exists only at the sheet width (below). */
 .pba-sheet-grip {
   display: none;
@@ -1155,18 +1166,41 @@
     min-height: 100dvh;
   }
 
+  /*
+    ── THE SECTION TABS STAY PINNED ──
+    Jordan, 17 Nov 2026: on a phone the whole top block scrolled away, and
+    only Overview / Accounts / Billing / Deliverability should stay. A sticky
+    element sticks only inside its parent, and its parent was the sidebar,
+    which scrolls off with the brand and the signed-in card. So the sidebar
+    stops being a box here (display: contents): the brand, the tabs and the
+    signed-in card become rows of the page column, and the tabs can stick to
+    the top of the whole page. Each row paints the sidebar's --nav ground
+    itself, since the box that used to paint it is gone.
+
+    .pba-shell must not clip for this to work, and does not need to: it has
+    no radius or border at this width.
+  */
+  .pba-shell {
+    overflow: visible;
+  }
   .pba-side {
-    width: 100%;
-    flex: 1 1 auto;
-    padding: 16px 14px;
+    display: contents;
+  }
+  .pba-brand,
+  .pba-nav,
+  .pba-side-foot {
+    background: var(--nav);
   }
   /* Stacked above the page here, so there is no header beside it to line
-     up with: the brand goes back to its own height and the rule to its gap. */
+     up with: the brand goes back to its own height. */
   .pba-brand {
     height: auto;
+    padding: 16px 20px 12px;
   }
+  /* The rule under the brand would sit between two strips of --nav with
+     nothing of its own behind it; the pinned tabs carry a line instead. */
   .pba-brand + .pba-divider {
-    margin-top: 18px;
+    display: none;
   }
 
   /*
@@ -1216,9 +1250,19 @@
      above it rather than with the screen edge. */
   .pba-nav {
     gap: 8px;
-    margin: 0 -14px;
-    padding: 3px 14px 4px;
+    /* Edge to edge already: the sidebar's padding is gone with its box. */
+    margin: 0;
+    padding: 6px 14px 8px;
     scroll-padding-inline: 14px;
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    border-bottom: 1px solid var(--border);
+  }
+  /* The tab strip says where you are; a count on Accounts made it busier
+     without helping. The pane's own summary box carries it. */
+  .pba-nav .pba-count {
+    display: none;
   }
 
   .pba-navrow {
@@ -1250,8 +1294,8 @@
      which would otherwise win over one placed here. */
 
   .pba-side-foot {
-    margin-top: 16px;
-    padding-top: 0;
+    margin-top: 0;
+    padding: 12px 14px 16px;
   }
 
   .pba-main,
