@@ -1044,8 +1044,12 @@
     stack. Jordan, 17 Nov 2026: they "should be a carousel on tablet and
     mobile". Built like the inbox's folder strip (app/mail.css): it bleeds to
     both screen edges so it reads as a row that continues, snaps item by
-    item, hides its scrollbar, and claims only horizontal drags so a
-    vertical scroll of the page still works when it starts on a strip.
+    item and hides its scrollbar.
+
+    No touch-action. The browser default already scrolls the strip sideways
+    and the page vertically, and any narrower value removes pinch-zoom for a
+    gesture that starts on a strip (an earlier draft had pan-x pan-y; found
+    in review on PR 13).
 
     The vertical padding is room for focus rings: overflow-x: auto clips
     the other axis too, so a ring with no space around it would be cut off.
@@ -1059,7 +1063,6 @@
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scrollbar-width: none;
-    touch-action: pan-x pan-y;
     overscroll-behavior-x: contain;
   }
 
