@@ -102,6 +102,30 @@ describe("Modal", () => {
     expect(cancel.defaultPrevented, "Escape was not held").toBe(true);
   });
 
+  it("a closed modal is never drawn: no rule sets display on it unless it is open", () => {
+    /*
+      On 17 Nov 2026 the phone rule set display: flex on .pb-modal. An author
+      display beats the browser's dialog:not([open]) { display: none }, so on
+      a phone every closed modal was drawn on the page — the access log's
+      explainer over its own button. Found by opening the live page at 375px.
+    */
+    const css = read("app/globals.css");
+    const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)];
+    // A selector whose TARGET is the dialog itself: its last compound is
+    // .pb-modal plus attribute selectors. Not .pb-modal-inner, and not a
+    // descendant like ".pb-modal .pbm-modal-body".
+    const targetsModal = (s: string) => {
+      const last = s.trim().split(/[\s>+~]+/).pop() ?? "";
+      return /^\.pb-modal(\[[^\]]*\])*$/.test(last);
+    };
+    const offenders = rules
+      .filter(([, , body]) => /(^|;|\s)display:\s*(?!none)/.test(body!))
+      .map(([, sel]) => sel!.trim())
+      .filter((sel) => sel.split(",").some((s) => targetsModal(s) && !s.includes("[open]")));
+    expect(offenders, "these set display on a modal that may be closed").toEqual([]);
+    expect(css).toMatch(/\.pb-modal:not\(\[open\]\)\s*\{\s*display:\s*none;/);
+  });
+
   it("is the bottom sheet's shape on a phone, and centred otherwise", () => {
     const css = read("app/globals.css");
     const base = css.match(/\n\.pb-modal\s*\{([^}]*)\}/)![1]!;

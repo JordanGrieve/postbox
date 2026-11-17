@@ -1393,9 +1393,21 @@ html:has(.pb-modal[open]) {
     margin: auto 0 0;
     border-bottom: none;
     border-radius: 26px 26px 0 0;
-    display: flex;
     flex-direction: column;
     transition: transform 220ms ease;
+  }
+
+  /*
+    display: flex ONLY while open. It was on the rule above, and an author
+    display beats the browser's own "dialog:not([open]) { display: none }",
+    so on a phone every CLOSED modal was drawn on the page: the access log's
+    explainer over its own button (Jordan, 17 Nov 2026: "the text, not a
+    button"), the team invite form on Team, and an empty sheet box under the
+    admin accounts table. Desktop never set display, so it was never seen
+    there. See also the :not([open]) rule after this block.
+  */
+  .pb-modal[open] {
+    display: flex;
   }
 
   .pb-modal[open] {
@@ -1444,6 +1456,15 @@ html:has(.pb-modal[open]) {
   .pb-sheet-grip[data-dragging] {
     cursor: grabbing;
   }
+}
+
+/*
+  A closed modal is never drawn, at any width, whatever a later rule sets
+  display to. Belt and braces for the bug above: the browser's own rule is
+  the weakest in the cascade, so it is restated here at author strength.
+*/
+.pb-modal:not([open]) {
+  display: none;
 }
 
 @keyframes pb-sheet-up {
