@@ -2286,6 +2286,13 @@
   font-weight: 700;
 }
 
+/* The access log's "what this log covers", inside the shared modal. */
+.stg-al-about {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 @media (max-width: 720px) {
   .stg-al-tiles {
     grid-template-columns: minmax(0, 1fr);

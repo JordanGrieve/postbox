@@ -6,6 +6,7 @@ import { join } from "node:path";
 import Modal from "../components/Modal";
 import LabelManager from "../components/mail/LabelManager";
 import InviteMember from "../app/(dashboard)/settings/team/InviteMember";
+import ModalButton from "../components/ModalButton";
 import type { LabelWithCountDTO } from "../components/mail/types";
 
 /*
@@ -170,6 +171,44 @@ describe("team: Add new member", () => {
     const page = read("app/(dashboard)/settings/team/page.tsx");
     expect(page).not.toContain('name="email"');
     expect(page).toMatch(/<header className="stg-head stg-head--action">[\s\S]*?<InviteMember[\s\S]*?<\/header>/);
+  });
+});
+
+describe("ModalButton, and the access log's explainer behind it", () => {
+  it("opens its children in the shared modal", () => {
+    const { container } = render(
+      <ModalButton label="Open it" title="Inside" closeLabel="Close inside">
+        <p>the words</p>
+      </ModalButton>,
+    );
+    const dialog = container.querySelector("dialog.pb-modal") as HTMLDialogElement;
+    expect(dialog.open).toBe(false);
+    fireEvent.click(screen.getByRole("button", { name: "Open it" }));
+    expect(dialog.open).toBe(true);
+    expect(dialog.textContent).toContain("the words");
+    expect(dialog.querySelector("h2")?.textContent).toBe("Inside");
+  });
+
+  it("the access log's explainer is in the header's modal, not a section of the page", () => {
+    // "put this message inside a modal, so put a button there that opens
+    // this" (17 Nov 2026). All five paragraphs move, none is lost.
+    const page = read("app/(dashboard)/settings/access-log/page.tsx");
+    const header = page.slice(page.indexOf("<header"), page.indexOf("</header>"));
+    expect(header).toContain("<ModalButton");
+    expect(header).toContain('title="What this log does and does not say"');
+    for (const phrase of [
+      "entry into your workspace",
+      "floor, not an inventory",
+      "Still not covered",
+      "never observed to end",
+      "an audit trail we keep about",
+    ]) {
+      expect(header, `"${phrase}" is missing from the modal`).toContain(phrase);
+    }
+    const rest = page.slice(page.indexOf("</header>"));
+    expect(rest, "the explainer is still a section of the page").not.toContain(
+      "What this log does and does not say",
+    );
   });
 });
 

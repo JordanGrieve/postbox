@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ModalButton from "@/components/ModalButton";
 import { redirect } from "next/navigation";
 import type { ImpersonationEnd } from "@/db/schema";
 import type { ImpersonationSessionRow as ImpersonationSession } from "@/lib/impersonation";
@@ -133,8 +134,62 @@ export default async function AccessLogPage({
 
   return (
     <div className="stg-wrap">
-      <header className="stg-head">
+      <header className="stg-head stg-head--action">
         <h1 className="stg-title">Access log</h1>
+        {/*
+          What this log does and does not say, behind a button since
+          17 Nov 2026 (Jordan: "put this message inside a modal"). Every word
+          of it is unchanged; it is one click away instead of five paragraphs
+          down the page.
+        */}
+        <ModalButton
+          label="What this log covers"
+          title="What this log does and does not say"
+          closeLabel="Close what this log covers"
+        >
+          <div className="stg-al-about">
+            <p className="stg-al-note">
+              It records <b>entry into your workspace</b>, and, since 30 August
+              2026, <b>which conversations were opened</b> while someone was in.
+              Visits before that date have no record of what was read, and this
+              page does not pretend otherwise — they show no conversations because
+              none were logged, not because none were opened.
+            </p>
+            <p className="stg-al-note">
+              The list of conversations is a <b>floor, not an inventory</b>. Writing
+              that record is allowed to fail without stopping the page an operator
+              is looking at, because you losing your thread mid-problem would be a
+              worse failure than a gap in our audit trail. So a visit showing no
+              conversations means none were <i>recorded</i>, which is not the same
+              as none being read. We would rather say that plainly than have you
+              rely on this as a complete list.
+            </p>
+            <p className="stg-al-note">
+              Still not covered, so you are not left assuming otherwise: your own
+              team&rsquo;s sign-ins and what they read, anything reached other than
+              by opening a conversation &mdash; a contact&rsquo;s details, your
+              subscriber list, a campaign report &mdash; and anything done directly
+              against the database by us.
+            </p>
+            <p className="stg-al-note">
+              A visit is only timed exactly when it was closed properly. An operator
+              who simply shuts the tab is never seen to leave, so those visits are
+              timed from the start to the last request we actually saw and labelled{" "}
+              <b>never observed to end</b>. The gap between that last request and
+              the moment they really stopped looking is not something we can
+              measure, so it is not guessed at here. After fifteen minutes of
+              silence the visit stops working as a way in, and the operator has to
+              re-enter — which writes a new row.
+            </p>
+            <p className="stg-al-note">
+              Being straight about what this is: it is an audit trail we keep about
+              ourselves, in our own database. Nothing in Postbox deletes a row from
+              it, including our own admin console, and we do not present it as more
+              than that. If a visit here does not line up with something you asked
+              us for, quote us the date and time and ask.
+            </p>
+          </div>
+        </ModalButton>
       </header>
 
       {allSessions.length === 0 ? (
@@ -257,50 +312,6 @@ export default async function AccessLogPage({
           </p>
         </section>
       )}
-
-      <section className="stg-section">
-        <h2 className="stg-section-title">What this log does and does not say</h2>
-        <p className="stg-al-note">
-          It records <b>entry into your workspace</b>, and, since 30 August
-          2026, <b>which conversations were opened</b> while someone was in.
-          Visits before that date have no record of what was read, and this
-          page does not pretend otherwise — they show no conversations because
-          none were logged, not because none were opened.
-        </p>
-        <p className="stg-al-note">
-          The list of conversations is a <b>floor, not an inventory</b>. Writing
-          that record is allowed to fail without stopping the page an operator
-          is looking at, because you losing your thread mid-problem would be a
-          worse failure than a gap in our audit trail. So a visit showing no
-          conversations means none were <i>recorded</i>, which is not the same
-          as none being read. We would rather say that plainly than have you
-          rely on this as a complete list.
-        </p>
-        <p className="stg-al-note">
-          Still not covered, so you are not left assuming otherwise: your own
-          team&rsquo;s sign-ins and what they read, anything reached other than
-          by opening a conversation &mdash; a contact&rsquo;s details, your
-          subscriber list, a campaign report &mdash; and anything done directly
-          against the database by us.
-        </p>
-        <p className="stg-al-note">
-          A visit is only timed exactly when it was closed properly. An operator
-          who simply shuts the tab is never seen to leave, so those visits are
-          timed from the start to the last request we actually saw and labelled{" "}
-          <b>never observed to end</b>. The gap between that last request and
-          the moment they really stopped looking is not something we can
-          measure, so it is not guessed at here. After fifteen minutes of
-          silence the visit stops working as a way in, and the operator has to
-          re-enter — which writes a new row.
-        </p>
-        <p className="stg-al-note">
-          Being straight about what this is: it is an audit trail we keep about
-          ourselves, in our own database. Nothing in Postbox deletes a row from
-          it, including our own admin console, and we do not present it as more
-          than that. If a visit here does not line up with something you asked
-          us for, quote us the date and time and ask.
-        </p>
-      </section>
     </div>
   );
 }
