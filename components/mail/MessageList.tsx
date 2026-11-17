@@ -37,7 +37,6 @@ export type SwipeActions = { archive: FormAction; trash: FormAction };
  * covers the rest. These three are the ones that say something the list does
  * not already show.
  */
-type Refine = "all" | "unread" | "starred";
 
 /**
  * The folder strip shown under the search box on a phone. Open first, since
@@ -90,25 +89,13 @@ export default function MessageList({
    */
   swipeActions?: SwipeActions;
 }) {
-  const [refine, setRefine] = useState<Refine>("all");
-  const [search, setSearch] = useState("");
-
   /*
-   * All three chips, for everybody.
-   *
-   * Unread and Starred are per-agent, and this used to show only "All" to a
-   * viewer with no agent row — an operator looking at a client's inbox — on
-   * the argument that the other two would read zero for them. True, and the
-   * result was a filter row with one chip in it, which is not a filter row;
-   * on a phone it read as something missing. Jordan asked for the full set on
-   * 8 Sep 2026. For a viewer without an agent row the two per-agent chips
-   * simply match nothing, and the empty state's "clear" puts it back.
+   * No All / Unread / Starred chips. They filtered the page already loaded,
+   * and Unread and Starred are folders in the navigation column a few
+   * pixels away. Jordan, 17 Nov 2026: "remove this quick filter, it's
+   * redundant". The search box is the one way to narrow the page.
    */
-  const chips: { key: Refine; label: string }[] = [
-    { key: "all", label: "All" },
-    { key: "unread", label: "Unread" },
-    { key: "starred", label: "Starred" },
-  ];
+  const [search, setSearch] = useState("");
 
   // Keep the list live: new tickets used to appear only on manual reload.
   // Skipped while a thread is open — Thread runs its own 30s refresh for the
@@ -118,8 +105,6 @@ export default function MessageList({
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
     return rows.filter((r) => {
-      if (refine === "unread" && !r.unread) return false;
-      if (refine === "starred" && !r.starred) return false;
       if (!q) return true;
       return (
         r.name.toLowerCase().includes(q) ||
@@ -129,9 +114,9 @@ export default function MessageList({
         (r.orderId ?? "").toLowerCase().includes(q)
       );
     });
-  }, [rows, refine, search]);
+  }, [rows, search]);
 
-  const refined = refine !== "all" || search.trim() !== "";
+  const refined = search.trim() !== "";
   const labelQuery = labelId === undefined ? "" : `&label=${labelId}`;
   // Sent is the same list of tickets read from the other end: the card leads
   // with who we wrote to and when we wrote, not who wrote to us and when they
@@ -191,21 +176,6 @@ export default function MessageList({
           ))}
         </nav>
 
-        <div className="pbm-chips" role="group" aria-label="Refine this page">
-          {chips.map((c) => (
-            <button
-              key={c.key}
-              type="button"
-              className="pbm-chip"
-              data-on={refine === c.key}
-              aria-pressed={refine === c.key}
-              onClick={() => setRefine(c.key)}
-            >
-              {c.label}
-            </button>
-          ))}
-        </div>
-
         <p className="pbm-list-meta">
           {refined
             ? `${visible.length} of ${rows.length} on this page`
@@ -220,10 +190,7 @@ export default function MessageList({
             refined={refined}
             hasAny={total > 0}
             sentView={sentView}
-            onClear={() => {
-              setRefine("all");
-              setSearch("");
-            }}
+            onClear={() => setSearch("")}
           />
         ) : (
           visible.map((r) => (

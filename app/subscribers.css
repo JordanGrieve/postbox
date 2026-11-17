@@ -84,7 +84,10 @@
   gap: 7px;
   padding: 6px 12px;
   border: 1px solid var(--border);
-  border-radius: 999px;
+  /* A rounded rectangle like every other button. These were pills, the only
+     round buttons in the product. Jordan, 17 Nov 2026: "we have no circle
+     buttons anywhere else, make these more on theme". */
+  border-radius: 10px;
   background: var(--surface-2);
   color: var(--text-3);
   font-size: 0.78125rem;

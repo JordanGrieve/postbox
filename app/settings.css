@@ -434,7 +434,8 @@
   height: 30px;
   padding: 0 12px;
   border: 1px solid var(--accent-line);
-  border-radius: 999px;
+  /* No round buttons in the product (Jordan, 17 Nov 2026); chip radius. */
+  border-radius: 10px;
   background: var(--accent-soft);
   color: var(--accent-text);
   font-size: 0.75rem;
@@ -455,7 +456,7 @@
 }
 
 .st-chip:focus-visible {
-  border-radius: 999px;
+  border-radius: 10px;
 }
 
 /* ── preview ────────────────────────────────────────────────── */
