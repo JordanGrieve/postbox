@@ -55,34 +55,37 @@ describe("inbox review, 17 Nov 2026", () => {
     expect(rule(MAIL, ".pbm-label-anchor")).toContain("position: relative");
   });
 
-  it("the label menu flips to the button's right edge only when it would run off the pane", () => {
+  it("the label menu moves left by its overshoot only, and never off the left edge", () => {
     const labels = [
       { id: 1, name: "Wholesale", color: "tag_a", colorHex: null },
     ] satisfies LabelChipDTO[];
-    // happy-dom has no layout: give the menu the rect it had on a 375px
-    // phone (x=257, 232 wide), and the page a 375px width.
-    const place = (menuRight: number) => {
+    // happy-dom has no layout: give the menu (272 wide) the left edge it
+    // would open at, and the page a 375px width.
+    const shiftAt = (menuLeft: number) => {
       const real = Element.prototype.getBoundingClientRect;
       vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
-        if (this.classList.contains("pbm-menu--labels")) return { right: menuRight } as DOMRect;
-        if (this === document.documentElement) return { right: 375 } as DOMRect;
+        if (this.classList.contains("pbm-menu--labels")) {
+          return { left: menuLeft, right: menuLeft + 272 } as DOMRect;
+        }
+        if (this === document.documentElement) return { left: 0, right: 375 } as DOMRect;
         return real.call(this);
       });
       vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(375);
+      const r = render(<LabelPicker ticketId={1} labels={[]} allLabels={labels} initiallyOpen />);
+      const left = (r.container.querySelector(".pbm-menu--labels") as HTMLElement).style.left;
+      r.unmount();
+      vi.restoreAllMocks();
+      return left === "" ? 0 : Number(left.replace("px", ""));
     };
 
-    place(489);
-    let r = render(<LabelPicker ticketId={1} labels={[]} allLabels={labels} initiallyOpen />);
-    expect(r.container.querySelector(".pbm-menu--labels")?.getAttribute("data-align")).toBe("end");
-    r.unmount();
-    vi.restoreAllMocks();
-
-    place(300);
-    r = render(<LabelPicker ticketId={1} labels={[]} allLabels={labels} initiallyOpen />);
-    expect(r.container.querySelector(".pbm-menu--labels")?.hasAttribute("data-align")).toBe(false);
-    vi.restoreAllMocks();
-
-    expect(rule(MAIL, '.pbm-menu--labels[data-align="end"]')).toContain("right: 0");
+    // Fits (desktop, button at 16): stays under the button.
+    expect(shiftAt(16)).toBe(0);
+    // Button wrapped to the right of a phone (x=257): back inside, 8px clear.
+    expect(257 + shiftAt(257) + 272).toBe(375 - 8);
+    // Button at 105, the case a plain right-align got wrong (it put the menu
+    // at -95). Moves 2px left, not 167.
+    expect(105 + shiftAt(105)).toBeGreaterThanOrEqual(8);
+    expect(105 + shiftAt(105) + 272).toBeLessThanOrEqual(375 - 8);
   });
 
   it("the modal scrim is a neutral ink wash, not the old indigo", () => {

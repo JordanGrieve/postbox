@@ -887,31 +887,8 @@
   flex-wrap: wrap;
   gap: 8px;
 }
-.nl-confirm-btn {
-  border: 1px solid var(--border);
-  background: var(--surface);
-  color: var(--text-2);
-  font: inherit;
-  font-size: 0.78125rem;
-  font-weight: 700;
-  border-radius: 9px;
-  padding: 7px 14px;
-  cursor: pointer;
-}
-.nl-confirm-btn:hover {
-  border-color: var(--border-strong);
-  color: var(--text);
-}
-.nl-confirm-btn:focus-visible {
-  outline: 2px solid var(--focus-ring, var(--accent));
-  outline-offset: 2px;
-}
-/* The destructive choice looks different, not inviting. */
-.nl-confirm-btn--danger {
-  border-color: var(--pdf-fg);
-  background: var(--pdf-bg);
-  color: var(--pdf-fg);
-}
+/* The buttons are the shared .stg-button--secondary and .stg-button--danger
+   (globals.css) since 17 Nov 2026. */
 
 /* ── Schedule card: the readiness checklist ───────────────────
    Every condition the send waits on, ticked as it is met. An unmet step is

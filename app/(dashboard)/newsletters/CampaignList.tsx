@@ -59,7 +59,7 @@ export default function CampaignList({
           <div className="nl-confirm-acts">
             <button
               type="button"
-              className="nl-confirm-btn"
+              className="stg-button stg-button--secondary"
               autoFocus
               onClick={onKeepEditing}
             >
@@ -67,7 +67,7 @@ export default function CampaignList({
             </button>
             <button
               type="button"
-              className="nl-confirm-btn nl-confirm-btn--danger"
+              className="stg-button stg-button--danger"
               onClick={onDiscardAndGo}
             >
               Discard changes

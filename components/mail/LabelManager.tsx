@@ -6,6 +6,7 @@ import { labelChipProps } from "./label-style";
 import { useRouter } from "next/navigation";
 import type { LabelColor } from "@/db/schema";
 import { Icon } from "./icons";
+import LabelColours from "./LabelColours";
 import type { LabelWithCountDTO } from "./types";
 import { STARTER_LABELS } from "@/lib/starter-labels";
 
@@ -46,8 +47,6 @@ import { STARTER_LABELS } from "@/lib/starter-labels";
  * contact form offline with it, guarding a key that can read nothing — so the
  * confirmation it needed went with it.
  */
-
-const COLOR_ORDER: LabelColor[] = ["tag_a", "tag_b", "tag_c"];
 
 export default function LabelManager({
   labels,
@@ -269,59 +268,15 @@ export default function LabelManager({
     it's too big". The pencil opens the row; the colours come with the name.
   */
   const swatchesFor = (row: LabelWithCountDTO) => (
-    <div
-      className="pbm-swatches"
-      role="radiogroup"
-      aria-label={`Colour for ${row.name}`}
-    >
-      {COLOR_ORDER.map((c, i) => (
-        <button
-          key={c}
-          type="button"
-          role="radio"
-          /*
-            A PRESET IS ONLY LIT WHEN NO CUSTOM COLOUR IS SET.
-
-            This read `row.color === c` alone. color still holds
-            whatever token the label had before, so after picking
-            a custom colour the preset stayed highlighted and the
-            custom swatch showed nothing — the ring pointed at a
-            colour that was not in force. colorHex is what wins
-            at render time (see labelChipProps), so it has to win
-            here too.
-          */
-          aria-checked={row.colorHex === null && row.color === c}
-          aria-label={`Colour ${i + 1} for ${row.name}`}
-          className="pbm-label-swatch pbm-label-swatch--pick"
-          data-color={c}
-          data-on={
-            (row.colorHex === null && row.color === c) || undefined
-          }
-          onClick={() =>
-            void patch(row.id, { color: c, colorHex: null })
-          }
-        />
-      ))}
-      {/*
-        Choosing a preset clears the hex above, so the two
-        controls cannot disagree about which colour is in force.
-        A native input rather than a drawn wheel: it is the
-        platform's own picker, keyboard-operable and translated,
-        and on a phone it opens the system one.
-      */}
-      <input
-        type="color"
-        className="pbm-label-pick"
-        aria-label={`Pick any colour for ${row.name}`}
-        /* Lit when the custom colour is the one in force, so
-           exactly one swatch in this group is ever ringed. */
-        data-on={row.colorHex !== null || undefined}
-        value={row.colorHex ?? "#737373"}
-        onChange={(e) =>
-          void patch(row.id, { colorHex: e.target.value })
-        }
-      />
-    </div>
+    <LabelColours
+      name={row.name}
+      color={row.color}
+      colorHex={row.colorHex}
+      // Choosing a preset clears the hex, so the two controls cannot
+      // disagree about which colour is in force.
+      onPreset={(c) => void patch(row.id, { color: c, colorHex: null })}
+      onCustom={(hex) => void patch(row.id, { colorHex: hex })}
+    />
   );
 
   return (
@@ -406,7 +361,7 @@ export default function LabelManager({
                   <div className="pbm-confirm-acts">
                     <button
                       type="button"
-                      className="pbm-confirm-btn"
+                      className="stg-button stg-button--secondary"
                       disabled={busy}
                       /* Focus lands on CANCEL, not Delete. The trash icon this
                          replaced is gone from the row, so whatever the keyboard
@@ -422,7 +377,7 @@ export default function LabelManager({
                     </button>
                     <button
                       type="button"
-                      className="pbm-confirm-btn pbm-confirm-btn--danger"
+                      className="stg-button stg-button--danger"
                       disabled={busy}
                       onClick={() => void remove(row)}
                     >
@@ -447,7 +402,8 @@ export default function LabelManager({
                     }}
                   />
                   <button
-                    className="pbm-label-create"
+                    type="button"
+                    className="stg-button pbm-label-create"
                     disabled={!editName.trim() || busy}
                     onClick={() => void patch(row.id, { name: editName.trim() })}
                   >
@@ -509,38 +465,18 @@ export default function LabelManager({
                 }
               }}
             />
-            <div
-              className="pbm-swatches"
-              role="radiogroup"
-              aria-label="Colour for the new label"
-            >
-              {COLOR_ORDER.map((c, i) => (
-                <button
-                  key={c}
-                  type="button"
-                  role="radio"
-                  aria-checked={newHex === null && newColor === c}
-                  aria-label={`Colour ${i + 1}`}
-                  className="pbm-label-swatch pbm-label-swatch--pick"
-                  data-color={c}
-                  data-on={(newHex === null && newColor === c) || undefined}
-                  onClick={() => {
-                    setNewColor(c);
-                    setNewHex(null);
-                  }}
-                />
-              ))}
-              <input
-                type="color"
-                className="pbm-label-pick"
-                aria-label="Pick any colour for the new label"
-                data-on={newHex !== null || undefined}
-                value={newHex ?? "#737373"}
-                onChange={(e) => setNewHex(e.target.value)}
-              />
-            </div>
+            <LabelColours
+              color={newColor}
+              colorHex={newHex}
+              onPreset={(c) => {
+                setNewColor(c);
+                setNewHex(null);
+              }}
+              onCustom={setNewHex}
+            />
             <button
-              className="pbm-label-create"
+              type="button"
+              className="stg-button pbm-label-create"
               disabled={!newName.trim() || busy}
               onClick={() => void create()}
             >

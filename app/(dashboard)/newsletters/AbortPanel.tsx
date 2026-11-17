@@ -134,7 +134,7 @@ export function AbortPanel({
                 cannot be undone. */}
             <button
               type="button"
-              className="nl-confirm-btn"
+              className="stg-button stg-button--secondary"
               autoFocus
               disabled={state.kind === "working"}
               onClick={() => {
@@ -146,7 +146,7 @@ export function AbortPanel({
             </button>
             <button
               type="button"
-              className="nl-confirm-btn nl-confirm-btn--danger"
+              className="stg-button stg-button--danger"
               disabled={state.kind === "working"}
               onClick={() => {
                 returnFocus.current = true;

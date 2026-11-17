@@ -1210,6 +1210,31 @@ summary:focus-visible,
   background: var(--surface-2);
 }
 
+/*
+  ── THE DESTRUCTIVE BUTTON ──
+
+  The guide's "Destructive: --pdf-fg ink on --pdf-bg", as a class. Until
+  17 Nov 2026 each confirm step drew its own: .pbm-confirm-btn--danger in the
+  label manager (30px, radius 12), .nl-confirm-btn--danger in the newsletter
+  list and the abort panel (radius 9, 7px padding). Jordan: "these buttons
+  don't conform to any we have done so far … make them reusable". Same box as
+  every other .stg-button; the pair --pdf-fg / --pdf-bg is already measured
+  per palette.
+
+  Hover strengthens the border rather than glowing or filling: the action
+  must look different from the primary, not more inviting than it.
+*/
+.stg-button--danger {
+  background: var(--pdf-bg);
+  border-color: transparent;
+  color: var(--pdf-fg);
+}
+
+.stg-button--danger:hover:not(:disabled) {
+  box-shadow: none;
+  border-color: var(--pdf-fg);
+}
+
 .stg-button--wide {
   width: 100%;
   /* The same cap as .stg-field, so on desktop the button ends where the
