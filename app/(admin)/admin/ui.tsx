@@ -188,7 +188,13 @@ export function KpiGrid({ accounts }: { accounts: WorkspaceSummary[] }) {
   const open = accounts.reduce((n, w) => n + w.openCount, 0);
   const invited = accounts.filter((w) => w.pending).length;
   return (
-    <div className="pba-kpis">
+    /*
+      A named, focusable region because on tablet and phone this row scrolls
+      sideways (app/admin.css) and holds nothing focusable of its own, so
+      without a tab stop a keyboard could never reach the boxes off screen.
+      On a desktop it is a static grid and the stop is harmless.
+    */
+    <div className="pba-kpis" role="region" aria-label="Account totals" tabIndex={0}>
       <Kpi
         label="Workspaces"
         value={accounts.length}
