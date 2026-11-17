@@ -31,12 +31,18 @@ export default function StarButton({
   canStar,
   size = 17,
   className = "pbm-icon-btn",
+  tip = false,
 }: {
   ticketId: number;
   starred: boolean;
   canStar: boolean;
   size?: number;
   className?: string;
+  /**
+   * Show the short tooltip under the button (the thread header) instead of
+   * the browser's title tooltip. See the tooltip block in app/mail.css.
+   */
+  tip?: boolean;
 }) {
   const [on, setOn] = useState(starred);
   const [busy, setBusy] = useState(false);
@@ -114,7 +120,8 @@ export default function StarButton({
         data-star={on ? "on" : "off"}
         aria-pressed={on}
         aria-label={on ? "Remove star" : "Star this thread"}
-        title={on ? "Remove star" : "Star this thread"}
+        title={tip ? undefined : on ? "Remove star" : "Star this thread"}
+        data-tip={tip ? (on ? "Unstar" : "Star") : undefined}
         onClick={(e) => void toggle(e)}
       >
         <Icon name="star" size={size} strokeWidth={1.8} filled={on} />
