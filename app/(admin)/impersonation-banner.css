@@ -137,7 +137,8 @@
   border-radius: 14px;
   border: 1px solid #f5a623;
   background: #2b1608;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+  /* No halo; its amber border sets it apart (17 Nov 2026). */
+  box-shadow: none;
 }
 
 .pbi-panel-lead {

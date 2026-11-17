@@ -437,7 +437,10 @@
   border-radius: 14px;
   background: var(--surface);
   border: 1px solid var(--border);
-  box-shadow: 0 16px 34px var(--shadow-2);
+  /* No drop shadow on anything that floats over the page: on the dark
+     theme it reads as a black halo. Jordan, 17 Nov 2026: "remove it from
+     everywhere … it's not good". The border sets it apart. */
+  box-shadow: none;
 }
 .pbm-menu--status {
   top: calc(100% + 6px);
@@ -2034,7 +2037,8 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
     z-index: 71;
     width: min(88vw, 320px);
     flex-basis: auto;
-    box-shadow: 0 0 44px var(--shadow-2);
+    /* No halo; the scrim and its left border set it apart (17 Nov 2026). */
+    box-shadow: none;
   }
   /* An overlay must never be the landing state — it would cover the thread. */
   .pbm-rail[data-rail="auto"],
@@ -2511,7 +2515,8 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
     width: auto;
     border-left: none;
     border-radius: 28px 28px 0 0;
-    box-shadow: 0 -10px 40px var(--shadow-2);
+    /* No halo above the sheet; the scrim sets it apart (17 Nov 2026). */
+    box-shadow: none;
     padding: 8px 18px calc(26px + env(safe-area-inset-bottom, 0px));
     /* A pull at the top of the sheet is the sheet's to claim (ContactRail's
        touch handlers). The browser must not rubber-band or pull-to-refresh

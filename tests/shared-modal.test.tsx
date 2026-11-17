@@ -173,6 +173,35 @@ describe("team: Add new member", () => {
   });
 });
 
+describe("no drop shadow on anything that floats over the page", () => {
+  /*
+    Jordan, 17 Nov 2026: "remove it from everywhere, if it's behind modals.
+    it's not good." On the dark theme a big blur under an overlay draws a
+    black halo. Every rule for an overlay surface must say box-shadow: none,
+    and none of them may set a real shadow anywhere else in its file.
+  */
+  const overlays: [file: string, selector: string][] = [
+    ["app/globals.css", ".pb-modal"],
+    ["app/globals.css", ".pb-sidebar"],
+    ["app/mail.css", ".pbm-menu"],
+    ["app/mail.css", ".pbm-rail"],
+    ["app/(admin)/impersonation-banner.css", ".pbi-panel"],
+  ];
+  for (const [file, selector] of overlays) {
+    it(`${selector} (${file})`, () => {
+      const css = read(file);
+      const esc = selector.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const rules = [...css.matchAll(new RegExp(`\\n\\s*${esc}\\s*\\{([^}]*)\\}`, "g"))].map((m) => m[1]!);
+      expect(rules.length, `no rule for ${selector}`).toBeGreaterThan(0);
+      for (const body of rules) {
+        const shadow = body.match(/box-shadow:\s*([^;]+);/)?.[1];
+        if (shadow === undefined) continue;
+        expect(shadow.trim(), `${selector} has a drop shadow`).toBe("none");
+      }
+    });
+  }
+});
+
 describe("labels in the nav", () => {
   it("Manage is a round + with its name kept for assistive tech", () => {
     const nav = read("components/mail/MailNavShell.tsx");
