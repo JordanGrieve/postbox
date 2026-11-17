@@ -112,7 +112,10 @@ export default async function AdminHomePage({
   }>;
 }) {
   const params = await searchParams;
-  const viewer = await resolveViewer();
+  // Still resolved, though its email is no longer shown: it is the same call
+  // every console render makes, and dropping it here would change more than
+  // the sign-out card.
+  await resolveViewer();
   const [accounts, rejections, drops, usage] = await Promise.all([
     listWorkspaceSummaries(),
     // Fetched for every section rather than only Deliverability: it is three
@@ -274,14 +277,17 @@ export default async function AdminHomePage({
             <NavRow query={query} to="deliverability" label="Deliverability" />
           </div>
 
+          {/*
+            One button, no card. Jordan, 17 Nov 2026: "just 1 button logout
+            admin". The "Signed in as" card with the operator's email is
+            gone; on a phone this sits at the very bottom of the page
+            (admin.css, order on .pba-side-foot), not between the tabs and
+            the content.
+          */}
           <div className="pba-side-foot">
-            <div className="pba-whoami">
-              <div className="pba-whoami-label">Signed in as</div>
-              <div className="pba-whoami-email">{viewer.email}</div>
-              <AuditedSignOutButton className="pba-signout">
-                Sign out
-              </AuditedSignOutButton>
-            </div>
+            <AuditedSignOutButton className="pba-btn pba-logout">
+              Log out of admin
+            </AuditedSignOutButton>
           </div>
         </nav>
 

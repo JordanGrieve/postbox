@@ -221,53 +221,16 @@
   padding-top: 18px;
 }
 
-.pba-whoami {
-  border: 1px solid var(--border);
-  background: var(--surface-3);
-  border-radius: 14px;
-  padding: 11px 12px;
-}
-
-.pba-whoami-label {
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-
-.pba-whoami-email {
-  font-size: 0.78125rem;
-  font-weight: 600;
-  color: var(--text-2);
-  margin-top: 4px;
-  overflow-wrap: anywhere;
-}
-
 /*
-  Sign out.
-
-  `padding: 0` on a 12px label made this 42x15, which clears WCAG 2.5.8 only
-  by way of the spacing exception — nothing else sits within 24px of its
-  centre, so it is not a failure. It was still a 15px-tall tap target for the
-  one control that ends an operator's session, so it is given the 24px the
-  success criterion asks for outright rather than leaning on the exception.
-
-  The negative inline margin keeps the label optically flush with the email
-  above it; without it the added padding would indent the text.
+  Log out of admin: one full-width console button, nothing else. It replaced
+  a "Signed in as" card with the operator's email and a small text link
+  (Jordan, 17 Nov 2026: "just 1 button logout admin"). .pba-btn gives the
+  look and the accent hover; this makes it span the column at 44px.
 */
-.pba-signout {
-  margin-top: 5px;
-  margin-inline: -6px;
-  min-height: var(--tap-min, 24px);
-  padding: 0 6px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent-text);
-  background: transparent;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
+.pba-logout {
+  width: 100%;
+  height: auto;
+  min-height: var(--tap-min, 44px);
 }
 
 /* ── Main column ──────────────────────────────────────────────────────── */
@@ -1113,9 +1076,16 @@
   /* The search box's own tablet rule is with its base rule further down,
      which would otherwise win over one placed here. */
 
+  /*
+    At the very bottom of the page, after the content, not between the tabs
+    and it (Jordan, 17 Nov 2026). The sidebar is display: contents here, so
+    its rows are items of the page column and `order` can move this one
+    past .pba-main. Clear of the home indicator on an iPhone.
+  */
   .pba-side-foot {
+    order: 1;
     margin-top: 0;
-    padding: 12px 14px 16px;
+    padding: 16px 14px calc(20px + env(safe-area-inset-bottom, 0px));
   }
 
   .pba-main,
