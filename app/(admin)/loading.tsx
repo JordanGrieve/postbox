@@ -53,17 +53,7 @@ export default function AdminLoading() {
           </div>
 
           <div className="pba-side-foot">
-            <div className="pba-whoami">
-              <div className="pba-whoami-label pbk-text" style={{ width: 82 }}>
-                &nbsp;
-              </div>
-              <div className="pba-whoami-email pbk-text" style={{ width: "88%" }}>
-                &nbsp;
-              </div>
-              <div className="pba-signout pbk-text" style={{ width: 62, marginTop: 9 }}>
-                &nbsp;
-              </div>
-            </div>
+            <div className="pba-btn pba-logout pbk-fill">&nbsp;</div>
           </div>
         </nav>
 

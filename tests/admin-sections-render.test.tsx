@@ -229,10 +229,8 @@ function shell(pane: string) {
       <a class="pba-navrow"><span class="pba-navlabel">Billing</span></a>
       <a class="pba-navrow"><span class="pba-navlabel">Deliverability</span></a>
     </div>
-    <div class="pba-side-foot"><div class="pba-whoami">
-      <div class="pba-whoami-label">Signed in as</div>
-      <div class="pba-whoami-email">jordangrieve.dev@gmail.com</div>
-      <button class="pba-signout">Sign out</button></div></div>
+    <div class="pba-side-foot">
+      <button type="button" class="pba-btn pba-logout">Log out of admin</button></div>
   </nav>
   <div class="pba-main">
     <header class="pba-header">
