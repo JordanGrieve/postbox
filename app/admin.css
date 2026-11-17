@@ -1493,3 +1493,41 @@
   color: var(--muted-2);
   font-size: 0.71875rem;
 }
+
+/*
+  ── DELIVERABILITY ROWS SWIPE ON A PHONE ──
+  Jordan, 17 Nov 2026: on mobile the allowance meters and the ticket-reply
+  and newsletter tiles "should be carousels", like the summary boxes on
+  Accounts. Each .pba-strip row becomes one line that scrolls sideways and
+  snaps, with the next item peeking in at about three-quarters width.
+  Scoped to .pba-strip so the tiles in the account modal keep their grid.
+
+  At the end of the file because the base .pba-allowance and .pba-tiles
+  rules come before it and would otherwise win. No touch-action, so
+  pinch-zoom still works from a strip (see the note on the Accounts strips).
+*/
+@media (max-width: 560px) {
+  .pba-strip {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 10px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+    /* Bleed to the card's padding edge, keeping the inset for snapping, and
+       leave room above and below for the focus ring. */
+    margin: 0 -18px;
+    padding: 3px 18px 4px;
+    scroll-padding-inline: 18px;
+  }
+
+  .pba-strip::-webkit-scrollbar {
+    display: none;
+  }
+
+  .pba-strip > * {
+    flex: 0 0 min(240px, 76%);
+    scroll-snap-align: start;
+  }
+}
