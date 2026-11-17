@@ -31,6 +31,7 @@ import { join } from "node:path";
 import MessageList from "../components/mail/MessageList";
 import ContactRail from "../components/mail/ContactRail";
 import LabelManager from "../components/mail/LabelManager";
+import LabelPicker from "../components/mail/LabelPicker";
 import OnboardingChecklist from "../components/mail/OnboardingChecklist";
 import SharedLinks from "../components/mail/SharedLinks";
 import Thread from "../components/mail/Thread";
@@ -302,6 +303,21 @@ const views: Record<string, React.ReactElement> = {
   ),
   onboarding: <OnboardingChecklist progress={progress} />,
   links: <SharedLinks links={links} />,
+  /*
+    The thread's "+ Label" menu, open. A static page cannot click to open it,
+    and its new-label row is where the squashed field and the 44px colour
+    discs were (17 Nov 2026).
+  */
+  "label-menu": (
+    <div className="pbm-subject-chips">
+      <LabelPicker
+        ticketId={41}
+        labels={labels.slice(0, 1)}
+        allLabels={labels}
+        initiallyOpen
+      />
+    </div>
+  ),
   thread: (
     <Thread
       ticket={ticket}
@@ -410,6 +426,8 @@ describe("every client-facing mail view renders", () => {
       ["rail", "Wholesale customer"],
       ["labels", "Christmas orders 2026"],
       ["labels-modal", "Christmas orders 2026"],
+      // A name only in allLabels: proves the MENU rendered, not just the chip.
+      ["label-menu", "Christmas orders 2026"],
       ["onboarding", "Switch on an out-of-hours reply"],
       // hostname, which is the field that was missing. Matching on the URL
       // would have passed with hostname undefined.

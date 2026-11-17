@@ -25,15 +25,22 @@ export default function LabelPicker({
   ticketId,
   labels,
   allLabels,
+  initiallyOpen = false,
 }: {
   ticketId: number;
   /** Labels currently on this ticket, from the server. */
   labels: LabelChipDTO[];
   /** Every label in the workspace, for the menu. */
   allLabels: LabelChipDTO[];
+  /**
+   * Render with the menu already open. Only the render harness passes it: a
+   * static page cannot click "+ Label", and the menu is the part that needs
+   * measuring.
+   */
+  initiallyOpen?: boolean;
 }) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(initiallyOpen);
   const [current, setCurrent] = useState<LabelChipDTO[]>(labels);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState<LabelColor>("tag_a");
