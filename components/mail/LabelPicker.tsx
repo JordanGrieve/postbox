@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import type { LabelColor } from "@/db/schema";
 import { Icon } from "./icons";
 import type { LabelChipDTO } from "./types";
+import LabelColours from "./LabelColours";
 
 /**
  * The labels on one ticket, plus the menu that adds and removes them.
@@ -19,7 +20,6 @@ import type { LabelChipDTO } from "./types";
  * close it, and the trigger carries aria-haspopup/aria-expanded.
  */
 
-const COLOR_ORDER: LabelColor[] = ["tag_a", "tag_b", "tag_c"];
 
 export default function LabelPicker({
   ticketId,
@@ -44,6 +44,8 @@ export default function LabelPicker({
   const [current, setCurrent] = useState<LabelChipDTO[]>(labels);
   const [newName, setNewName] = useState("");
   const [newColor, setNewColor] = useState<LabelColor>("tag_a");
+  /** A custom colour for the new label; wins over newColor when set. */
+  const [newHex, setNewHex] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   /**
@@ -65,21 +67,28 @@ export default function LabelPicker({
   useDismiss(open, () => setOpen(false), menuRef);
 
   /*
-    The menu opens under "+ Label", starting at its left edge. When the
-    button has wrapped to the right of a narrow screen (x=257 of 375 on a
-    phone) that would run the menu off the side, so it lines up with the
-    button's RIGHT edge instead. The boundary is the thread pane, not the
-    window: on a desktop the contact column sits to its right.
+    The menu opens under "+ Label", starting at its left edge. When that
+    would run it off the right of the pane (the button wraps to x=257 of 375
+    on a phone), it moves left by exactly the overshoot, and never past the
+    pane's left edge. A plain flip to the button's right edge was tried first
+    and was wrong the other way: with the button at x=105, a 272px menu
+    right-aligned to it starts at -95. The boundary is the thread pane, not
+    the window: on a desktop the contact column sits to its right.
   */
   const dropRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const menu = dropRef.current;
     if (!open || !menu) return;
-    menu.removeAttribute("data-align");
-    const pane = menu.closest(".pbm-thread") ?? document.documentElement;
-    const limit = Math.min(pane.getBoundingClientRect().right, document.documentElement.clientWidth);
-    if (menu.getBoundingClientRect().right > limit - 8) menu.setAttribute("data-align", "end");
-  }, [open]);
+    menu.style.left = "";
+    const pane = (menu.closest(".pbm-thread") ?? document.documentElement).getBoundingClientRect();
+    const right = Math.min(pane.right, document.documentElement.clientWidth) - 8;
+    const left = Math.max(pane.left, 0) + 8;
+    const r = menu.getBoundingClientRect();
+    const shift = Math.min(r.right - right, r.left - left);
+    if (shift > 0) menu.style.left = `${-shift}px`;
+    // `current` too: ticking a label adds a chip before "+ Label" while the
+    // menu stays open, which moves the anchor and invalidates the offset.
+  }, [open, current]);
 
   const onIds = new Set(current.map((l) => l.id));
 
@@ -121,7 +130,7 @@ export default function LabelPicker({
     const res = await fetch("/api/labels", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, color: newColor }),
+      body: JSON.stringify({ name, color: newColor, colorHex: newHex }),
     });
     setBusy(false);
     if (!res.ok) {
@@ -131,6 +140,7 @@ export default function LabelPicker({
     }
     const data = (await res.json()) as { label: LabelChipDTO };
     setNewName("");
+    setNewHex(null);
     await toggle(data.label, true);
   }
 
@@ -217,27 +227,19 @@ export default function LabelPicker({
                 }
               }}
             />
-            <div
-              className="pbm-swatches"
-              role="radiogroup"
-              aria-label="Colour for the new label"
-            >
-              {COLOR_ORDER.map((c, i) => (
-                <button
-                  key={c}
-                  type="button"
-                  role="radio"
-                  aria-checked={newColor === c}
-                  aria-label={`Colour ${i + 1}`}
-                  className="pbm-label-swatch pbm-label-swatch--pick"
-                  data-color={c}
-                  data-on={newColor === c || undefined}
-                  onClick={() => setNewColor(c)}
-                />
-              ))}
+            <div className="pbm-label-new-row">
+              <LabelColours
+                color={newColor}
+                colorHex={newHex}
+                onPreset={(c) => {
+                  setNewColor(c);
+                  setNewHex(null);
+                }}
+                onCustom={setNewHex}
+              />
               <button
                 type="button"
-                className="pbm-label-create"
+                className="stg-button pbm-label-create"
                 disabled={!newName.trim() || busy}
                 onClick={() => void createAndApply()}
               >

@@ -47,9 +47,28 @@ describe("the label menu's new-label row", () => {
     expect(gap, "neighbouring hit squares overlap").toBeGreaterThanOrEqual(2 * grow);
   });
 
-  it("the Add button is the standard button's ink and shape", () => {
+  it("the Add button IS the standard button, and .pbm-label-create only places it", () => {
+    // 17 Nov 2026: the look moved to the shared .stg-button. This class must
+    // not grow its own look back.
     const add = rule(".pbm-label-create");
-    expect(add).toContain("color: var(--on-accent)");
-    expect(px(add, "border-radius")).toBe(10);
+    for (const prop of ["background", "color", "border-radius", "height", "font-size"]) {
+      expect(add, `.pbm-label-create sets ${prop} again`).not.toMatch(new RegExp(`(?:^|[\\s;])${prop}:`));
+    }
+    for (const f of ["LabelPicker.tsx", "LabelManager.tsx"]) {
+      const src = readFileSync(join(__dirname, "..", "components", "mail", f), "utf8");
+      const uses = src.match(/className="[^"]*pbm-label-create[^"]*"/g) ?? [];
+      expect(uses.length, `${f} has no Add button`).toBeGreaterThan(0);
+      for (const u of uses) expect(u, `${f}: ${u}`).toContain("stg-button");
+    }
+  });
+
+  it("the custom colour in the menu draws at the presets' size and keeps a 44px box", () => {
+    const pick = rule(".pbm-label-new .pbm-label-pick");
+    const box = px(pick, "width");
+    const pad = px(pick, "padding");
+    expect(box).toBeGreaterThanOrEqual(44);
+    expect(px(pick, "height")).toBe(box);
+    const preset = px(rule(".pbm-label-new .pbm-label-swatch--pick"), "width");
+    expect(box - 2 * pad, "drawn custom swatch differs from the presets").toBe(preset);
   });
 });

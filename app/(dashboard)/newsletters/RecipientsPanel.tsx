@@ -85,7 +85,7 @@ export default function RecipientsPanel({
                   somewhere and the safe choice changes nothing. */}
               <button
                 type="button"
-                className="nl-confirm-btn"
+                className="stg-button stg-button--secondary"
                 autoFocus
                 onClick={() => setConfirmingUnqueue(false)}
               >
@@ -93,7 +93,7 @@ export default function RecipientsPanel({
               </button>
               <button
                 type="button"
-                className="nl-confirm-btn nl-confirm-btn--danger"
+                className="stg-button stg-button--danger"
                 onClick={() => {
                   if (savedId === null || queue.kind === "working") return;
                   setConfirmingUnqueue(false);

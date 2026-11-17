@@ -49,8 +49,6 @@
   border-radius: 18px;
 }
 .pbm-label-add:focus-visible,
-.pbm-label-create:focus-visible,
-.pbm-confirm-btn:focus-visible,
 .pbm-nav-manage:focus-visible {
   border-radius: 12px;
 }
@@ -1589,11 +1587,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   display: inline-flex;
   flex: none;
 }
-/* Set by LabelPicker when the menu would cross the pane's right edge. */
-.pbm-menu--labels[data-align="end"] {
-  left: auto;
-  right: 0;
-}
 .pbm-label-add {
   position: relative;
   display: inline-flex;
@@ -1621,7 +1614,8 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   bottom: auto;
   left: 0;
   right: auto;
-  width: 232px;
+  /* 272, up from 232, for the fourth colour (the custom one) beside Add. */
+  width: 272px;
   max-height: 320px;
   overflow-y: auto;
 }
@@ -1723,27 +1717,54 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   position: absolute;
   inset: -10px;
 }
+/* The colours and Add on one line. */
+.pbm-label-new-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+/*
+  "Any colour", added to the menu 17 Nov 2026 ("add the custom one here
+  too"). It is a native <input type="color">, which cannot carry an ::after,
+  so its 44px target is its own box: 10px of padding around a 24px drawing
+  that matches the presets. The ring goes on the drawn swatch, not the box,
+  so all four ring the same size. -10px of margin puts the drawing 20px from
+  the last preset, the same as the presets are from each other, and leaves
+  their hit squares touching, not overlapping.
+*/
+.pbm-label-new .pbm-label-pick {
+  width: 44px;
+  height: 44px;
+  padding: 10px;
+  margin-left: -10px;
+  border: none;
+  overflow: visible;
+}
+.pbm-label-new .pbm-label-pick[data-on] {
+  box-shadow: none;
+}
+.pbm-label-new .pbm-label-pick::-webkit-color-swatch {
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+.pbm-label-new .pbm-label-pick::-moz-color-swatch {
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+.pbm-label-new .pbm-label-pick[data-on]::-webkit-color-swatch {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent-text);
+}
+.pbm-label-new .pbm-label-pick[data-on]::-moz-color-swatch {
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent-text);
+}
+/*
+  Placement only. The button itself is the shared .stg-button (globals.css)
+  since 17 Nov 2026; this class just pushes it to the end of its row.
+*/
 .pbm-label-create {
   margin-left: auto;
   flex: none;
-  display: inline-flex;
-  align-items: center;
   gap: 5px;
-  height: 44px;
-  padding: 0 18px;
-  border: none;
-  /* The standard button's shape and type (.stg-button). */
-  border-radius: 10px;
-  background: var(--accent-grad);
-  color: var(--on-accent);
-  font: inherit;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-.pbm-label-create:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
 }
 
 /* ── labels in the nav ── */
@@ -1907,32 +1928,8 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   gap: 8px;
   flex: none;
 }
-.pbm-confirm-btn {
-  height: 30px;
-  padding: 0 12px;
-  border: 1px solid var(--border-strong);
-  border-radius: 12px;
-  background: var(--surface-3);
-  color: var(--text-2);
-  font-size: 0.71875rem;
-  font-weight: 700;
-  cursor: pointer;
-}
-.pbm-confirm-btn:hover {
-  color: var(--accent-text);
-}
-.pbm-confirm-btn--danger {
-  border-color: transparent;
-  background: var(--pdf-bg);
-  color: var(--pdf-fg);
-}
-.pbm-confirm-btn--danger:hover {
-  color: var(--pdf-fg);
-}
-.pbm-confirm-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
+/* Cancel and Delete are the shared .stg-button--secondary and
+   .stg-button--danger (globals.css) since 17 Nov 2026. */
 
 /* ───────────────────────────── stars ───────────────────────────── */
 
