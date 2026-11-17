@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
 import type { WorkspaceSummary } from "@/lib/data";
 import type { ImpersonationSessionRow } from "@/lib/impersonation";
 import type { ImpersonationReadRow } from "@/lib/impersonation-reads";
@@ -8,21 +8,7 @@ import type { WorkspaceUsage } from "./queries";
 import { describePlan } from "./billing-rollup";
 import { createClientAction } from "./actions";
 import { AccountDetails, DeletePanel, RotateKeyPanel } from "./account-panels";
-import SheetGrip from "@/components/mail/SheetGrip";
-import { useMediaQuery } from "@/lib/use-media-query";
-import {
-  decideSheetTouch,
-  sheetOffset,
-  shouldCloseOnRelease,
-  type SheetTouch,
-} from "@/lib/sheet-drag";
-
-/**
- * The width at and below which the account modal is a bottom sheet. Mirrors
- * the media query in app/admin.css; the CSS decides the layout and this only
- * decides whether the drag gesture is wired.
- */
-const SHEET_QUERY = "(max-width: 640px)";
+import Modal from "@/components/Modal";
 import {
   accountStatus,
   formatDate,
@@ -151,7 +137,6 @@ export default function AccountsBrowser({
   // an open modal is not possible, and if a refresh drops the row the modal
   // closes rather than describing something no longer there.
   const [openId, setOpenId] = useState<number | null>(null);
-  const dialogRef = useRef<HTMLDialogElement>(null);
 
   const needle = q.trim().toLowerCase();
 
@@ -175,96 +160,6 @@ export default function AccountsBrowser({
   };
 
   const open = accounts.find((w) => w.id === openId) ?? null;
-
-  /*
-    Drive the native dialog from state. showModal() can only be called on a
-    connected, closed dialog, hence the checks; close() fires the dialog's own
-    "close" event, which is where state is cleared, so Escape, the close
-    button and a click on the backdrop all end up in the same place.
-  */
-  useEffect(() => {
-    const dialog = dialogRef.current;
-    if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
-    if (!open && dialog.open) dialog.close();
-  }, [open]);
-
-  /*
-    ── ON A PHONE, A BOTTOM SHEET YOU CAN DRAG AWAY ──
-    Jordan, 17 Nov 2026: on mobile the modal should come up from the bottom
-    and drag down to close, with the grab bar. It is the inbox's contact
-    sheet gesture, reused rather than rewritten: SheetGrip for the handle and
-    lib/sheet-drag.ts for every rule (follow the finger down, resist up,
-    close past 110px, never close on a system cancel). The CSS makes it a
-    sheet; this only wires the drag, and only at the width the CSS does.
-
-    The body drags too, when its scroller is at the top and the finger moves
-    down — the same conditional claim as ContactRail, which needs raw
-    non-passive touch listeners because touch-action cannot express a
-    condition.
-  */
-  const sheet = useMediaQuery(SHEET_QUERY);
-  const [dragY, setDragY] = useState(0);
-  const innerRef = useRef<HTMLDivElement>(null);
-  const closeSheet = () => dialogRef.current?.close();
-
-  useEffect(() => {
-    const el = innerRef.current;
-    if (!el || !open || !sheet) return;
-    let startX = 0;
-    let startY = 0;
-    let mode: SheetTouch = "wait";
-    let travelled = 0;
-
-    const onStart = (e: TouchEvent) => {
-      const t = e.touches[0];
-      if (e.touches.length !== 1 || !t) {
-        mode = "scroll";
-        return;
-      }
-      startX = t.clientX;
-      startY = t.clientY;
-      mode = "wait";
-      travelled = 0;
-    };
-    const onMove = (e: TouchEvent) => {
-      const t = e.touches[0];
-      if (!t || mode === "scroll") return;
-      const dx = t.clientX - startX;
-      const dy = t.clientY - startY;
-      if (mode === "wait") mode = decideSheetTouch(el.scrollTop, dx, dy);
-      if (mode !== "drag") return;
-      if (e.cancelable) e.preventDefault();
-      travelled = sheetOffset(dy);
-      setDragY(travelled);
-    };
-    const onEnd = () => {
-      const wasDrag = mode === "drag";
-      const distance = travelled;
-      mode = "wait";
-      travelled = 0;
-      if (!wasDrag) return;
-      setDragY(0);
-      if (shouldCloseOnRelease(distance)) dialogRef.current?.close();
-    };
-    // Taken away by the system: never a close, however far it had moved.
-    const onCancel = () => {
-      if (mode === "drag") setDragY(0);
-      mode = "wait";
-      travelled = 0;
-    };
-
-    el.addEventListener("touchstart", onStart, { passive: true });
-    el.addEventListener("touchmove", onMove, { passive: false });
-    el.addEventListener("touchend", onEnd);
-    el.addEventListener("touchcancel", onCancel);
-    return () => {
-      el.removeEventListener("touchstart", onStart);
-      el.removeEventListener("touchmove", onMove);
-      el.removeEventListener("touchend", onEnd);
-      el.removeEventListener("touchcancel", onCancel);
-    };
-  }, [open, sheet]);
 
   // One clock for the whole table. Read per row, two workspaces either side of
   // a period boundary could be judged against different instants.
@@ -431,77 +326,31 @@ export default function AccountsBrowser({
       </main>
 
       {/*
-        Rendered always, so the ref exists before the first click; empty until
-        an account is open. aria-labelledby points at the heading inside, so
-        the dialog is announced by the account's name.
-
-        A click on the backdrop lands on the <dialog> element itself, never on
-        its content, which is what the target check below relies on. A click
-        on a link inside (Replace ingestion key, Delete workspace) navigates to
-        a confirmation panel on the page behind, so the modal closes first or
-        it would sit on top of the panel it just opened.
-
-        The lint rules below ask for a keyboard twin of a click handler on a
-        non-interactive element. This one has two built in: Escape closes a
-        modal <dialog> natively, and the close button is the first control
-        inside. The click handler only adds the mouse-only backdrop gesture.
+        The shared modal (components/Modal.tsx): a bottom sheet on a phone,
+        announced by the account's name. A link inside (Replace ingestion key,
+        Delete workspace) navigates to a confirmation panel on the page
+        behind, so the modal closes first or it would sit on top of the panel
+        it just opened.
       */}
-      {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-noninteractive-element-interactions */}
-      <dialog
-        ref={dialogRef}
-        className="pba-modal"
-        aria-labelledby="pba-modal-title"
-        data-dragging={dragY !== 0 || undefined}
-        style={dragY ? { transform: `translateY(${dragY}px)` } : undefined}
-        onClose={() => {
-          setDragY(0);
-          setOpenId(null);
-        }}
-        onClick={(e) => {
-          const target = e.target as Element;
-          if (target === e.currentTarget || target.closest("a")) {
-            e.currentTarget.close();
-          }
-        }}
+      <Modal
+        open={open !== null}
+        onClose={() => setOpenId(null)}
+        title={open?.name ?? ""}
+        closeLabel="Close account details"
+        closeOnLinkClick
+        className="pba-account-modal"
       >
-        {/* The grab bar. Hidden by CSS above the sheet width, so on a desktop
-            it is neither drawn nor focusable. */}
         {open && (
-          <SheetGrip
-            onClose={closeSheet}
-            onOffset={setDragY}
-            label="Drag down to close account details"
-            className="pba-sheet-grip"
+          <AccountDetails
+            account={open}
+            teamSize={teamSizes[open.id] ?? 0}
+            query={query}
+            recentAccess={recentAccess[open.id] ?? []}
+            reads={readsMap}
+            usage={usage[open.id] ?? null}
           />
         )}
-        {open && (
-          <div className="pba-modal-inner" ref={innerRef}>
-            <div className="pba-modal-head">
-              <h2 id="pba-modal-title" className="pba-modal-title">
-                {open.name}
-              </h2>
-              <button
-                type="button"
-                className="pba-modal-close"
-                onClick={() => dialogRef.current?.close()}
-                aria-label="Close account details"
-              >
-                <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-                  <path d="M6 6l12 12M18 6 6 18" />
-                </svg>
-              </button>
-            </div>
-            <AccountDetails
-              account={open}
-              teamSize={teamSizes[open.id] ?? 0}
-              query={query}
-              recentAccess={recentAccess[open.id] ?? []}
-              reads={readsMap}
-              usage={usage[open.id] ?? null}
-            />
-          </div>
-        )}
-      </dialog>
+      </Modal>
     </>
   );
 }

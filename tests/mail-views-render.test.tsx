@@ -466,7 +466,18 @@ describe("every client-facing mail view renders", () => {
     copyFileSync(join(process.cwd(), "tests/audit-probes.js"), join(OUT, "audit.js"));
 
     for (const [name, node] of Object.entries(views)) {
-      writeFileSync(join(OUT, `${name}.html`), page(name, renderToStaticMarkup(node)), "utf8");
+      /*
+        The shared modal is a native <dialog> that Modal.tsx opens with
+        showModal() in an effect, which static markup never runs. Given the
+        open attribute instead, as the admin harness's details view does: the
+        content, sizes and colours are the real ones, which is what the
+        probes measure.
+      */
+      const html = renderToStaticMarkup(node).replace(
+        /<dialog class="pb-modal/g,
+        '<dialog open class="pb-modal',
+      );
+      writeFileSync(join(OUT, `${name}.html`), page(name, html), "utf8");
     }
   });
 });

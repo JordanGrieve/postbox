@@ -453,191 +453,11 @@
 
 /*
   ── The account details modal ──
-
-  Replaced a 320px drawer that was always open down the right of the accounts
-  pane (16 Nov 2026). A native <dialog> opened with showModal(), so the page
-  behind is inert and the browser handles focus and Escape.
-
-  The dialog itself has no padding and the inner box scrolls, so a long
-  operator-access list scrolls inside the modal rather than the modal growing
-  past the viewport. A click on the padding of the dialog would count as a
-  click on the dialog, which AccountsBrowser reads as "backdrop"; with no
-  padding on it, only the real backdrop can be that click.
+  The shared modal (components/Modal.tsx, .pb-modal in globals.css) since
+  17 Nov 2026. Only the rules for what sits INSIDE it are here.
 */
-.pba-modal {
-  width: min(600px, calc(100vw - 32px));
-  max-height: calc(100vh - 48px);
-  /*
-    The browser centres a modal dialog with `margin: auto`. The reset at the
-    top of globals.css sets every element's margin to 0, which pinned this
-    one to the top-left corner on the live console (16 Nov 2026). Put back
-    explicitly. tests/admin-account-modal.test.tsx pins it.
-  */
-  margin: auto;
-  padding: 0;
-  border: 1px solid var(--border);
-  border-radius: 22px;
-  background: var(--surface-2);
-  color: var(--text);
-  box-shadow: 0 24px 60px var(--shadow-2);
-}
 
-.pba-modal::backdrop {
-  background: rgba(0, 0, 0, 0.55);
-}
 
-/*
-  The page behind an open account modal does not scroll. It did, so its
-  scrollbar stayed up beside the sheet and a swipe that ran off the sheet
-  moved the table underneath. Jordan, 17 Nov 2026: the modal "goes in front
-  of the white bar". (The bar was white because no color-scheme was set;
-  see globals.css.)
-*/
-html:has(.pba-modal[open]) {
-  overflow: hidden;
-}
-
-/* The sheet's grab bar exists only at the sheet width (below). */
-.pba-sheet-grip {
-  display: none;
-}
-
-/*
-  ── ON A PHONE, A BOTTOM SHEET ──
-  Jordan, 17 Nov 2026: the modal comes up from the bottom, drags down to
-  close, and has the grab bar. Same shape as the inbox's contact sheet:
-  full width, pinned to the bottom edge, rounded top corners, sliding up on
-  open. The drag itself is wired in AccountsBrowser.tsx, at the same width
-  (SHEET_QUERY there). Motion is covered by the blanket reduced-motion rule
-  at the end of globals.css.
-*/
-@media (max-width: 640px) {
-  .pba-modal {
-    width: 100%;
-    max-width: 100%;
-    max-height: 88dvh;
-    margin: auto 0 0;
-    border-bottom: none;
-    border-radius: 26px 26px 0 0;
-    display: flex;
-    flex-direction: column;
-    transition: transform 220ms ease;
-  }
-
-  .pba-modal[open] {
-    animation: pba-sheet-up 220ms ease;
-  }
-
-  /* Following the finger: no easing while it is down. */
-  .pba-modal[data-dragging] {
-    transition: none;
-  }
-
-  /* Two classes: the base .pba-modal-inner rule is later in this file and
-     would win over one. */
-  .pba-modal .pba-modal-inner {
-    max-height: none;
-    flex: 1 1 auto;
-    min-height: 0;
-    padding-top: 4px;
-    padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
-  }
-
-  /*
-    The whole strip above the title is the handle, not just the bar drawn in
-    it: a thumb aims at the top of the sheet, not at a 44px pill. 44px tall
-    for 2.5.5. touch-action: none so the browser does not claim the drag for
-    scrolling before the first pointermove arrives.
-  */
-  .pba-sheet-grip {
-    display: flex;
-    flex: none;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    height: var(--tap-min, 44px);
-    cursor: grab;
-    touch-action: none;
-    border-radius: 26px 26px 0 0;
-  }
-
-  .pba-sheet-grip::before {
-    content: "";
-    width: 44px;
-    height: 5px;
-    border-radius: 3px;
-    background: var(--border-strong);
-  }
-
-  .pba-sheet-grip[data-dragging] {
-    cursor: grabbing;
-  }
-}
-
-@keyframes pba-sheet-up {
-  from {
-    transform: translateY(100%);
-  }
-  to {
-    transform: translateY(0);
-  }
-}
-
-.pba-modal-inner {
-  max-height: calc(100vh - 50px);
-  overflow-y: auto;
-  padding: 20px 22px 22px;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
-.pba-modal-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-}
-
-.pba-modal-title {
-  font-size: 1.125rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  margin: 0;
-  overflow-wrap: anywhere;
-}
-
-/* 44px, like every other control here. The cross is drawn, not a glyph, so
-   it is the same shape in every font. */
-.pba-modal-close {
-  flex: none;
-  width: var(--tap-min, 44px);
-  height: var(--tap-min, 44px);
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--surface-3);
-  color: var(--text);
-  cursor: pointer;
-  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
-}
-
-/* Same hover as .pba-btn: the solid accent with its own ink. */
-.pba-modal-close:hover {
-  background: var(--accent-grad);
-  border-color: transparent;
-  color: var(--on-accent);
-}
-
-.pba-modal-close svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-}
 
 /* "Open workspace" sits right under the title, where the drawer had it. */
 .pba-modal-open {
@@ -993,12 +813,12 @@ html:has(.pba-modal[open]) {
 }
 
 /* Three across in the modal, where the drawer only had room for two. */
-.pba-modal .pba-tiles {
+.pba-account-modal .pba-tiles {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 @media (max-width: 560px) {
-  .pba-modal .pba-tiles {
+  .pba-account-modal .pba-tiles {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }

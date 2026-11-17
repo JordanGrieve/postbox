@@ -6,6 +6,7 @@ import { planById, smallestPlanForSeats } from "@/lib/pricing";
 import { initials } from "@/lib/tickets";
 import { inviteTeammateAction, revokeTeammateAction } from "./actions";
 import { listTeam } from "./queries";
+import InviteMember from "./InviteMember";
 
 export const metadata = { title: "Team · Settings" };
 
@@ -65,8 +66,11 @@ export default async function TeamSettingsPage({
 
   return (
     <div className="stg-wrap">
-      <header className="stg-head">
+      <header className="stg-head stg-head--action">
         <h1 className="stg-title">Team</h1>
+        {/* Only while a seat is free: a full plan has nothing to add with,
+            and says why in the section below instead. */}
+        {!full && <InviteMember action={inviteTeammateAction} />}
       </header>
 
       {error && (
@@ -151,10 +155,14 @@ export default async function TeamSettingsPage({
         </ul>
       </section>
 
+      {/*
+        The invite form lives in a modal behind "Add new member" at the top
+        (InviteMember.tsx) since 17 Nov 2026. This section stays only for a
+        full plan, where there is no button and the reason has to be said.
+      */}
+      {full && (
       <section className="stg-section">
         <h2 className="stg-section-title">Add someone</h2>
-
-        {full ? (
           <p className="stg-section-sub">
             {overLimit ? (
               <>
@@ -179,34 +187,8 @@ export default async function TeamSettingsPage({
               <>Remove somebody before adding another.</>
             )}
           </p>
-        ) : (
-          <form action={inviteTeammateAction}>
-            <label className="stg-field">
-              <span className="stg-field-label">Their email address</span>
-              <input
-                className="stg-input"
-                type="email"
-                name="email"
-                required
-                maxLength={254}
-                autoComplete="off"
-                placeholder="name@yourbusiness.com"
-              />
-            </label>
-
-            {/*
-              The "they'll be able to do everything you can / the invite is
-              claimed by whoever signs in with that address" box used to sit
-              here, and the header comment above still argues for it. Removed
-              on Jordan's call, 9 Sep 2026, with the owner-only notice: the
-              FAQ is where this will live. The facts it stated are unchanged.
-            */}
-            <button className="stg-button stg-button--wide" type="submit">
-              Send invite
-            </button>
-          </form>
-        )}
       </section>
+      )}
     </div>
   );
 }

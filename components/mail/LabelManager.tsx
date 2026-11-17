@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import type { LabelColor } from "@/db/schema";
 import { Icon } from "./icons";
 import LabelColours from "./LabelColours";
+import Modal from "@/components/Modal";
 import type { LabelWithCountDTO } from "./types";
 import { STARTER_LABELS } from "@/lib/starter-labels";
 
@@ -94,18 +95,11 @@ export default function LabelManager({
     firstFieldRef.current?.focus();
   }, []);
 
-  // Inline has nothing to close, so Escape is only listened for there while a
-  // delete question is outstanding — on a Settings page the key otherwise
-  // belongs to the page (stopping a load, leaving a native picker).
-  useDismiss(confirmingId !== null || !inline, () => {
-    // Esc backs out of the delete question first, and only closes the whole
-    // modal once no question is outstanding. Otherwise the key that means
-    // "cancel this" would also discard the editing you came here to do —
-    // which is precisely the trap window.confirm avoided by hijacking the
-    // entire browser, and a worse cure than the disease.
-    if (confirmingId !== null) setConfirmingId(null);
-    else if (!inline) onClose?.();
-  });
+  // Inline only: Escape backs out of an outstanding delete question. On a
+  // Settings page the key otherwise belongs to the page (stopping a load,
+  // leaving a native picker). In the modal, the dialog's own Escape does this
+  // through Modal's onEscape below.
+  useDismiss(inline && confirmingId !== null, () => setConfirmingId(null));
 
   async function create() {
     const name = newName.trim();
@@ -279,39 +273,15 @@ export default function LabelManager({
     />
   );
 
-  return (
-    <>
-      {/* Chrome only. Everything below the head is identical in both
-          placements — see the `inline` prop. */}
-      {!inline && (
-        <div className="pbm-modal-scrim" onClick={onClose} aria-hidden />
-      )}
-      <div
-        className={inline ? "pbm-modal pbm-modal--inline" : "pbm-modal"}
-        // A settings panel is not a dialog. Announcing one that cannot be
-        // dismissed traps a screen-reader user in a modal with no way out.
-        role={inline ? undefined : "dialog"}
-        aria-modal={inline ? undefined : true}
-        aria-label={inline ? undefined : "Manage labels"}
-      >
-        {!inline && (
-          <div className="pbm-modal-head">
-            <h2 className="pbm-modal-title">Labels</h2>
-            <button
-              className="pbm-rail-close"
-              onClick={onClose}
-              aria-label="Close label manager"
-            >
-              <Icon name="close" size={12} strokeWidth={2.4} />
-            </button>
-          </div>
-        )}
-
-        <div
-          className={
-            inline ? "pbm-modal-body" : "pbm-modal-body pb-scroll"
-          }
-        >
+  /*
+    Chrome only. Everything in `body` is identical in both placements; see
+    the `inline` prop. A settings panel is not a dialog: announcing one that
+    cannot be dismissed traps a screen-reader user in a modal with no way out.
+    The modal placement is the shared Modal (17 Nov 2026), which brings the
+    focus trap this never had, and the bottom sheet with its grab bar.
+  */
+  const body = (
+        <div className="pbm-modal-body">
           {rows.length === 0 && (
             <div className="pbm-label-empty">
               <p className="pbm-modal-note">
@@ -497,7 +467,27 @@ export default function LabelManager({
             {announcement}
           </p>
         </div>
-      </div>
-    </>
+  );
+
+  if (inline) return <div className="pbm-modal pbm-modal--inline">{body}</div>;
+
+  return (
+    <Modal
+      open
+      onClose={() => onClose?.()}
+      title="Labels"
+      closeLabel="Close label manager"
+      // Escape backs out of the delete question first, and only closes the
+      // whole modal once no question is outstanding. Otherwise the key that
+      // means "cancel this" would also discard the editing you came to do.
+      onEscape={() => {
+        if (confirmingId === null) return false;
+        setConfirmingId(null);
+        return true;
+      }}
+      className="pbm-label-modal"
+    >
+      {body}
+    </Modal>
   );
 }

@@ -444,6 +444,39 @@ describe("the signed-in screens that had no harness", () => {
       renderToStaticMarkup(await TeamPage({ searchParams: Promise.resolve({}) })),
     );
     expect(html).toContain("emma@opendoorbakery.co.uk");
+    // Three people on Starter's one seat: over the plan, so no Add button
+    // and the reason is said instead.
+    expect(html).not.toContain("Add new member");
+  });
+
+  it("/settings/team with a free seat — Add new member, and its modal", async () => {
+    // Growth: three seats, one taken. (Starter has one.)
+    h.getWorkspaceEntitlement.mockResolvedValue({
+      plan: "growth",
+      onTrial: false,
+      comped: false,
+      mayReceive: true,
+      maySendCampaigns: true,
+      daysLeft: null,
+      blockedReason: null,
+    } satisfies Entitlement);
+    h.listTeam.mockResolvedValue([
+      { id: 1, email: "emma@opendoorbakery.co.uk", pending: false, role: "owner" },
+    ] satisfies TeamMember[]);
+    /*
+      The invite is the shared modal, a native <dialog> that Modal.tsx opens
+      with showModal() in an effect, which static markup never runs. Written
+      with the open attribute so the probes measure the modal itself.
+    */
+    const html = record(
+      "team-invite",
+      renderToStaticMarkup(await TeamPage({ searchParams: Promise.resolve({}) })).replace(
+        /<dialog class="pb-modal/g,
+        '<dialog open class="pb-modal',
+      ),
+    );
+    expect(html).toContain("Add new member");
+    expect(html).toContain('name="email"');
   });
 
   it("/subscribers/[id] — the consent screen, on a weak consent record", async () => {

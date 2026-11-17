@@ -48,9 +48,11 @@
 .pbm-folder:focus-visible {
   border-radius: 18px;
 }
-.pbm-label-add:focus-visible,
-.pbm-nav-manage:focus-visible {
+.pbm-label-add:focus-visible {
   border-radius: 12px;
+}
+.pbm-nav-manage:focus-visible {
+  border-radius: 50%;
 }
 .pbm-icon-btn:focus-visible,
 .pbm-send:focus-visible,
@@ -1547,26 +1549,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   .pbm-label-row .pbm-label-icon:first-of-type {
     margin-left: auto;
   }
-  /*
-    The label manager is a bottom sheet on a phone, like the contact rail:
-    full width, from 8vh down, rounded at the top. Centred at min(94vw, 560)
-    by min(84vh, 640) it floated as a box with a strip of page either side
-    and its bottom edge nowhere near the thumb.
-  */
-  .pbm-modal:not(.pbm-modal--inline) {
-    top: auto;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    transform: none;
-    width: auto;
-    max-height: 92vh;
-    border-radius: 24px 24px 0 0;
-    border-bottom: none;
-  }
-  .pbm-modal:not(.pbm-modal--inline) .pbm-modal-body {
-    padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-  }
 }
 
 /* The label row under a thread's subject. */
@@ -1771,64 +1753,55 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
 
 .pbm-nav-heading-row {
   display: flex;
-  align-items: baseline;
+  /* Centre, not baseline: the round "+" has no text to share a baseline. */
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
   padding-right: 8px;
 }
+/*
+  Manage labels: a round "+" (Jordan, 17 Nov 2026: "this manage should just be
+  a + that is circular"). The one round button in the product, by request;
+  everything else is a rounded rectangle. 44px for 2.5.5, the size the touch
+  floor in globals.css already gave the word "Manage". Hover is the nav's own
+  active pair, the way a selected folder row looks.
+*/
 .pbm-nav-manage {
   flex: none;
-  padding: 3px 8px;
+  width: var(--tap-min, 44px);
+  height: var(--tap-min, 44px);
+  justify-content: center;
+  padding: 0;
   border: none;
-  border-radius: 8px;
+  border-radius: 50%;
   background: var(--pbm-nav-line);
-  color: var(--nav-muted, #a3a3a3);
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  color: var(--nav-fg);
   cursor: pointer;
+  transition: background 160ms ease, color 160ms ease;
 }
 .pbm-nav-manage:hover {
+  background: var(--nav-active-bg);
   color: var(--nav-active-fg);
 }
 
-/* ── the label manager ── */
+/* ── the label manager ──
+   In the nav it is the shared modal (components/Modal.tsx) since 17 Nov 2026;
+   the scrim, centring and phone-sheet rules it had are gone with the
+   home-made overlay. .pbm-modal is now only the Settings → Labels panel
+   (pbm-modal--inline, below). */
 
-.pbm-modal-scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  background: var(--pbm-scrim);
-}
 .pbm-modal {
-  position: fixed;
-  z-index: 91;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: min(94vw, 560px);
-  max-height: min(84vh, 640px);
   display: flex;
   flex-direction: column;
   border-radius: 22px;
   border: 1px solid var(--border);
   background: var(--surface);
-  box-shadow: 0 26px 60px var(--shadow-2);
 }
-.pbm-modal-head {
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 18px 18px 12px;
-  border-bottom: 1px solid var(--border);
-}
-.pbm-modal-title {
-  font-size: 0.9375rem;
-  font-weight: 800;
-  color: var(--text);
+/* Inside the shared modal the body neither scrolls nor pads: the modal's
+   own inner box does both. */
+.pb-modal .pbm-modal-body {
+  padding: 0;
+  overflow: visible;
 }
 .pbm-modal-body {
   flex: 1;

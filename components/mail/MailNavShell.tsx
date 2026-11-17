@@ -515,8 +515,11 @@ export default function MailNavShell({
                 className="pbm-nav-manage"
                 onClick={() => setLabelsOpen(true)}
                 aria-label="Manage labels"
+                aria-haspopup="dialog"
               >
-                Manage
+                {/* A round "+", not the word. Jordan, 17 Nov 2026. The
+                    accessible name still says what it opens. */}
+                <Icon name="plus" size={16} strokeWidth={2.4} />
               </button>
             </div>
             <div className="pbm-folders">
