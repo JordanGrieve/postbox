@@ -455,7 +455,9 @@ export function DeliverabilitySection({
         <div className="pba-card-head">
           <h2 className="pba-card-title">Ticket replies</h2>
         </div>
-        <div className="pba-tiles">
+        {/* A named, focusable region: on a phone this row swipes sideways
+            and holds nothing focusable (app/admin.css). */}
+        <div className="pba-tiles pba-strip" role="region" aria-label="Ticket reply totals" tabIndex={0}>
           <div className="pba-tile">
             <div className="pba-tile-value">{transactional.total}</div>
             <div className="pba-tile-label">Sent, all time</div>
@@ -506,7 +508,7 @@ export function DeliverabilitySection({
         <div className="pba-card-head">
           <h2 className="pba-card-title">Newsletter sends</h2>
         </div>
-        <div className="pba-tiles">
+        <div className="pba-tiles pba-strip" role="region" aria-label="Newsletter send totals" tabIndex={0}>
           <div className="pba-tile">
             <div className="pba-tile-value">
               {campaignTotals.recipients.queued}
@@ -630,7 +632,7 @@ function ProviderAllowanceCard({ allowance }: { allowance: ProviderAllowance }) 
           newsletters together.
         </p>
       </div>
-      <div className="pba-allowance">
+      <div className="pba-allowance pba-strip" role="region" aria-label="Mail allowance used" tabIndex={0}>
         <AllowanceMeter
           label="Today"
           known={allowance.todayKnown}
