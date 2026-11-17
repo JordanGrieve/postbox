@@ -42,6 +42,30 @@ export default function LabelColours({
   onCustom: (hex: string) => void;
 }) {
   const forName = name ? ` for ${name}` : "";
+  const lit = colorHex === null ? COLOR_ORDER.indexOf(color) : -1;
+  /*
+    The presets are a radio group, so they behave like one (WAI-ARIA APG,
+    Radio Group): ONE Tab stop, on the checked preset or the first when the
+    custom colour is in force, and the arrow keys move between presets and
+    choose as they go. Before 17 Nov 2026 each was its own Tab stop and the
+    arrows did nothing, which CodeRabbit flagged. The custom input is a
+    separate control and keeps its own Tab stop.
+  */
+  const tabStop = lit === -1 ? 0 : lit;
+  const onKey = (i: number) => (e: React.KeyboardEvent<HTMLButtonElement>) => {
+    const step =
+      e.key === "ArrowRight" || e.key === "ArrowDown"
+        ? 1
+        : e.key === "ArrowLeft" || e.key === "ArrowUp"
+          ? -1
+          : 0;
+    if (!step) return;
+    e.preventDefault();
+    const next = (i + step + COLOR_ORDER.length) % COLOR_ORDER.length;
+    const group = e.currentTarget.parentElement;
+    group?.querySelectorAll<HTMLButtonElement>('[role="radio"]')[next]?.focus();
+    onPreset(COLOR_ORDER[next]!);
+  };
   return (
     <div
       className="pbm-swatches"
@@ -49,7 +73,7 @@ export default function LabelColours({
       aria-label={name ? `Colour for ${name}` : "Colour for the new label"}
     >
       {COLOR_ORDER.map((c, i) => {
-        const on = colorHex === null && color === c;
+        const on = i === lit;
         return (
           <button
             key={c}
@@ -60,7 +84,9 @@ export default function LabelColours({
             className="pbm-label-swatch pbm-label-swatch--pick"
             data-color={c}
             data-on={on || undefined}
+            tabIndex={i === tabStop ? 0 : -1}
             onClick={() => onPreset(c)}
+            onKeyDown={onKey(i)}
           />
         );
       })}

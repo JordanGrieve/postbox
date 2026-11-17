@@ -88,6 +88,40 @@ describe("inbox review, 17 Nov 2026", () => {
     expect(105 + shiftAt(105) + 272).toBeLessThanOrEqual(375 - 8);
   });
 
+  it("the label menu re-measures when a label is ticked with it open", () => {
+    // Ticking a label adds a chip before "+ Label", which moves the anchor.
+    // The offset worked out on opening is then stale.
+    const labels = [
+      { id: 1, name: "Wholesale", color: "tag_a", colorHex: null },
+      { id: 2, name: "VIP", color: "tag_b", colorHex: null },
+    ] satisfies LabelChipDTO[];
+    let menuLeft = 16;
+    const real = Element.prototype.getBoundingClientRect;
+    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
+      if (this.classList.contains("pbm-menu--labels")) {
+        return { left: menuLeft, right: menuLeft + 272 } as DOMRect;
+      }
+      if (this === document.documentElement) return { left: 0, right: 375 } as DOMRect;
+      return real.call(this);
+    });
+    vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(375);
+    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 200 })));
+
+    const { container, rerender } = render(
+      <LabelPicker ticketId={1} labels={[]} allLabels={labels} initiallyOpen />,
+    );
+    const menu = () => container.querySelector(".pbm-menu--labels") as HTMLElement;
+    expect(menu().style.left).toBe("");
+
+    // The page refreshes with a label applied; its chip pushes the button right.
+    menuLeft = 257;
+    rerender(<LabelPicker ticketId={1} labels={labels.slice(0, 1)} allLabels={labels} initiallyOpen />);
+    expect(menu().style.left, "offset not recalculated after the chips changed").not.toBe("");
+
+    vi.restoreAllMocks();
+    vi.unstubAllGlobals();
+  });
+
   it("the modal scrim is a neutral ink wash, not the old indigo", () => {
     const m = MAIL.match(/--pbm-scrim:\s*rgba\(\s*(\d+),\s*(\d+),\s*(\d+)/);
     expect(m, "--pbm-scrim unreadable").not.toBeNull();

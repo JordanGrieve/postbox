@@ -86,7 +86,9 @@ export default function LabelPicker({
     const r = menu.getBoundingClientRect();
     const shift = Math.min(r.right - right, r.left - left);
     if (shift > 0) menu.style.left = `${-shift}px`;
-  }, [open]);
+    // `current` too: ticking a label adds a chip before "+ Label" while the
+    // menu stays open, which moves the anchor and invalidates the offset.
+  }, [open, current]);
 
   const onIds = new Set(current.map((l) => l.id));
 

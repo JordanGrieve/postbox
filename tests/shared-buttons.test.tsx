@@ -1,7 +1,7 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { render, cleanup, fireEvent } from "@testing-library/react";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import LabelColours from "../components/mail/LabelColours";
 import LabelPicker from "../components/mail/LabelPicker";
@@ -31,17 +31,33 @@ describe("one set of buttons", () => {
     expect(danger![1]).toContain("color: var(--pdf-fg)");
   });
 
-  it("every confirm step uses the shared buttons, and the one-offs are gone", () => {
+  it("no component anywhere still uses a deleted one-off confirm button", () => {
+    /*
+      DISCOVERED, not listed. The first version of this test named the three
+      files it knew about and passed, while RecipientsPanel.tsx still used
+      .nl-confirm-btn with its CSS deleted: two unstyled buttons that CodeRabbit
+      caught on the PR. A guard is only as wide as its input.
+    */
     const files = [
+      ...readdirSync(join(ROOT, "app"), { recursive: true, encoding: "utf8" }).map((f) => join("app", f)),
+      ...readdirSync(join(ROOT, "components"), { recursive: true, encoding: "utf8" }).map((f) =>
+        join("components", f),
+      ),
+    ].filter((f) => f.endsWith(".tsx"));
+    expect(files.length, "found no components to check").toBeGreaterThan(50);
+    const offenders = files.filter((f) => /(pbm|nl)-confirm-btn/.test(read(f)));
+    expect(offenders, "still using a deleted confirm-button class").toEqual([]);
+
+    // And the four confirm steps really are on the shared pair.
+    for (const f of [
       "components/mail/LabelManager.tsx",
       "app/(dashboard)/newsletters/AbortPanel.tsx",
       "app/(dashboard)/newsletters/CampaignList.tsx",
-    ];
-    for (const f of files) {
+      "app/(dashboard)/newsletters/RecipientsPanel.tsx",
+    ]) {
       const src = read(f);
       expect(src, `${f} has no danger button`).toContain('className="stg-button stg-button--danger"');
       expect(src, `${f} has no secondary button`).toContain('className="stg-button stg-button--secondary"');
-      expect(src, `${f} still uses a one-off`).not.toMatch(/(pbm|nl)-confirm-btn/);
     }
     for (const f of ["app/mail.css", "app/newsletter.css"]) {
       expect(read(f), `${f} still styles a one-off confirm button`).not.toMatch(/\.(pbm|nl)-confirm-btn/);
@@ -71,6 +87,38 @@ describe("LabelColours", () => {
     expect(onPreset).toHaveBeenCalledWith("tag_c");
     fireEvent.change(container.querySelector('input[type="color"]')!, { target: { value: "#112233" } });
     expect(onCustom).toHaveBeenCalledWith("#112233");
+  });
+
+  it("behaves as a radio group: one Tab stop, arrows move and choose, wrapping", () => {
+    let color: "tag_a" | "tag_b" | "tag_c" = "tag_b";
+    const onPreset = vi.fn((c: typeof color) => {
+      color = c;
+    });
+    const view = () => (
+      <LabelColours name="VIP" color={color} colorHex={null} onPreset={onPreset} onCustom={vi.fn()} />
+    );
+    const { container, rerender } = render(view());
+    const radios = () => [...container.querySelectorAll<HTMLButtonElement>('[role="radio"]')];
+    expect(radios().map((r) => r.tabIndex)).toEqual([-1, 0, -1]);
+
+    radios()[1]!.focus();
+    fireEvent.keyDown(radios()[1]!, { key: "ArrowRight" });
+    expect(onPreset).toHaveBeenLastCalledWith("tag_c");
+    rerender(view());
+    expect(document.activeElement).toBe(radios()[2]);
+    expect(radios().map((r) => r.tabIndex)).toEqual([-1, -1, 0]);
+
+    fireEvent.keyDown(radios()[2]!, { key: "ArrowRight" });
+    expect(onPreset, "does not wrap").toHaveBeenLastCalledWith("tag_a");
+    rerender(view());
+    fireEvent.keyDown(radios()[0]!, { key: "ArrowLeft" });
+    expect(onPreset).toHaveBeenLastCalledWith("tag_c");
+
+    // With the custom colour in force, the group's one Tab stop is the first.
+    rerender(
+      <LabelColours name="VIP" color="tag_b" colorHex="#123456" onPreset={onPreset} onCustom={vi.fn()} />,
+    );
+    expect(radios().map((r) => r.tabIndex)).toEqual([0, -1, -1]);
   });
 
   it("the + Label menu offers the custom colour and sends it when creating", async () => {
