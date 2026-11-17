@@ -1078,7 +1078,9 @@ summary:focus-visible,
     transition:
       transform 0.22s ease,
       visibility 0s linear 0.22s;
-    box-shadow: 0 0 40px -8px rgba(60, 50, 35, 0.45);
+    /* No halo beside the open drawer (it was a warm brown left from an old
+       palette); the scrim sets it apart. 17 Nov 2026. */
+    box-shadow: none;
   }
   .pb-sidebar[data-open="true"] {
     transform: translateX(0);
