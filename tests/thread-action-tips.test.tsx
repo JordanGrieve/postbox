@@ -65,9 +65,41 @@ describe("thread header tooltips", () => {
   it("the stylesheet shows the tooltip on hover AND keyboard focus, and hides it on Escape", () => {
     expect(CSS).toContain(".pbm-icon-btn[data-tip]::after");
     expect(CSS).toContain("content: attr(data-tip)");
-    expect(CSS).toMatch(/@media \(hover: hover\)\s*\{\s*\.pbm-icon-btn\[data-tip\]:hover::after/);
-    expect(CSS).toContain(".pbm-icon-btn[data-tip]:focus-visible::after");
-    expect(CSS).toContain(`html[${TIPS_HIDDEN_ATTR}] .pbm-icon-btn[data-tip]::after`);
+    // The bubble (::after) and its point (::before) show and hide together.
+    for (const part of ["::before", "::after"]) {
+      expect(CSS).toMatch(
+        new RegExp(`@media \\(hover: hover\\)\\s*\\{[^}]*\\.pbm-icon-btn\\[data-tip\\]:hover${part}`),
+      );
+      expect(CSS).toContain(`.pbm-icon-btn[data-tip]:focus-visible${part}`);
+      expect(CSS).toContain(`html[${TIPS_HIDDEN_ATTR}] .pbm-icon-btn[data-tip]${part}`);
+    }
+  });
+
+  it("the bubble's point touches the button and overlaps the bubble", () => {
+    /*
+      Jordan, 17 Nov 2026: "make it touch like a speech bubble so they know
+      it's connected". The point starts at the button's bottom edge and is
+      taller than the band the bubble leaves clear above itself, so no strip
+      of page shows between button, point and bubble.
+    */
+    // The shared rule's selector also ends in "::after {", so pick each rule
+    // by what only it declares.
+    const rules = [...CSS.matchAll(/\.pbm-icon-btn\[data-tip\]::(?:before|after)\s*\{([^}]*)\}/g)];
+    const point = rules.find((r) => r[1]!.includes("clip-path"));
+    const bubble = rules.find((r) => r[1]!.includes("attr(data-tip)"));
+    const shared = CSS.match(
+      /\.pbm-icon-btn\[data-tip\]::before,\s*\.pbm-icon-btn\[data-tip\]::after\s*\{([^}]*)\}/,
+    );
+    expect(point, "no rule for the bubble's point").toBeDefined();
+    expect(bubble, "no rule for the bubble").toBeDefined();
+    expect(shared, "no shared positioning rule").not.toBeNull();
+    expect(shared![1]).toContain("top: 100%");
+    expect(point![1]).toContain("clip-path: polygon(50% 0");
+    const pointH = Number(point![1].match(/height:\s*(\d+)px/)?.[1]);
+    const band = Number(bubble![1].match(/border-top:\s*(\d+)px solid transparent/)?.[1]);
+    expect(pointH, "point height unreadable").toBeGreaterThan(0);
+    expect(band, "bubble's clear band unreadable").toBeGreaterThan(0);
+    expect(pointH, "the point must reach into the bubble").toBeGreaterThan(band);
   });
 
   it("hover fills the icon button with the accent and its own ink", () => {

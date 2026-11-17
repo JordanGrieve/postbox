@@ -498,8 +498,17 @@ window.__targets = function (min) {
   */
   const inView = (t) =>
     t.cx >= 0 && t.cy >= 0 && t.cx <= window.innerWidth && t.cy <= window.innerHeight;
+  /*
+    display: contents is not collapsed. Such a box has no rect of its own
+    (zero by zero, always) while its children lay out in its parent as
+    normal. The thread's label picker is one, by design, so its chips sit in
+    the chip row, and this check read it as a closed disclosure: every
+    control in the label row and the "+ Label" menu came back "unreachable"
+    and was never measured. Found 17 Nov 2026 with the menu's rows at 38px.
+  */
   const collapsed = (el) => {
     for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+      if (getComputedStyle(a).display === "contents") continue;
       const r = a.getBoundingClientRect();
       if (r.width === 0 || r.height === 0) return true;
     }
