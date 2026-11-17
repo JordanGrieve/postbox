@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDismiss } from "@/lib/use-dismiss";
 import { useVisibleRefresh } from "@/lib/use-visible-refresh";
+import { useTipDismiss } from "@/lib/use-tip-dismiss";
 import type { TicketDTO, MessageDTO } from "@/lib/serialize";
 import { formatDateTime } from "@/lib/serialize";
 import type { TicketStatus } from "@/db/schema";
@@ -173,6 +174,9 @@ export default function Thread({
   // Below 1180px the rail is an overlay over the thread, so Esc must close it.
   useDismiss(railOpen, () => setRail("closed"));
 
+  // Escape hides the header's tooltips (WCAG 1.4.13).
+  useTipDismiss();
+
   // Customer replies should appear without a manual reload.
   useVisibleRefresh(30_000);
 
@@ -297,13 +301,14 @@ export default function Thread({
               ticketId={ticket.id}
               starred={starred}
               canStar={canPersonalise}
+              tip
             />
             {canPersonalise && (
               <button
                 className="pbm-icon-btn"
                 onClick={() => void markUnread()}
                 aria-label="Mark as unread and go back"
-                title="Mark as unread — this thread goes back into your unread pile and you return to the list."
+                data-tip="Mark unread"
               >
                 <Icon name="envelopeOpen" size={17} strokeWidth={1.8} />
               </button>
@@ -333,7 +338,7 @@ export default function Thread({
                 target="_blank"
                 rel="noreferrer noopener"
                 aria-label="Find this message in Gmail"
-                title="Find the original in Gmail — opens in a new tab"
+                data-tip="Find in Gmail"
               >
                 <Icon name="external" size={17} strokeWidth={1.8} />
               </a>
@@ -348,7 +353,7 @@ export default function Thread({
                         className="pbm-icon-btn pbm-icon-btn--on"
                         type="submit"
                         aria-label="Wake this thread now"
-                        title="Snoozed — bring it back now"
+                        data-tip="Wake now"
                       >
                         <Icon name="clock" size={17} strokeWidth={1.8} />
                       </button>
@@ -361,7 +366,7 @@ export default function Thread({
                         aria-haspopup="menu"
                         aria-expanded={snoozeMenuOpen}
                         aria-label="Snooze this thread"
-                        title="Snooze — it comes back to the inbox on its own"
+                        data-tip={snoozeMenuOpen ? undefined : "Snooze"}
                       >
                         <Icon name="clock" size={17} strokeWidth={1.8} />
                       </button>
@@ -401,11 +406,7 @@ export default function Thread({
                         ? "Move this thread back to the inbox"
                         : "Archive this thread"
                     }
-                    title={
-                      archivedAt
-                        ? "Archived — put it back in the inbox"
-                        : "Archive — off your inbox, still open, still findable"
-                    }
+                    data-tip={archivedAt ? "Move to inbox" : "Archive"}
                   >
                     <Icon name="archive" size={17} strokeWidth={1.8} />
                   </button>
@@ -428,7 +429,8 @@ export default function Thread({
                   className="pbm-icon-btn"
                   type="submit"
                   aria-label="Restore this thread from the trash"
-                  title="Restore this thread"
+                  data-tip="Restore"
+                  data-tip-align="end"
                 >
                   <Icon name="mail" size={17} strokeWidth={1.8} />
                 </button>
@@ -440,7 +442,10 @@ export default function Thread({
                   className="pbm-icon-btn"
                   type="submit"
                   aria-label="Move this thread to the trash"
-                  title="Move to trash — recoverable for 30 days"
+                  data-tip="Move to trash"
+                  // On a 320px phone the header wraps and this is the last
+                  // button on its row; centred, its tooltip ran off the edge.
+                  data-tip-align="end"
                 >
                   <Icon name="trash" size={17} strokeWidth={1.8} />
                 </button>
@@ -451,6 +456,8 @@ export default function Thread({
               onClick={() => setRail(railOpen ? "closed" : "open")}
               aria-expanded={railOpen}
               aria-label={railOpen ? "Hide contact details" : "Show contact details"}
+              data-tip="Contact details"
+              data-tip-align="end"
             >
               <OverflowIcon size={17} />
             </button>
