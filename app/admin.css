@@ -467,6 +467,92 @@
   background: rgba(0, 0, 0, 0.55);
 }
 
+/* The sheet's grab bar exists only at the sheet width (below). */
+.pba-sheet-grip {
+  display: none;
+}
+
+/*
+  ── ON A PHONE, A BOTTOM SHEET ──
+  Jordan, 17 Nov 2026: the modal comes up from the bottom, drags down to
+  close, and has the grab bar. Same shape as the inbox's contact sheet:
+  full width, pinned to the bottom edge, rounded top corners, sliding up on
+  open. The drag itself is wired in AccountsBrowser.tsx, at the same width
+  (SHEET_QUERY there). Motion is covered by the blanket reduced-motion rule
+  at the end of globals.css.
+*/
+@media (max-width: 640px) {
+  .pba-modal {
+    width: 100%;
+    max-width: 100%;
+    max-height: 88dvh;
+    margin: auto 0 0;
+    border-bottom: none;
+    border-radius: 26px 26px 0 0;
+    display: flex;
+    flex-direction: column;
+    transition: transform 220ms ease;
+  }
+
+  .pba-modal[open] {
+    animation: pba-sheet-up 220ms ease;
+  }
+
+  /* Following the finger: no easing while it is down. */
+  .pba-modal[data-dragging] {
+    transition: none;
+  }
+
+  /* Two classes: the base .pba-modal-inner rule is later in this file and
+     would win over one. */
+  .pba-modal .pba-modal-inner {
+    max-height: none;
+    flex: 1 1 auto;
+    min-height: 0;
+    padding-top: 4px;
+    padding-bottom: calc(22px + env(safe-area-inset-bottom, 0px));
+  }
+
+  /*
+    The whole strip above the title is the handle, not just the bar drawn in
+    it: a thumb aims at the top of the sheet, not at a 44px pill. 44px tall
+    for 2.5.5. touch-action: none so the browser does not claim the drag for
+    scrolling before the first pointermove arrives.
+  */
+  .pba-sheet-grip {
+    display: flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: var(--tap-min, 44px);
+    cursor: grab;
+    touch-action: none;
+    border-radius: 26px 26px 0 0;
+  }
+
+  .pba-sheet-grip::before {
+    content: "";
+    width: 44px;
+    height: 5px;
+    border-radius: 3px;
+    background: var(--border-strong);
+  }
+
+  .pba-sheet-grip[data-dragging] {
+    cursor: grabbing;
+  }
+}
+
+@keyframes pba-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
 .pba-modal-inner {
   max-height: calc(100vh - 50px);
   overflow-y: auto;
@@ -887,25 +973,44 @@
   }
 }
 
-/* The opt-in switch: a line of state, then the button that changes it. The
-   form is a column so the two read as one control rather than as a caption
-   that happens to sit above an unrelated button. */
-.pba-optin {
+/*
+  The impersonate form: a visible label, the reason field, then the button.
+  The field is 44px with body-size text; it was a 38px box whose only
+  instruction was a placeholder, cut off mid-sentence. Jordan, 17 Nov 2026:
+  "make it more clear and bigger".
+*/
+.pba-impersonate {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 8px;
+  padding-bottom: 6px;
 }
 
-.pba-optin-now {
-  margin: 0;
-  font-size: 0.75rem;
-  line-height: 1.5;
-  color: var(--muted-2);
-}
-
-.pba-optin-now b {
-  color: var(--text-2);
+.pba-field-label {
+  font-size: 0.84375rem;
   font-weight: 700;
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.pba-field-hint {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.pba-input-lg {
+  width: 100%;
+  height: var(--tap-min, 44px);
+  font-size: 0.875rem;
+  padding: 0 14px;
+  background: var(--surface-3);
+  border-color: var(--border-strong);
+}
+
+.pba-input-lg::placeholder {
+  color: var(--muted-2);
 }
 
 /* ── Forms, banners ───────────────────────────────────────────────────── */

@@ -8,6 +8,21 @@ import type { WorkspaceUsage } from "./queries";
 import { describePlan } from "./billing-rollup";
 import { createClientAction } from "./actions";
 import { AccountDetails, DeletePanel, RotateKeyPanel } from "./account-panels";
+import SheetGrip from "@/components/mail/SheetGrip";
+import { useMediaQuery } from "@/lib/use-media-query";
+import {
+  decideSheetTouch,
+  sheetOffset,
+  shouldCloseOnRelease,
+  type SheetTouch,
+} from "@/lib/sheet-drag";
+
+/**
+ * The width at and below which the account modal is a bottom sheet. Mirrors
+ * the media query in app/admin.css; the CSS decides the layout and this only
+ * decides whether the drag gesture is wired.
+ */
+const SHEET_QUERY = "(max-width: 640px)";
 import {
   accountStatus,
   formatDate,
@@ -173,6 +188,83 @@ export default function AccountsBrowser({
     if (open && !dialog.open) dialog.showModal();
     if (!open && dialog.open) dialog.close();
   }, [open]);
+
+  /*
+    ── ON A PHONE, A BOTTOM SHEET YOU CAN DRAG AWAY ──
+    Jordan, 17 Nov 2026: on mobile the modal should come up from the bottom
+    and drag down to close, with the grab bar. It is the inbox's contact
+    sheet gesture, reused rather than rewritten: SheetGrip for the handle and
+    lib/sheet-drag.ts for every rule (follow the finger down, resist up,
+    close past 110px, never close on a system cancel). The CSS makes it a
+    sheet; this only wires the drag, and only at the width the CSS does.
+
+    The body drags too, when its scroller is at the top and the finger moves
+    down — the same conditional claim as ContactRail, which needs raw
+    non-passive touch listeners because touch-action cannot express a
+    condition.
+  */
+  const sheet = useMediaQuery(SHEET_QUERY);
+  const [dragY, setDragY] = useState(0);
+  const innerRef = useRef<HTMLDivElement>(null);
+  const closeSheet = () => dialogRef.current?.close();
+
+  useEffect(() => {
+    const el = innerRef.current;
+    if (!el || !open || !sheet) return;
+    let startX = 0;
+    let startY = 0;
+    let mode: SheetTouch = "wait";
+    let travelled = 0;
+
+    const onStart = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (e.touches.length !== 1 || !t) {
+        mode = "scroll";
+        return;
+      }
+      startX = t.clientX;
+      startY = t.clientY;
+      mode = "wait";
+      travelled = 0;
+    };
+    const onMove = (e: TouchEvent) => {
+      const t = e.touches[0];
+      if (!t || mode === "scroll") return;
+      const dx = t.clientX - startX;
+      const dy = t.clientY - startY;
+      if (mode === "wait") mode = decideSheetTouch(el.scrollTop, dx, dy);
+      if (mode !== "drag") return;
+      if (e.cancelable) e.preventDefault();
+      travelled = sheetOffset(dy);
+      setDragY(travelled);
+    };
+    const onEnd = () => {
+      const wasDrag = mode === "drag";
+      const distance = travelled;
+      mode = "wait";
+      travelled = 0;
+      if (!wasDrag) return;
+      setDragY(0);
+      if (shouldCloseOnRelease(distance)) dialogRef.current?.close();
+    };
+    // Taken away by the system: never a close, however far it had moved.
+    const onCancel = () => {
+      if (mode === "drag") setDragY(0);
+      mode = "wait";
+      travelled = 0;
+    };
+
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchmove", onMove, { passive: false });
+    el.addEventListener("touchend", onEnd);
+    el.addEventListener("touchcancel", onCancel);
+    return () => {
+      el.removeEventListener("touchstart", onStart);
+      el.removeEventListener("touchmove", onMove);
+      el.removeEventListener("touchend", onEnd);
+      el.removeEventListener("touchcancel", onCancel);
+    };
+  }, [open, sheet]);
 
   // One clock for the whole table. Read per row, two workspaces either side of
   // a period boundary could be judged against different instants.
@@ -359,7 +451,12 @@ export default function AccountsBrowser({
         ref={dialogRef}
         className="pba-modal"
         aria-labelledby="pba-modal-title"
-        onClose={() => setOpenId(null)}
+        data-dragging={dragY !== 0 || undefined}
+        style={dragY ? { transform: `translateY(${dragY}px)` } : undefined}
+        onClose={() => {
+          setDragY(0);
+          setOpenId(null);
+        }}
         onClick={(e) => {
           const target = e.target as Element;
           if (target === e.currentTarget || target.closest("a")) {
@@ -367,8 +464,18 @@ export default function AccountsBrowser({
           }
         }}
       >
+        {/* The grab bar. Hidden by CSS above the sheet width, so on a desktop
+            it is neither drawn nor focusable. */}
         {open && (
-          <div className="pba-modal-inner">
+          <SheetGrip
+            onClose={closeSheet}
+            onOffset={setDragY}
+            label="Drag down to close account details"
+            className="pba-sheet-grip"
+          />
+        )}
+        {open && (
+          <div className="pba-modal-inner" ref={innerRef}>
             <div className="pba-modal-head">
               <h2 id="pba-modal-title" className="pba-modal-title">
                 {open.name}

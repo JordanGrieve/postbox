@@ -45,10 +45,16 @@ import { sheetOffset, shouldCloseOnRelease } from "@/lib/sheet-drag";
 export default function SheetGrip({
   onClose,
   onOffset,
+  label = "Close contact details",
+  className = "pbm-rail-grip",
 }: {
   onClose: () => void;
   /** Live drag distance in px, 0 when at rest. The rail translates by this. */
   onOffset: (px: number) => void;
+  /** The accessible name. The admin console's account sheet passes its own. */
+  label?: string;
+  /** Styling hook; the admin console's sheet has its own rules. */
+  className?: string;
 }) {
   const startY = useRef<number | null>(null);
   const [offset, setOffset] = useState(0);
@@ -90,7 +96,7 @@ export default function SheetGrip({
 
   return (
     <div
-      className="pbm-rail-grip"
+      className={className}
       data-dragging={dragging || undefined}
       /*
         A real button, not a decorative div. Somebody who cannot drag still has
@@ -100,7 +106,7 @@ export default function SheetGrip({
       */
       role="button"
       tabIndex={0}
-      aria-label="Close contact details"
+      aria-label={label}
 
       onPointerDown={(e) => {
         startY.current = e.clientY;

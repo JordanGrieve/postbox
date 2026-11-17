@@ -301,16 +301,26 @@ export function AccountDetails({
       <div className="pba-modal-actions">
         {/* The reason is optional — making it mandatory only teaches people to
             type "support". It is recorded exactly as given, or as "none". */}
-        <form action={selectWorkspaceAction}>
+        {/*
+          A visible label rather than a placeholder (Jordan, 17 Nov 2026: make
+          it "more clear and bigger"). The placeholder carried the whole
+          instruction and was cut off at "Why are you going in? (" in a 600px
+          modal, then vanished the moment anyone typed.
+        */}
+        <form action={selectWorkspaceAction} className="pba-impersonate">
           <input type="hidden" name="workspaceId" value={account.id} />
+          <label htmlFor={`pba-reason-${account.id}`} className="pba-field-label">
+            Why are you going in?{" "}
+            <span className="pba-field-hint">Optional, recorded in the access log</span>
+          </label>
           <input
+            id={`pba-reason-${account.id}`}
             type="text"
             name="reason"
             maxLength={500}
             autoComplete="off"
-            aria-label="Reason for entering this workspace (optional, recorded in the access log)"
-            placeholder="Why are you going in? (optional, logged)"
-            className="pba-input pba-input-grow"
+            placeholder="e.g. A form submission didn't arrive"
+            className="pba-input pba-input-lg"
           />
           <button type="submit" className="pba-btn pba-btn-block">
             Impersonate
@@ -325,30 +335,17 @@ export function AccountDetails({
           </form>
         )}
         {/*
-          Newsletter opt-in, as a one-click switch with the CURRENT state
-          written out beside it.
-
-          A bare "Require confirmation" button would not say which way the
-          workspace is set, and a switch whose state you have to infer from its
-          label is how somebody turns confirmation off believing they turned it
-          on. So the line above states what is true now, and the button names
-          the state it moves to.
+          Newsletter opt-in, as a one-click switch. The button names the state
+          it moves to. A line above it stating the current state was removed
+          on 16-17 Nov 2026 as obvious from the button (Jordan's call).
         */}
-        <form action={setOptInAction} className="pba-optin">
+        <form action={setOptInAction}>
           <input type="hidden" name="workspaceId" value={account.id} />
           <input
             type="hidden"
             name="required"
             value={account.requireSignupConfirmation ? "0" : "1"}
           />
-          <p className="pba-optin-now">
-            Newsletter signups:{" "}
-            <b>
-              {account.requireSignupConfirmation
-                ? "confirmation link required"
-                : "subscribe immediately"}
-            </b>
-          </p>
           <button type="submit" className="pba-btn pba-btn-block">
             {account.requireSignupConfirmation
               ? "Switch to subscribe immediately"
