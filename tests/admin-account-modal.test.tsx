@@ -148,9 +148,10 @@ describe("account details modal", () => {
       dialog is centred by `margin: auto`; without it the modal shipped
       pinned to the top-left of the live console.
     */
-    const css = readFileSync(join(process.cwd(), "app/admin.css"), "utf8");
-    const at = css.indexOf(".pba-modal {");
-    expect(at, "app/admin.css has no .pba-modal rule").toBeGreaterThan(-1);
+    // The shared modal's rule, in globals.css since 17 Nov 2026.
+    const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8");
+    const at = css.indexOf(".pb-modal {");
+    expect(at, "app/globals.css has no .pb-modal rule").toBeGreaterThan(-1);
     const rule = css.slice(at, css.indexOf("}", at));
     expect(rule).toMatch(/(^|;|\s)margin:\s*auto;/);
   });
@@ -257,7 +258,7 @@ describe("dragging the sheet by its body, at phone width", () => {
   it("closes on a long downward pull from the top of the body", () => {
     phone(true);
     const dialog = openAmoria();
-    const body = dialog.querySelector(".pba-modal-inner")!;
+    const body = dialog.querySelector(".pb-modal-inner")!;
     expect(body, "the sheet has no scrolling body").not.toBeNull();
     pull(body, 100, 300);
     expect(dialog.open).toBe(false);
@@ -266,7 +267,7 @@ describe("dragging the sheet by its body, at phone width", () => {
   it("does nothing above phone width, where it is a centred modal", () => {
     phone(false);
     const dialog = openAmoria();
-    pull(dialog.querySelector(".pba-modal-inner")!, 100, 300);
+    pull(dialog.querySelector(".pb-modal-inner")!, 100, 300);
     expect(dialog.open).toBe(true);
   });
 });

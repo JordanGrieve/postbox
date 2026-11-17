@@ -310,21 +310,26 @@ const panes: Record<string, React.ReactElement> = {
         ones, which is what the probes measure.
       */
       details: (
-        <dialog open className="pba-modal" aria-labelledby="pba-modal-title">
+        <dialog
+          open
+          className="pb-modal pba-account-modal"
+          data-size="md"
+          aria-labelledby="pba-modal-title"
+        >
           <SheetGrip
             onClose={() => {}}
             onOffset={() => {}}
             label="Drag down to close account details"
-            className="pba-sheet-grip"
+            className="pb-sheet-grip"
           />
-          <div className="pba-modal-inner">
-            <div className="pba-modal-head">
-              <h2 id="pba-modal-title" className="pba-modal-title">
+          <div className="pb-modal-inner">
+            <div className="pb-modal-head">
+              <h2 id="pba-modal-title" className="pb-modal-title">
                 {accounts[0]!.name}
               </h2>
               <button
                 type="button"
-                className="pba-modal-close"
+                className="pb-modal-close"
                 aria-label="Close account details"
               >
                 <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">

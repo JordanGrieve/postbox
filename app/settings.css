@@ -723,6 +723,20 @@
   min-width: 0;
 }
 
+/* A page title with its one action at the top right (Team: Add new member).
+   Wraps under the title rather than squeezing it on a narrow phone. */
+.stg-head--action {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.stg-head--action .stg-title {
+  margin: 0;
+}
+
 .stg-title {
   margin: 0 0 6px;
   font-size: 1.3125rem;

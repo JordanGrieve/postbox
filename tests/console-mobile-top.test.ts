@@ -51,8 +51,9 @@ describe("console on a phone", () => {
     expect(ruleIn(phoneBlock(), ".pba-nav .pba-count")).toContain("display: none");
   });
 
-  it("the page behind an open account modal does not scroll", () => {
-    expect(ruleIn(ADMIN, "html:has(.pba-modal[open])")).toContain("overflow: hidden");
+  it("the page behind an open modal does not scroll", () => {
+    // The shared modal's rule, in globals.css since 17 Nov 2026.
+    expect(ruleIn(GLOBALS, "html:has(.pb-modal[open])")).toContain("overflow: hidden");
   });
 
   it("every palette tells the browser which scheme to draw its own parts in", () => {
