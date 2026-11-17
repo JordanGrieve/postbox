@@ -895,7 +895,14 @@ a {
   color: var(--accent-text);
   text-decoration: none;
 }
-a:hover {
+/*
+  Only a PLAIN link underlines on hover: one in running text, which has no
+  class. Any <a> with a class is a component (a button, a chip, a nav row,
+  a card) that draws its own hover, and this rule was underlining all of
+  them: "Create", "Open workspace", every folder row. Jordan, 17 Nov 2026:
+  "on all buttons remove the underline on hover and active".
+*/
+a:not([class]):hover {
   text-decoration: underline;
 }
 

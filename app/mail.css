@@ -3068,8 +3068,9 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   overflow-wrap: anywhere;
 }
 
+/* Hover darkens the ink; no underline on a link card (17 Nov 2026). */
 .pbl-link:hover .pbl-host {
-  text-decoration: underline;
+  color: var(--text);
 }
 
 /* The full URL, quiet and truncated. Present so the destination can be read
