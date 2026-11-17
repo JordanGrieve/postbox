@@ -105,6 +105,9 @@ describe("Modal", () => {
     const css = read("app/globals.css");
     const base = css.match(/\n\.pb-modal\s*\{([^}]*)\}/)![1]!;
     expect(base).toMatch(/margin:\s*auto;/);
+    // No drop shadow: on the dark backdrop it drew a black halo round the
+    // box ("remove the black circle", 17 Nov 2026).
+    expect(base).toMatch(/box-shadow:\s*none;/);
     const phone = css.slice(css.indexOf("@media (max-width: 640px) {", css.indexOf(".pb-modal {")));
     expect(phone).toMatch(/\.pb-modal,\s*\.pb-modal\[data-size="sm"\]\s*\{[^}]*margin: auto 0 0;/);
     expect(phone).toContain("animation: pb-sheet-up");
