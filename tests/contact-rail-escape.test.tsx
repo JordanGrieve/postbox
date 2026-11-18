@@ -111,6 +111,7 @@ describe("Escape closes the contact rail", () => {
     );
     const close = container.querySelector(".pbm-rail-close");
     expect(close).toBeTruthy();
-    expect(close!.getAttribute("aria-label")).toBe("Hide contact details");
+    // "Details" since the panel became "About {name}" (18 Nov 2026).
+    expect(close!.getAttribute("aria-label")).toBe("Hide details");
   });
 });

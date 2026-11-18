@@ -1,23 +1,12 @@
-// @vitest-environment happy-dom
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, cleanup, fireEvent } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import LabelColours from "../components/mail/LabelColours";
-import LabelPicker from "../components/mail/LabelPicker";
-import type { LabelChipDTO } from "../components/mail/types";
 
 /*
   Jordan, 17 Nov 2026: "these buttons don't conform to any we have done so
-  far. go fix these and make them reusable … also these, add the custom one
-  here too."
+  far. go fix these and make them reusable". (The label colour tests went
+  with labels, 18 Nov 2026.)
 */
-
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
-afterEach(() => {
-  cleanup();
-  vi.unstubAllGlobals();
-});
 
 const ROOT = join(__dirname, "..");
 const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
@@ -48,9 +37,9 @@ describe("one set of buttons", () => {
     const offenders = files.filter((f) => /(pbm|nl)-confirm-btn/.test(read(f)));
     expect(offenders, "still using a deleted confirm-button class").toEqual([]);
 
-    // And the four confirm steps really are on the shared pair.
+    // And the three confirm steps really are on the shared pair. (The label
+    // manager's was the fourth until labels went, 18 Nov 2026.)
     for (const f of [
-      "components/mail/LabelManager.tsx",
       "app/(dashboard)/newsletters/AbortPanel.tsx",
       "app/(dashboard)/newsletters/CampaignList.tsx",
       "app/(dashboard)/newsletters/RecipientsPanel.tsx",
@@ -62,88 +51,5 @@ describe("one set of buttons", () => {
     for (const f of ["app/mail.css", "app/newsletter.css"]) {
       expect(read(f), `${f} still styles a one-off confirm button`).not.toMatch(/\.(pbm|nl)-confirm-btn/);
     }
-  });
-});
-
-describe("LabelColours", () => {
-  it("lights exactly one control: the preset, or the custom colour when set", () => {
-    const onPreset = vi.fn();
-    const onCustom = vi.fn();
-    const { container, rerender } = render(
-      <LabelColours name="VIP" color="tag_b" colorHex={null} onPreset={onPreset} onCustom={onCustom} />,
-    );
-    const lit = () => [...container.querySelectorAll("[data-on]")];
-    expect(lit()).toHaveLength(1);
-    expect(lit()[0]!.getAttribute("data-color")).toBe("tag_b");
-    expect(container.querySelector('[aria-label="Colour 2 for VIP"]')).not.toBeNull();
-
-    rerender(
-      <LabelColours name="VIP" color="tag_b" colorHex="#3d7dd8" onPreset={onPreset} onCustom={onCustom} />,
-    );
-    expect(lit()).toHaveLength(1);
-    expect(lit()[0]!.className).toBe("pbm-label-pick");
-
-    fireEvent.click(container.querySelector('[data-color="tag_c"]')!);
-    expect(onPreset).toHaveBeenCalledWith("tag_c");
-    fireEvent.change(container.querySelector('input[type="color"]')!, { target: { value: "#112233" } });
-    expect(onCustom).toHaveBeenCalledWith("#112233");
-  });
-
-  it("behaves as a radio group: one Tab stop, arrows move and choose, wrapping", () => {
-    let color: "tag_a" | "tag_b" | "tag_c" = "tag_b";
-    const onPreset = vi.fn((c: typeof color) => {
-      color = c;
-    });
-    const view = () => (
-      <LabelColours name="VIP" color={color} colorHex={null} onPreset={onPreset} onCustom={vi.fn()} />
-    );
-    const { container, rerender } = render(view());
-    const radios = () => [...container.querySelectorAll<HTMLButtonElement>('[role="radio"]')];
-    expect(radios().map((r) => r.tabIndex)).toEqual([-1, 0, -1]);
-
-    radios()[1]!.focus();
-    fireEvent.keyDown(radios()[1]!, { key: "ArrowRight" });
-    expect(onPreset).toHaveBeenLastCalledWith("tag_c");
-    rerender(view());
-    expect(document.activeElement).toBe(radios()[2]);
-    expect(radios().map((r) => r.tabIndex)).toEqual([-1, -1, 0]);
-
-    fireEvent.keyDown(radios()[2]!, { key: "ArrowRight" });
-    expect(onPreset, "does not wrap").toHaveBeenLastCalledWith("tag_a");
-    rerender(view());
-    fireEvent.keyDown(radios()[0]!, { key: "ArrowLeft" });
-    expect(onPreset).toHaveBeenLastCalledWith("tag_c");
-
-    // With the custom colour in force, the group's one Tab stop is the first.
-    rerender(
-      <LabelColours name="VIP" color="tag_b" colorHex="#123456" onPreset={onPreset} onCustom={vi.fn()} />,
-    );
-    expect(radios().map((r) => r.tabIndex)).toEqual([0, -1, -1]);
-  });
-
-  it("the + Label menu offers the custom colour and sends it when creating", async () => {
-    const calls: unknown[] = [];
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(async (_url: string, init?: RequestInit) => {
-        calls.push(JSON.parse(String(init?.body ?? "{}")));
-        return new Response(
-          JSON.stringify({ label: { id: 9, name: "New", color: "tag_a", colorHex: "#112233" } }),
-          { status: 200 },
-        );
-      }),
-    );
-    const labels = [{ id: 1, name: "Wholesale", color: "tag_a", colorHex: null }] satisfies LabelChipDTO[];
-    const { container } = render(
-      <LabelPicker ticketId={1} labels={[]} allLabels={labels} initiallyOpen />,
-    );
-    const custom = container.querySelector('.pbm-label-new input[type="color"]');
-    expect(custom, "the menu has no custom colour").not.toBeNull();
-
-    fireEvent.change(container.querySelector(".pbm-label-new .pbm-label-input")!, { target: { value: "New" } });
-    fireEvent.change(custom!, { target: { value: "#112233" } });
-    fireEvent.click(container.querySelector(".pbm-label-create")!);
-    await vi.waitFor(() => expect(calls.length).toBeGreaterThan(0));
-    expect(calls[0]).toMatchObject({ name: "New", colorHex: "#112233" });
   });
 });

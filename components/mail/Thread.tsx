@@ -9,26 +9,29 @@ import { useTipDismiss } from "@/lib/use-tip-dismiss";
 import type { TicketDTO, MessageDTO } from "@/lib/serialize";
 import { formatDateTime } from "@/lib/serialize";
 import type { TicketStatus } from "@/db/schema";
-import { SOURCE_META, STATUS_META, STATUS_ORDER } from "@/lib/theme";
+import { SOURCE_META } from "@/lib/theme";
 import { Icon, OverflowIcon } from "./icons";
 import ContactRail from "./ContactRail";
 import type { ContactNoteDTO } from "@/app/(dashboard)/queries";
-import type { SharedLink } from "@/lib/shared-links";
-import { describeRetention, describeDeletedBy } from "@/lib/trash";
 import { describeDeliveryStatus } from "@/lib/delivery-events";
-import { SNOOZE_OPTIONS } from "@/lib/snooze";
-import LabelPicker from "./LabelPicker";
-import StarButton from "./StarButton";
-import type { ContactCard, LabelChipDTO } from "./types";
+import type { ContactCard } from "./types";
 
 /**
- * The conversation pane, plus the contact rail it can open.
+ * The conversation pane, plus the "About" panel it can open.
+ *
+ * ── ONE DECISION PER CONVERSATION ──
+ * Jordan, 18 Nov 2026, from a mockup: the dashboard was "too complicated".
+ * The header carried seven icon buttons (star, unread, Find in Gmail,
+ * snooze, archive, trash, details) over a row of chips (message count, a
+ * three-way status menu, the source, labels). It is now the one question a
+ * conversation asks — is it done? — as "Mark as done" (or "Reopen"), and
+ * "…" for the panel about the person. Done is status `closed`; reopening is
+ * `open`. Their data and API routes are untouched; only the interface went.
  *
  * Everything that writes — replies and status changes — goes through the
  * existing authed API routes unchanged, so tenancy is still enforced
- * server-side. Nothing new is persisted here.
+ * server-side.
  */
-
 export default function Thread({
   ticket,
   messages,
@@ -38,25 +41,7 @@ export default function Thread({
   notes,
   addNote,
   deleteNote,
-  links,
-  deletedAt,
-  deletedBy,
-  trashTicket,
-  restoreTicket,
-  archivedAt,
-  snoozedUntil,
-  wakeIn,
-  openInMailUrl,
-  archiveTicket,
-  unarchiveTicket,
-  snoozeTicket,
-  unsnoozeTicket,
   backHref,
-  starred,
-  unread,
-  labels,
-  allLabels,
-  canPersonalise,
 }: {
   ticket: TicketDTO;
   messages: MessageDTO[];
@@ -73,70 +58,12 @@ export default function Thread({
    */
   addNote: (formData: FormData) => void;
   deleteNote: (formData: FormData) => void;
-  /** Derived from message bodies at read time — see lib/shared-links.ts. */
-  links: SharedLink[];
-  /**
-   * ISO timestamp if this ticket is in the trash, else null.
-   *
-   * Drives the delete/restore toggle and the banner. A string rather than a
-   * Date because everything crossing into this client component is serialised.
-   */
-  deletedAt: string | null;
-  /** Email snapshot of whoever deleted it. See tickets.deletedBy. */
-  deletedBy: string | null;
-  /** Server actions, passed down: this is a client file. */
-  trashTicket: (formData: FormData) => void;
-  restoreTicket: (formData: FormData) => void;
-  /** ISO timestamp if archived, else null. Drives the archive/unarchive toggle. */
-  archivedAt: string | null;
-  /**
-   * ISO timestamp this ticket is hidden until, or null if it is not snoozed.
-   *
-   * ── THE SERVER DECIDES WHETHER IT IS SNOOZED; THIS FILE ONLY FORMATS IT ──
-   * Non-null means "still snoozed as of the render". Re-testing the time here
-   * would make the BANNER'S EXISTENCE depend on the clock, and a server render
-   * either side of the wake time from its hydration would then be a mismatch
-   * React cannot reconcile. Deciding once, on the server, removes the class.
-   *
-   * The formatting stays here on purpose, for the opposite reason: a time
-   * formatted on the server renders UTC for everybody. Same rule as
-   * MessageDTO.sentAtIso.
-   */
-  snoozedUntil: string | null;
-  /**
-   * "in 3 hours" — computed on the SERVER, because a relative duration carries
-   * no timezone and so is safe to compute there, unlike the absolute time
-   * beside it.
-   */
-  wakeIn: string | null;
-  /**
-   * A Gmail search for the original message, or null.
-   *
-   * Null far more often than not — see lib/mail-client-link.ts. The button is
-   * not rendered at all in that case rather than being disabled: a greyed-out
-   * control invites somebody to work out how to enable it, and for a
-   * contact-form ticket there is no answer.
-   */
-  openInMailUrl: string | null;
-  archiveTicket: (formData: FormData) => void;
-  unarchiveTicket: (formData: FormData) => void;
-  snoozeTicket: (formData: FormData) => void;
-  unsnoozeTicket: (formData: FormData) => void;
   backHref: string;
-  /** Per-agent state. Both false when the viewer has no agent row here. */
-  starred: boolean;
-  unread: boolean;
-  labels: LabelChipDTO[];
-  /** Every label in the workspace, for the picker. */
-  allLabels: LabelChipDTO[];
-  canPersonalise: boolean;
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<TicketStatus>(ticket.status);
-  const [statusMenuOpen, setStatusMenuOpen] = useState(false);
-  const [snoozeMenuOpen, setSnoozeMenuOpen] = useState(false);
   /**
-   * Three states, not two. The rail should start open as a column on a wide
+   * Three states, not two. The panel should start open as a column on a wide
    * screen and closed as an overlay on a narrow one — a single boolean cannot
    * express that without measuring the viewport, which the server cannot do and
    * which would cost a layout shift after hydration. "auto" lets a media query
@@ -147,22 +74,13 @@ export default function Thread({
   const railOpen = rail === "auto" ? wide : rail === "open";
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
+  const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const statusRef = useRef<HTMLDivElement>(null);
-  const snoozeRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
-  // Esc / click-outside close the status menu.
-  useDismiss(statusMenuOpen, () => setStatusMenuOpen(false), statusRef);
-
-  // Esc / click-outside close the snooze menu. Kept as its own call rather
-  // than merged with the status menu so closing one cannot close the other by
-  // accident.
-  useDismiss(snoozeMenuOpen, () => setSnoozeMenuOpen(false), snoozeRef);
-
   // Mirrors the mail.css breakpoint. Only used to keep aria-expanded truthful
-  // while the rail is still in its "auto" state — layout is CSS's job.
+  // while the panel is still in its "auto" state — layout is CSS's job.
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 1181px)");
     const sync = () => setWide(mq.matches);
@@ -171,7 +89,7 @@ export default function Thread({
     return () => mq.removeEventListener("change", sync);
   }, []);
 
-  // Below 1180px the rail is an overlay over the thread, so Esc must close it.
+  // Below 1180px the panel is an overlay over the thread, so Esc must close it.
   useDismiss(railOpen, () => setRail("closed"));
 
   // Escape hides the header's tooltips (WCAG 1.4.13).
@@ -185,75 +103,30 @@ export default function Thread({
     endRef.current?.scrollIntoView({ block: "end" });
   }, [messages.length]);
 
-  /**
-   * Opening a thread marks it read for this agent.
-   *
-   * Deliberately a POST from the client rather than a write inside the page's
-   * server render: the render is a GET that Next also runs to satisfy a
-   * prefetch, so writing there would mark mail read merely because a link in
-   * the list was hovered.
-   *
-   * The refresh afterwards is only worth its round trip when the ticket was
-   * actually unread — that is the case where the nav's Unread count and the
-   * row's dot are now stale.
-   */
-  useEffect(() => {
-    if (!canPersonalise) return;
-    let cancelled = false;
-    const wasUnread = unread;
-    void fetch(`/api/tickets/${ticket.id}/read`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ read: true }),
-    }).then(() => {
-      if (!cancelled && wasUnread) router.refresh();
-    });
-    return () => {
-      cancelled = true;
-    };
-    // Once per thread. `unread` is read at mount on purpose: re-running this
-    // when the refresh flips it to false would loop.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ticket.id, canPersonalise]);
-
-  const st = STATUS_META[status];
   const src = SOURCE_META[ticket.source];
+  const done = status === "closed";
   const canSend = replyText.trim().length > 0 && !sending;
 
-  async function changeStatus(next: TicketStatus) {
-    setStatusMenuOpen(false);
-    if (next === status) return;
+  /** Mark as done (closed), or reopen (open). */
+  async function toggleDone() {
+    if (busy) return;
+    const next: TicketStatus = done ? "open" : "closed";
     const prev = status;
+    setBusy(true);
     setStatus(next);
     const res = await fetch(`/api/tickets/${ticket.id}/status`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status: next }),
     });
+    setBusy(false);
     if (!res.ok) {
       setStatus(prev);
-      setError("Couldn't update status.");
+      setError(done ? "Couldn't reopen this." : "Couldn't mark this as done.");
       return;
     }
+    // The list's tabs and counts move with it.
     router.refresh();
-  }
-
-  /**
-   * Put this thread back in my unread pile, and leave — reading on is exactly
-   * what would undo it (the mount effect has already fired, but a reload would
-   * re-mark it), and going back to the list is what the gesture means.
-   */
-  async function markUnread() {
-    const res = await fetch(`/api/tickets/${ticket.id}/read`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ read: false }),
-    });
-    if (!res.ok) {
-      setError("Couldn't mark this unread.");
-      return;
-    }
-    router.push(backHref);
   }
 
   async function sendReply() {
@@ -281,10 +154,6 @@ export default function Thread({
     router.refresh();
   }
 
-  const countLabel = hasOlderMessages
-    ? `latest ${messages.length} messages`
-    : `${messages.length} ${messages.length === 1 ? "message" : "messages"}`;
-
   return (
     <>
       <section className="pbm-thread" aria-label="Conversation">
@@ -297,166 +166,22 @@ export default function Thread({
             <p className="pbm-thread-email">{ticket.customerEmail}</p>
           </div>
           <div className="pbm-thread-actions">
-            <StarButton
-              ticketId={ticket.id}
-              starred={starred}
-              canStar={canPersonalise}
-              tip
-            />
-            {canPersonalise && (
-              <button
-                className="pbm-icon-btn"
-                onClick={() => void markUnread()}
-                aria-label="Mark as unread and go back"
-                data-tip="Mark unread"
-              >
-                <Icon name="envelopeOpen" size={17} strokeWidth={1.8} />
-              </button>
-            )}
-            {/*
-              Snooze and archive, hidden while the ticket is in the trash.
-
-              A deleted ticket is already out of every working folder, so
-              offering to hide it again would be offering an action with no
-              effect — and both buttons would compete with Restore, which is
-              the only thing anybody wants on that screen.
-            */}
-            {/*
-              Out to the customer's own mailbox.
-
-              Worded as a search, not as a promise. Postbox exists so a
-              business can stop working out of a shared Gmail account, and a
-              forwarding rule can be set to archive or delete the copy — so
-              this can be present, correct, and still land on "no results".
-              That is a true statement about their mailbox rather than a
-              broken link, and the wording should not claim otherwise.
-            */}
-            {!deletedAt && openInMailUrl && (
-              <a
-                className="pbm-icon-btn"
-                href={openInMailUrl}
-                target="_blank"
-                rel="noreferrer noopener"
-                aria-label="Find this message in Gmail"
-                data-tip="Find in Gmail"
-              >
-                <Icon name="external" size={17} strokeWidth={1.8} />
-              </a>
-            )}
-            {!deletedAt && (
-              <>
-                <div className="pbm-snooze" ref={snoozeRef}>
-                  {snoozedUntil ? (
-                    <form action={unsnoozeTicket}>
-                      <input type="hidden" name="ticketId" value={ticket.id} />
-                      <button
-                        className="pbm-icon-btn pbm-icon-btn--on"
-                        type="submit"
-                        aria-label="Wake this thread now"
-                        data-tip="Wake now"
-                      >
-                        <Icon name="clock" size={17} strokeWidth={1.8} />
-                      </button>
-                    </form>
-                  ) : (
-                    <>
-                      <button
-                        className="pbm-icon-btn"
-                        onClick={() => setSnoozeMenuOpen((v) => !v)}
-                        aria-haspopup="menu"
-                        aria-expanded={snoozeMenuOpen}
-                        aria-label="Snooze this thread"
-                        data-tip={snoozeMenuOpen ? undefined : "Snooze"}
-                      >
-                        <Icon name="clock" size={17} strokeWidth={1.8} />
-                      </button>
-                      {snoozeMenuOpen && (
-                        <div className="pbm-menu pbm-menu--snooze" role="menu">
-                          {SNOOZE_OPTIONS.map((o) => (
-                            <form
-                              key={o.minutes}
-                              action={snoozeTicket}
-                              onSubmit={() => setSnoozeMenuOpen(false)}
-                            >
-                              <input type="hidden" name="ticketId" value={ticket.id} />
-                              <input type="hidden" name="minutes" value={o.minutes} />
-                              <button
-                                role="menuitem"
-                                className="pbm-menu-item"
-                                type="submit"
-                              >
-                                {o.label}
-                              </button>
-                            </form>
-                          ))}
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-                <form action={archivedAt ? unarchiveTicket : archiveTicket}>
-                  <input type="hidden" name="ticketId" value={ticket.id} />
-                  <button
-                    className={
-                      archivedAt ? "pbm-icon-btn pbm-icon-btn--on" : "pbm-icon-btn"
-                    }
-                    type="submit"
-                    aria-label={
-                      archivedAt
-                        ? "Move this thread back to the inbox"
-                        : "Archive this thread"
-                    }
-                    data-tip={archivedAt ? "Move to inbox" : "Archive"}
-                  >
-                    <Icon name="archive" size={17} strokeWidth={1.8} />
-                  </button>
-                </form>
-              </>
-            )}
-            {/*
-              Delete, or restore if this one is already in the trash.
-
-              No confirmation dialog, deliberately. Deleting is reversible for
-              30 days and the trash says so, which is exactly the trade that
-              makes a confirm step unnecessary — an "are you sure?" on a
-              reversible action trains people to click through the ones that
-              are not. The undo IS the safety.
-            */}
-            {deletedAt ? (
-              <form action={restoreTicket}>
-                <input type="hidden" name="ticketId" value={ticket.id} />
-                <button
-                  className="pbm-icon-btn"
-                  type="submit"
-                  aria-label="Restore this thread from the trash"
-                  data-tip="Restore"
-                  data-tip-align="end"
-                >
-                  <Icon name="mail" size={17} strokeWidth={1.8} />
-                </button>
-              </form>
-            ) : (
-              <form action={trashTicket}>
-                <input type="hidden" name="ticketId" value={ticket.id} />
-                <button
-                  className="pbm-icon-btn"
-                  type="submit"
-                  aria-label="Move this thread to the trash"
-                  data-tip="Move to trash"
-                  // On a 320px phone the header wraps and this is the last
-                  // button on its row; centred, its tooltip ran off the edge.
-                  data-tip-align="end"
-                >
-                  <Icon name="trash" size={17} strokeWidth={1.8} />
-                </button>
-              </form>
-            )}
+            <button
+              type="button"
+              className="pbm-done-btn"
+              onClick={() => void toggleDone()}
+              disabled={busy}
+              aria-pressed={done}
+            >
+              <Icon name={done ? "mail" : "check"} size={15} strokeWidth={2.2} />
+              {done ? "Reopen" : "Mark as done"}
+            </button>
             <button
               className="pbm-icon-btn"
               onClick={() => setRail(railOpen ? "closed" : "open")}
               aria-expanded={railOpen}
-              aria-label={railOpen ? "Hide contact details" : "Show contact details"}
-              data-tip="Contact details"
+              aria-label={railOpen ? "Hide details" : "Show details"}
+              data-tip="Details"
               data-tip-align="end"
             >
               <OverflowIcon size={17} />
@@ -464,102 +189,8 @@ export default function Thread({
           </div>
         </header>
 
-        {/*
-          The retention promise, stated where somebody is looking at the thread
-          it applies to. A trash folder that does not say when things go is one
-          people are afraid to use and equally afraid to empty — and the whole
-          reason deleting is safe here is the 30 days, so hiding that undoes
-          the design.
-        */}
-        {deletedAt && (
-          <p className="pbm-trashed" role="status">
-            <b>In the trash.</b>{" "}
-            {describeRetention(new Date(deletedAt), new Date())} Deleted by{" "}
-            {describeDeletedBy(deletedBy)}. Restore it with the button above and
-            it goes back where it was.
-          </p>
-        )}
-
-        {/*
-          Says what state the thread is in and how to leave it.
-
-          Archived and snoozed are both "why is this not in my inbox?", and a
-          thread that answers that on its own page is one nobody has to go and
-          check a folder for.
-
-          The condition is a plain null check, NOT a comparison against the
-          clock. The server has already decided — it sends `snoozedUntil` only
-          while the ticket is actually hidden. Re-testing the time here would
-          make this element's EXISTENCE depend on the moment it renders, and a
-          server render either side of the wake time from its hydration is a
-          mismatch React cannot reconcile. The absolute time inside is still
-          formatted in the browser, because a server-formatted time shows UTC
-          to everybody.
-        */}
-        {!deletedAt && snoozedUntil && (
-          <p className="pbm-snoozed" role="status" suppressHydrationWarning>
-            <b>Snoozed.</b> Hidden until {formatDateTime(snoozedUntil)}
-            {wakeIn ? ` (${wakeIn})` : ""}. It returns to the inbox on its own —
-            or press the clock above to bring it back now.
-          </p>
-        )}
-        {!deletedAt && !snoozedUntil && archivedAt && (
-          <p className="pbm-snoozed" role="status">
-            <b>Archived.</b> Off the inbox, but not closed and not deleted. It
-            still appears in All, Search and any label it carries.
-          </p>
-        )}
-
         <div className="pbm-thread-subject">
           <h1 className="pbm-subject">{ticket.subject}</h1>
-          <div className="pbm-subject-chips">
-            <span className="pbm-chip-static">{countLabel}</span>
-            <div className="pbm-status" ref={statusRef}>
-              <button
-                className="pbm-status-btn"
-                style={{ color: st.fg }}
-                onClick={() => setStatusMenuOpen((v) => !v)}
-                aria-haspopup="menu"
-                aria-expanded={statusMenuOpen}
-                aria-label={`Change status (currently ${st.label})`}
-              >
-                <span className="pbm-status-dot" style={{ background: st.dot }} />
-                {st.label}
-                <Icon name="chevronDown" size={13} strokeWidth={2} />
-              </button>
-              {statusMenuOpen && (
-                <div className="pbm-menu pbm-menu--status" role="menu">
-                  {STATUS_ORDER.map((k) => {
-                    const meta = STATUS_META[k];
-                    return (
-                      <button
-                        key={k}
-                        role="menuitem"
-                        className="pbm-menu-item"
-                        onClick={() => changeStatus(k)}
-                      >
-                        <span
-                          className="pbm-status-dot"
-                          style={{ background: meta.dot }}
-                        />
-                        {meta.label}
-                        {status === k && <span className="pbm-menu-check">✓</span>}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
-            <span className="pbm-chip-static pbm-chip-static--src">{src.label}</span>
-            {/* Inside the row, not under it: the picker renders
-                `display: contents`, so its chips and "+ Label" are cells of
-                this one row at the same size as the three above. */}
-            <LabelPicker
-              ticketId={ticket.id}
-              labels={labels}
-              allLabels={allLabels}
-            />
-          </div>
         </div>
 
         <div className="pbm-transcript pb-scroll">
@@ -576,7 +207,7 @@ export default function Thread({
           )}
           {messages.length === 0 && (
             <p className="pbm-transcript-note">
-              This ticket has no messages yet.
+              This conversation has no messages yet.
             </p>
           )}
           {messages.map((m) => {
@@ -615,7 +246,7 @@ export default function Thread({
               rows={1}
               value={replyText}
               aria-label="Write a reply"
-              placeholder="Write a reply…"
+              placeholder="Write your reply…"
               onChange={(e) => {
                 setReplyText(e.target.value);
                 e.target.style.height = "auto";
@@ -623,20 +254,11 @@ export default function Thread({
               }}
               onKeyDown={(e) => {
                 /*
-                  ENTER WRITES A NEWLINE. It used to send.
-
-                  This is an EMAIL composer, not a chat box. The design asked
-                  for chat behaviour and the shape of the control encourages it
-                  — one line, a rounded pill, a send button on the right — but
-                  what leaves here is a real email to a customer, and the thing
-                  people do in emails that they do not do in chat is press
-                  Enter: a greeting line, a paragraph break, a sign-off.
-                  Costing somebody a half-written reply for that is a bad
-                  trade, and it costs it in the one direction that cannot be
-                  undone, because the reply is already gone.
-
-                  Ctrl/Cmd+Enter still sends, which is the convention every
-                  mail client uses and nothing else in this composer binds.
+                  ENTER WRITES A NEWLINE. This is an EMAIL composer, not a chat
+                  box: what leaves here is a real email to a customer, and
+                  people press Enter in emails (a greeting line, a paragraph
+                  break, a sign-off). Ctrl/Cmd+Enter sends, the convention
+                  every mail client uses.
                 */
                 if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                   e.preventDefault();
@@ -644,14 +266,6 @@ export default function Thread({
                 }
               }}
             />
-            <button
-              className="pbm-icon-btn"
-              disabled
-              aria-label="Attach a file (not available yet)"
-              title="Attachments aren't available yet."
-            >
-              <Icon name="clip" size={17} strokeWidth={1.8} />
-            </button>
             <button
               className="pbm-send"
               onClick={() => void sendReply()}
@@ -684,7 +298,6 @@ export default function Thread({
         notes={notes}
         addNote={addNote}
         deleteNote={deleteNote}
-        links={links}
       />
     </>
   );

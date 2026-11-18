@@ -1,18 +1,17 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, cleanup, fireEvent, screen, act } from "@testing-library/react";
+import { render, cleanup, fireEvent, screen } from "@testing-library/react";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import Modal from "../components/Modal";
-import LabelManager from "../components/mail/LabelManager";
 import InviteMember from "../app/(dashboard)/settings/team/InviteMember";
 import ModalButton from "../components/ModalButton";
-import type { LabelWithCountDTO } from "../components/mail/types";
 
 /*
   Jordan, 17 Nov 2026: "we want every modal, modals on phone, all the same,
   buttons etc." One modal (components/Modal.tsx); the account details, the
-  label manager and the new team invite all use it.
+  team invite and ModalButton (the access log's explainer) use it. The label
+  manager did until labels went, 18 Nov 2026.
 */
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
@@ -44,11 +43,11 @@ describe("one modal", () => {
     expect(own, "these build a dialog instead of using components/Modal.tsx").toEqual([]);
   });
 
-  it("the three modals all use it", () => {
+  it("every modal uses it", () => {
     for (const f of [
       "app/(admin)/admin/AccountsBrowser.tsx",
-      "components/mail/LabelManager.tsx",
       "app/(dashboard)/settings/team/InviteMember.tsx",
+      "components/ModalButton.tsx",
     ]) {
       expect(read(f), `${f} does not use the shared Modal`).toMatch(/import Modal from "@\/components\/Modal"/);
     }
@@ -140,43 +139,6 @@ describe("Modal", () => {
   });
 });
 
-describe("label manager in the shared modal", () => {
-  const labels = [
-    { id: 1, name: "Wholesale", color: "tag_a", colorHex: null, ticketCount: 0 },
-  ] satisfies LabelWithCountDTO[];
-
-  it("opens as the shared modal, and Escape backs out of a delete question first", () => {
-    const onClose = vi.fn();
-    const { container } = render(<LabelManager labels={labels} onClose={onClose} />);
-    const dialog = container.querySelector("dialog.pb-modal") as HTMLDialogElement;
-    expect(dialog, "not the shared modal").not.toBeNull();
-    expect(dialog.open).toBe(true);
-    expect(container.querySelector(".pbm-modal-scrim"), "the home-made scrim is back").toBeNull();
-
-    fireEvent.click(screen.getByRole("button", { name: /delete wholesale/i }));
-    expect(container.querySelector(".pbm-confirm")).not.toBeNull();
-
-    const first = new Event("cancel", { cancelable: true });
-    act(() => {
-      dialog.dispatchEvent(first);
-    });
-    expect(first.defaultPrevented, "Escape closed the modal under a question").toBe(true);
-    expect(container.querySelector(".pbm-confirm"), "the question is still up").toBeNull();
-
-    const second = new Event("cancel", { cancelable: true });
-    act(() => {
-      dialog.dispatchEvent(second);
-    });
-    expect(second.defaultPrevented, "with no question, Escape should close").toBe(false);
-  });
-
-  it("inline on Settings stays a plain panel", () => {
-    const { container } = render(<LabelManager labels={labels} inline />);
-    expect(container.querySelector("dialog")).toBeNull();
-    expect(container.querySelector(".pbm-modal--inline")).not.toBeNull();
-  });
-});
-
 describe("team: Add new member", () => {
   it("is a button at the top that opens the invite in a small modal", () => {
     const action = vi.fn(async () => {});
@@ -263,18 +225,4 @@ describe("no drop shadow on anything that floats over the page", () => {
       }
     });
   }
-});
-
-describe("labels in the nav", () => {
-  it("Manage is a round + with its name kept for assistive tech", () => {
-    const nav = read("components/mail/MailNavShell.tsx");
-    const button = nav.slice(nav.indexOf('className="pbm-nav-manage"'), nav.indexOf("</button>", nav.indexOf('className="pbm-nav-manage"')));
-    expect(button).toContain('aria-label="Manage labels"');
-    expect(button).toContain('<Icon name="plus"');
-    expect(button).not.toMatch(/>\s*Manage\s*</);
-    const rule = read("app/mail.css").match(/\n\.pbm-nav-manage\s*\{([^}]*)\}/)![1]!;
-    expect(rule).toContain("border-radius: 50%");
-    expect(rule).toContain("width: var(--tap-min, 44px)");
-    expect(rule).toContain("height: var(--tap-min, 44px)");
-  });
 });

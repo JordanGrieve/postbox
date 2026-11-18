@@ -165,7 +165,7 @@ import AccessLogPage from "../app/(dashboard)/settings/access-log/page";
 import type { ImpersonationSession } from "../db/schema";
 import type { TeamMember } from "../lib/team";
 import type { SubscriberDetail } from "../app/(dashboard)/subscribers/queries";
-import type { MailCountsDTO, LabelWithCountDTO } from "../components/mail/types";
+import type { MailCountsDTO } from "../components/mail/types";
 import type { ContactWithCount } from "../lib/data";
 import type { SearchResults } from "../lib/search";
 import type { Entitlement } from "../lib/trial";
@@ -241,13 +241,6 @@ ${links}
 describe("the signed-in screens that had no harness", () => {
   it("MailNav — the navigation column on every signed-in page", async () => {
     h.activeWorkspace.mockResolvedValue(WORKSPACE);
-    h.listLabelsWithCounts.mockResolvedValue([
-      { id: 1, name: "Wholesale", color: "tag_a", colorHex: null, ticketCount: 7 },
-      // A picked colour, so the data-custom path in mail.css is exercised
-      // rather than only the three theme tokens.
-      { id: 2, name: "Complaint", color: "tag_b", colorHex: "#b4436c", ticketCount: 2 },
-    ] satisfies LabelWithCountDTO[]);
-    h.viewerAgentId.mockResolvedValue(11);
     h.getWorkspaceEntitlement.mockResolvedValue(null);
 
     const html = record(
@@ -264,7 +257,14 @@ describe("the signed-in screens that had no harness", () => {
     // Canaries. A nav that rendered its chrome but lost every link would still
     // be long enough to pass a length check.
     expect(html).toContain("Open Door Bakery");
-    expect(html).toContain("Wholesale");
+    // The four rows of the simple nav (18 Nov 2026), and nothing of the
+    // eleven folders or the labels block it replaced.
+    for (const row of ["Inbox", "Newsletters", "Subscribers", "Settings"]) {
+      expect(html).toContain(`>${row}<`);
+    }
+    for (const gone of ["All mail", "Awaiting reply", "Starred", "Trash", "Labels"]) {
+      expect(html, `the nav still shows "${gone}"`).not.toContain(`>${gone}<`);
+    }
     expect(html.length).toBeGreaterThan(1500);
   });
 

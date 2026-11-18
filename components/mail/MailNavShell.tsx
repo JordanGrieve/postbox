@@ -3,26 +3,22 @@
 import { useEffect, useRef, useState } from "react";
 import { useDismiss } from "@/lib/use-dismiss";
 import { useMediaQuery } from "@/lib/use-media-query";
-import { labelChipProps } from "./label-style";
 import Link from "next/link";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 // Not Clerk's <SignOutButton>: an operator signing out from inside a client
 // workspace has an open audit row to close first. See the component's header.
 import AuditedSignOutButton from "@/components/AuditedSignOutButton";
 // Not "@/lib/tickets": that reaches lib/config, which is server-only. See the
 // header of lib/ticket-format.ts.
 import { initials } from "@/lib/ticket-format";
-import { Icon, BrandMark, OverflowIcon, type IconName } from "./icons";
-import LabelManager from "./LabelManager";
-import { subscribeStar } from "./live";
-import type { LabelWithCountDTO, MailCountsDTO } from "./types";
+import { Icon, BrandMark, OverflowIcon } from "./icons";
+import type { MailCountsDTO } from "./types";
 
 /**
  * The 262px navigation column, and — below 768px — the off-canvas drawer.
  *
- * The interactive half. MailNav.tsx is the server component that feeds it; the
- * split exists because the nav now needs the workspace's labels and the
- * viewer's agent id, and the dashboard layout that renders it is owned
+ * The interactive half. MailNav.tsx is the server component that feeds it the
+ * counts and the plan card; the dashboard layout that renders it is owned
  * elsewhere and cannot be asked for them.
  *
  * The drawer reuses the pb-* classes already in globals.css (pb-sidebar,
@@ -32,57 +28,16 @@ import type { LabelWithCountDTO, MailCountsDTO } from "./types";
  * does not reimplement the mechanics.
  */
 
-type LiveFolder = {
-  key: string;
-  label: string;
-  icon: IconName;
-  count: number;
-  href: string;
-};
-
-/**
- * Folders the design asks for that still have no table behind them. Rendered
- * as genuinely disabled controls rather than links that go nowhere, and with
- * no count pill at all — a "0" here would read as a fact we do not have.
- *
- * Starred, Labeled and now Sent used to live in this list. They have tables
- * now, so they are real links above.
- *
- * Trash stays. It is not waiting on a query, it is waiting on a decision:
- * `tickets` has no deleted/archived column, and in an inbox holding customer
- * correspondence "delete" is a retention question (hide it, keep the audit
- * trail, or actually destroy it?) rather than a WHERE clause. Guessing would
- * ship a button whose meaning we would have to change later.
- */
-/*
- * EMPTY as of 23 August 2026. Trash was the last entry and is now a real
- * folder above — deleting hides a ticket for 30 days, then a sweep destroys
- * it, which is what every mail client a client already uses means by "delete".
- *
- * The list and the "Not built yet" heading are kept rather than removed. They
- * cost nothing while empty, they render nothing, and the next feature the
- * design asks for before its data exists has somewhere honest to sit. Deleting
- * the mechanism is how the next one ends up as a link that goes nowhere.
- */
 export default function MailNavShell({
   workspaceName,
   userLabel,
   counts,
-  labels,
-  canPersonalise,
   billing,
   isAdmin = false,
 }: {
   workspaceName: string;
   userLabel: string;
   counts: MailCountsDTO;
-  labels: LabelWithCountDTO[];
-  /**
-   * The viewer has an agent row in this workspace, so Unread and Starred mean
-   * something. False for a super-admin acting inside a client — those two
-   * folders are hidden rather than shown reading zero.
-   */
-  canPersonalise: boolean;
   /**
    * The plan card, already worded by lib/trial.ts. Null when entitlement could
    * not be read, in which case no card is drawn — see MailNav.
@@ -96,43 +51,9 @@ export default function MailNavShell({
   isAdmin?: boolean;
 }) {
   const [navOpen, setNavOpen] = useState(false);
-  /*
-    The user's OWN choice about the look-up group, or null if they have not
-    made one. Not the open state itself — that is derived below, so that
-    landing on a look-up folder can open the group without an effect writing
-    state during render (react-hooks/set-state-in-effect, and it is right:
-    this is a value, not a side effect).
-  */
-  const [foldersToggled, setFoldersToggled] = useState<boolean | null>(null);
   const [menuOpen, setMenuOpen] = useState(false);
-  const [labelsOpen, setLabelsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  /**
-   * Local correction to `counts.starred`, so a star click updates this number
-   * without a `router.refresh()` of the entire route. See ./live.ts.
-   *
-   * The delta is thrown away the instant the server sends a new `counts`
-   * object — every navigation and every periodic list refresh does that — so
-   * this can drift by one at most, and only until the next server word.
-   */
-  const [starredDelta, setStarredDelta] = useState(0);
-  const [lastCounts, setLastCounts] = useState(counts);
-  if (lastCounts !== counts) {
-    setLastCounts(counts);
-    setStarredDelta(0);
-  }
-
-  useEffect(
-    () => subscribeStar(({ starred }) => setStarredDelta((d) => d + (starred ? 1 : -1))),
-    [],
-  );
-
-  // Clamped: a star added on another device, then removed here, would otherwise
-  // show "-1". A count is never negative, whatever the arithmetic says.
-  const starredCount = Math.max(0, counts.starred + starredDelta);
 
   /*
    * ── THE DRAWER IS A DRAWER ONLY ON A PHONE ──
@@ -181,143 +102,10 @@ export default function MailNavShell({
   // Standard menu semantics: Esc and clicking anywhere else close it.
   useDismiss(menuOpen, () => setMenuOpen(false), menuRef);
 
-  const onList = pathname === "/inbox";
-  const activeLabel = onList ? searchParams.get("label") : null;
-  // A per-label view is its own selection; the "Labeled" folder above it is
-  // "any label at all", so only one of the two should ever look active.
-  const activeFolder =
-    onList && !activeLabel ? (searchParams.get("folder") ?? "inbox") : "";
+  // The inbox is the list and every thread opened from it.
+  const inInbox = pathname === "/inbox" || pathname.startsWith("/tickets/");
 
-  /* The four you go to look something up, not to work from. See the
-     comment on the folder list below. */
-  const LOOKUP_FOLDERS = ["labeled", "snoozed", "archived", "trash"];
 
-  /*
-   * Looking at a look-up folder OPENS the group, rather than lifting that
-   * folder out of it.
-   *
-   * This is what keeps the old guarantee — collapsing the list must never
-   * hide the one row explaining why the list looks the way it does — now
-   * that the split above is fixed. It covers the case the ordering trick was
-   * really for: ARRIVING on one of the four from outside the nav, a bookmark,
-   * a redirect after emptying the trash, a link in a notice. The rows
-   * themselves cannot be clicked while the group is shut; they are inert.
-   *
-   * A DEFAULT, not an override: the moment somebody presses More or Less
-   * their choice is recorded and wins from then on. So pressing Less while
-   * standing in Trash leaves it shut and that row hidden — which is a thing
-   * they did deliberately, one press ago, and reopening it under them would
-   * be worse than honouring it.
-   */
-  const lookupActive = LOOKUP_FOLDERS.includes(activeFolder);
-  const foldersOpen = foldersToggled ?? lookupActive;
-
-  const folders: LiveFolder[] = [
-    { key: "all", label: "All mail", icon: "mail", count: counts.all, href: "/inbox?folder=all" },
-    ...(canPersonalise
-      ? [
-          {
-            key: "unread",
-            label: "Unread",
-            icon: "envelopeOpen" as IconName,
-            count: counts.unread,
-            href: "/inbox?folder=unread",
-          },
-        ]
-      : []),
-    {
-      key: "awaiting",
-      label: "Awaiting reply",
-      icon: "lines",
-      count: counts.awaiting,
-      href: "/inbox?folder=awaiting",
-    },
-    { key: "inbox", label: "Open", icon: "mail", count: counts.inbox, href: "/inbox" },
-    {
-      key: "closed",
-      label: "Closed",
-      icon: "check",
-      count: counts.closed,
-      href: "/inbox?folder=closed",
-    },
-    // Not gated on canPersonalise: "did anyone here reply" is a fact about the
-    // workspace, so it reads the same for an operator viewing a client as it
-    // does for the team. Unread and Starred are the personal ones.
-    { key: "sent", label: "Sent", icon: "send", count: counts.sent, href: "/inbox?folder=sent" },
-    ...(canPersonalise
-      ? [
-          {
-            key: "starred",
-            label: "Starred",
-            icon: "star" as IconName,
-            count: starredCount,
-            href: "/inbox?folder=starred",
-          },
-        ]
-      : []),
-    {
-      key: "labeled",
-      label: "Labeled",
-      icon: "label",
-      count: counts.labeled,
-      href: "/inbox?folder=labeled",
-    },
-    /*
-     * Snoozed sits above Archived, and both sit below the working folders.
-     *
-     * Snoozed is the one folder whose contents change with no one doing
-     * anything — a ticket leaves it when its time arrives, because the state
-     * is `snoozed_until > now()` rather than a stored flag. So its count is
-     * the count of things that WILL come back, and it belongs near the folders
-     * somebody actually works out of rather than down with Trash.
-     */
-    {
-      key: "snoozed",
-      label: "Snoozed",
-      icon: "clock",
-      count: counts.snoozed,
-      href: "/inbox?folder=snoozed",
-    },
-    {
-      key: "archived",
-      label: "Archived",
-      icon: "archive",
-      count: counts.archived,
-      href: "/inbox?folder=archived",
-    },
-    /*
-     * Trash is a real folder as of 23 August 2026. It sits last because it is
-     * where things go, not somewhere anybody works — and unlike the folders
-     * above, its count going up is not progress.
-     */
-    {
-      key: "trash",
-      label: "Trash",
-      icon: "trash",
-      count: counts.trash,
-      href: "/inbox?folder=trash",
-    },
-  ];
-
-  /*
-   * A FIXED split: the seven working folders above the More/Less row, the
-   * four look-up folders below it. Always, whatever is active.
-   *
-   * ── WHY NOT "HOIST THE ACTIVE ONE" ──
-   * It used to be `|| f.key === activeFolder`, which pulled the active
-   * look-up folder up into the visible group so that collapsing the list
-   * could never hide the thing explaining what you are looking at. Sound
-   * goal, wrong mechanism: it also fired while the list was OPEN, so
-   * clicking Labeled — sitting below Less, in plain sight — made it jump
-   * above Less. Jordan, 11 Sep 2026: "when i click one below the Less it
-   * goes above the Less, it should all stay where it is."
-   *
-   * The goal is met by `foldersOpen` instead (see its initialiser): landing
-   * on a look-up folder OPENS the group rather than reordering it. One
-   * ordering, always, and the active row is still on screen.
-   */
-  const shownFolders = folders.filter((f) => !LOOKUP_FOLDERS.includes(f.key));
-  const extraFolders = folders.filter((f) => LOOKUP_FOLDERS.includes(f.key));
 
   return (
     <>
@@ -408,163 +196,27 @@ export default function MailNavShell({
         )}
 
         {/*
-          THE WORKING FOLDERS, THEN "MORE" FOR THE LOOK-UP ONES.
-
-          Twice around on this. It was three folders and a More holding eight,
-          which on a phone read as an empty drawer (and, for a day, WAS one —
-          a class-name collision). Then it was all eleven. Jordan's call on
-          9 Sep 2026 is the split that matches how the list is used: the
-          folders you work from stay (All mail, Unread, Awaiting, Open,
-          Closed, Sent, Starred) and the four you go to LOOK SOMETHING UP —
-          Labeled, Snoozed, Archived, Trash — sit behind More.
-
-          The active folder is ALWAYS shown, even when it is one of the four.
-          Collapsing the list while somebody is looking at Trash would hide
-          the only thing on screen explaining why the list looks the way it
-          does.
+          ── FOUR ROWS ──
+          Jordan, 18 Nov 2026, from a mockup: the dashboard was "too
+          complicated". Eleven folders, a More/Less group and a Labels block
+          became Inbox (To reply and Done are tabs on the list), Newsletters,
+          Subscribers and Settings. Labels, stars, unread, snooze, archive,
+          trash and Sent are gone from the interface; their data and server
+          code are untouched.
         */}
         <div className="pbm-folders">
-          {shownFolders.map((f) => {
-            const active = activeFolder === f.key;
-            return (
-              <Link
-                key={f.key}
-                href={f.href}
-                className="pbm-folder"
-                data-active={active}
-                aria-current={active ? "page" : undefined}
-              >
-                <Icon name={f.icon} size={18} />
-                <span className="pbm-folder-label">{f.label}</span>
-                <span className="pbm-folder-count">{f.count}</span>
-              </Link>
-            );
-          })}
-
-          {extraFolders.length > 0 && (
-            <button
-              type="button"
-              className="pbm-folder pbm-folder--more"
-              data-open={foldersOpen || undefined}
-              onClick={() => setFoldersToggled(!foldersOpen)}
-              aria-expanded={foldersOpen}
-            >
-              <Icon name="chevronDown" size={18} />
-              <span className="pbm-folder-label">
-                {foldersOpen ? "Less" : "More"}
-              </span>
-            </button>
-          )}
-
-          {/*
-            The rest, BELOW the More/Less row so the row stays put and the
-            folders unfold under it (Jordan, 10 Sep 2026). A container that
-            animates its own height — the
-            0fr-to-1fr grid trick, since the count varies with the plan. They
-            stay in the DOM and are hidden with inert + aria-hidden, so the
-            height has something to animate from and to.
-          */}
-          {extraFolders.length > 0 && (
-            <div
-              className="pbm-folders-extra"
-              data-open={foldersOpen || undefined}
-              inert={!foldersOpen}
-              aria-hidden={!foldersOpen}
-            >
-              <div className="pbm-folders-extra-inner">
-                {extraFolders.map((f) => {
-                  const active = activeFolder === f.key;
-                  return (
-                    <Link
-                      key={f.key}
-                      href={f.href}
-                      className="pbm-folder"
-                      data-active={active}
-                      aria-current={active ? "page" : undefined}
-                      tabIndex={foldersOpen ? undefined : -1}
-                    >
-                      <Icon name={f.icon} size={18} />
-                      <span className="pbm-folder-label">{f.label}</span>
-                      <span className="pbm-folder-count">{f.count}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-        </div>
-
-        <div className="pbm-nav-divider" />
-
-        {/*
-          Hidden entirely when the workspace has no labels. It used to render a
-          heading, a Manage button and a two-line note explaining a feature the
-          reader was not using — permanent furniture for an empty list.
-
-          This could only become conditional once /settings/labels existed:
-          "Manage" was the sole way to create a first label, so hiding the block
-          before there was another route to it would have removed the feature
-          for exactly the workspaces that had never used it.
-        */}
-        {labels.length > 0 && (
-          <>
-            <div className="pbm-nav-heading-row">
-              <p className="pbm-nav-heading">Labels</p>
-              <button
-                type="button"
-                className="pbm-nav-manage"
-                onClick={() => setLabelsOpen(true)}
-                aria-label="Manage labels"
-                aria-haspopup="dialog"
-              >
-                {/* A round "+", not the word. Jordan, 17 Nov 2026. The
-                    accessible name still says what it opens. */}
-                <Icon name="plus" size={16} strokeWidth={2.4} />
-              </button>
-            </div>
-            <div className="pbm-folders">
-              {labels.map((l) => {
-                const active = activeLabel === String(l.id);
-                return (
-                  <Link
-                    key={l.id}
-                    href={`/inbox?folder=labeled&label=${l.id}`}
-                    className="pbm-folder"
-                    data-active={active}
-                    aria-current={active ? "page" : undefined}
-                  >
-                    <span className="pbm-label-swatch" {...labelChipProps(l)} aria-hidden />
-                    <span className="pbm-folder-label">{l.name}</span>
-                    <span className="pbm-folder-count">{l.ticketCount}</span>
-                  </Link>
-                );
-              })}
-            </div>
-
-            <div className="pbm-nav-divider" />
-          </>
-        )}
-
-        <div className="pbm-folders">
-          {/* Contacts, Auto-reply and Install are all "things you configure
-              about this workspace", so they are one entry here and tabs inside
-              /settings. Three separate links made an already long sidebar
-              longer and read as unrelated to each other. */}
-          {/*
-            NO SEARCH ENTRY HERE, as of 23 August 2026.
-
-            It was added because /search, lib/search.ts and /api/search were
-            built and nothing linked to them. That was the right problem and
-            the wrong fix: this sidebar already carries eleven folders plus
-            labels, and a twelfth row made the list longer without making
-            search easier to find. There is a search box at the top of the
-            message list, which is where somebody looks for one.
-
-            The route still exists and still works. If workspace-wide search
-            needs a way in from here later, it belongs in that box — as a
-            "search everything" affordance when the on-page filter finds
-            nothing — not as another row competing with the folders.
-          */}
+          <Link
+            href="/inbox"
+            className="pbm-folder"
+            data-active={inInbox}
+            aria-current={inInbox ? "page" : undefined}
+          >
+            <Icon name="mail" size={18} />
+            <span className="pbm-folder-label">Inbox</span>
+            {/* What is waiting on a reply, the number the list's "To reply"
+                tab shows. */}
+            <span className="pbm-folder-count">{counts.inbox}</span>
+          </Link>
           <Link
             href="/newsletters"
             className="pbm-folder"
@@ -584,19 +236,19 @@ export default function MailNavShell({
             <span className="pbm-folder-label">Subscribers</span>
           </Link>
           {/*
-            No Settings row here.
-
-            It was the third link under Subscribers, and the account button at
-            the foot of this column already opens a menu whose first item is
-            Settings — the same destination, eight rows apart, in a column
-            whose whole design problem is length. Jordan, 26 Sep 2026: "since
-            we have settings when you click admin below it, remove the link to
-            settings".
-
-            The account menu is the right home for it: Settings is about the
-            workspace and who you are in it, which is what that button is
-            already about. This list is folders and the things a folder is for.
+            Settings is a row again (it was only in the account menu from
+            26 Sep 2026, when the column was long). The mockup has it here,
+            and the account menu no longer repeats it.
           */}
+          <Link
+            href="/settings"
+            className="pbm-folder"
+            data-active={pathname.startsWith("/settings")}
+            aria-current={pathname.startsWith("/settings") ? "page" : undefined}
+          >
+            <Icon name="settings" size={18} />
+            <span className="pbm-folder-label">Settings</span>
+          </Link>
         </div>
 
         <div className="pbm-nav-spacer" />
@@ -624,14 +276,6 @@ export default function MailNavShell({
           </button>
           {menuOpen && (
             <div className="pbm-menu" role="menu">
-              <Link
-                href="/settings"
-                role="menuitem"
-                className="pbm-menu-item"
-                onClick={() => setMenuOpen(false)}
-              >
-                Settings
-              </Link>
               <AuditedSignOutButton
                 role="menuitem"
                 className="pbm-menu-item pbm-menu-item--danger"
@@ -666,9 +310,6 @@ export default function MailNavShell({
         )}
       </nav>
 
-      {labelsOpen && (
-        <LabelManager labels={labels} onClose={() => setLabelsOpen(false)} />
-      )}
     </>
   );
 }
