@@ -113,6 +113,18 @@ export const MAIL_FOLDERS: MailFolder[] = [
   "trash",
 ];
 
+/**
+ * The inbox's two tabs (18 Nov 2026): "To reply" is `inbox` (open
+ * conversations) and "Done" is `closed`. The only folders the interface
+ * offers now; any other ?folder= lands on To reply rather than on a list
+ * nobody can navigate out of.
+ */
+export type InboxView = "inbox" | "closed";
+
+export function parseInboxView(value: string | undefined): InboxView {
+  return value === "closed" ? "closed" : "inbox";
+}
+
 export function parseFolder(value: string | undefined): MailFolder {
   return (MAIL_FOLDERS as string[]).includes(value ?? "")
     ? (value as MailFolder)
@@ -279,7 +291,14 @@ const notSnoozed = sql`(${tickets.snoozedUntil} IS NULL OR ${tickets.snoozedUnti
  * answer "where is that ticket?" — a folder that hides mail somebody is
  * actively looking for is worse than one that shows too much.
  */
-const WORKING_FOLDERS: MailFolder[] = ["inbox", "unread", "awaiting"];
+/*
+  NOT "inbox" any more (18 Nov 2026). Archive and snooze left the interface
+  with the simple inbox, so nobody can reach the Archived or Snoozed lists or
+  undo either. A ticket archived or snoozed before then would have vanished
+  from To reply for good; instead the inbox ignores both flags and it comes
+  back. Unread and Awaiting are not offered any more and keep their old rule.
+*/
+const WORKING_FOLDERS: MailFolder[] = ["unread", "awaiting"];
 
 function folderWhere(
   workspaceId: number,
@@ -369,7 +388,9 @@ export const mailCounts = cache(
        */
       .select({
         all: sql<number>`(count(*) FILTER (WHERE ${notDeleted}))::int`,
-        inbox: sql<number>`(count(*) FILTER (WHERE ${notDeleted} AND ${notClosed} AND ${notArchived} AND ${notSnoozed}))::int`,
+        // Every open conversation, archived or snoozed or not: To reply's
+        // count, matching its list (see WORKING_FOLDERS).
+        inbox: sql<number>`(count(*) FILTER (WHERE ${notDeleted} AND ${notClosed}))::int`,
         closed: sql<number>`(count(*) FILTER (WHERE ${notDeleted} AND ${tickets.status} = 'closed'))::int`,
         awaiting: sql<number>`(count(*) FILTER (WHERE ${notDeleted} AND ${notClosed} AND ${notArchived} AND ${notSnoozed} AND ${lastDirection} = 'inbound'))::int`,
         unread: sql<number>`(count(*) FILTER (WHERE ${notDeleted} AND ${notClosed} AND ${notArchived} AND ${notSnoozed} AND ${unreadExpr(agentId)}))::int`,

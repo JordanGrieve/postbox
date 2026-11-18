@@ -1,19 +1,13 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, cleanup } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import LabelPicker from "../components/mail/LabelPicker";
-import type { LabelChipDTO } from "../components/mail/types";
 
 /*
   Jordan's inbox review, 17 Nov 2026. One guard per item, so none of them
-  quietly comes back.
+  quietly comes back. (The three about the "+ Label" menu went with labels,
+  18 Nov 2026.)
 */
-
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: vi.fn() }) }));
-
-afterEach(cleanup);
 
 const ROOT = join(__dirname, "..");
 const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
@@ -39,87 +33,6 @@ describe("inbox review, 17 Nov 2026", () => {
       expect(src, `${f} still renders the refine chips`).not.toContain('className="pbm-chips"');
       expect(src, `${f} still renders the refine chips`).not.toContain("Refine this page");
     }
-  });
-
-  it("the label menu hangs from the + Label button, not the row", () => {
-    const labels = [
-      { id: 1, name: "Wholesale", color: "tag_a", colorHex: null },
-    ] satisfies LabelChipDTO[];
-    const { container } = render(
-      <LabelPicker ticketId={1} labels={[]} allLabels={labels} initiallyOpen />,
-    );
-    const menu = container.querySelector(".pbm-menu--labels");
-    const anchor = menu?.parentElement;
-    expect(anchor?.className).toBe("pbm-label-anchor");
-    expect(anchor?.querySelector(".pbm-label-add"), "button and menu share the anchor").not.toBeNull();
-    expect(rule(MAIL, ".pbm-label-anchor")).toContain("position: relative");
-  });
-
-  it("the label menu moves left by its overshoot only, and never off the left edge", () => {
-    const labels = [
-      { id: 1, name: "Wholesale", color: "tag_a", colorHex: null },
-    ] satisfies LabelChipDTO[];
-    // happy-dom has no layout: give the menu (272 wide) the left edge it
-    // would open at, and the page a 375px width.
-    const shiftAt = (menuLeft: number) => {
-      const real = Element.prototype.getBoundingClientRect;
-      vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
-        if (this.classList.contains("pbm-menu--labels")) {
-          return { left: menuLeft, right: menuLeft + 272 } as DOMRect;
-        }
-        if (this === document.documentElement) return { left: 0, right: 375 } as DOMRect;
-        return real.call(this);
-      });
-      vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(375);
-      const r = render(<LabelPicker ticketId={1} labels={[]} allLabels={labels} initiallyOpen />);
-      const left = (r.container.querySelector(".pbm-menu--labels") as HTMLElement).style.left;
-      r.unmount();
-      vi.restoreAllMocks();
-      return left === "" ? 0 : Number(left.replace("px", ""));
-    };
-
-    // Fits (desktop, button at 16): stays under the button.
-    expect(shiftAt(16)).toBe(0);
-    // Button wrapped to the right of a phone (x=257): back inside, 8px clear.
-    expect(257 + shiftAt(257) + 272).toBe(375 - 8);
-    // Button at 105, the case a plain right-align got wrong (it put the menu
-    // at -95). Moves 2px left, not 167.
-    expect(105 + shiftAt(105)).toBeGreaterThanOrEqual(8);
-    expect(105 + shiftAt(105) + 272).toBeLessThanOrEqual(375 - 8);
-  });
-
-  it("the label menu re-measures when a label is ticked with it open", () => {
-    // Ticking a label adds a chip before "+ Label", which moves the anchor.
-    // The offset worked out on opening is then stale.
-    const labels = [
-      { id: 1, name: "Wholesale", color: "tag_a", colorHex: null },
-      { id: 2, name: "VIP", color: "tag_b", colorHex: null },
-    ] satisfies LabelChipDTO[];
-    let menuLeft = 16;
-    const real = Element.prototype.getBoundingClientRect;
-    vi.spyOn(Element.prototype, "getBoundingClientRect").mockImplementation(function (this: Element) {
-      if (this.classList.contains("pbm-menu--labels")) {
-        return { left: menuLeft, right: menuLeft + 272 } as DOMRect;
-      }
-      if (this === document.documentElement) return { left: 0, right: 375 } as DOMRect;
-      return real.call(this);
-    });
-    vi.spyOn(document.documentElement, "clientWidth", "get").mockReturnValue(375);
-    vi.stubGlobal("fetch", vi.fn(async () => new Response("{}", { status: 200 })));
-
-    const { container, rerender } = render(
-      <LabelPicker ticketId={1} labels={[]} allLabels={labels} initiallyOpen />,
-    );
-    const menu = () => container.querySelector(".pbm-menu--labels") as HTMLElement;
-    expect(menu().style.left).toBe("");
-
-    // The page refreshes with a label applied; its chip pushes the button right.
-    menuLeft = 257;
-    rerender(<LabelPicker ticketId={1} labels={labels.slice(0, 1)} allLabels={labels} initiallyOpen />);
-    expect(menu().style.left, "offset not recalculated after the chips changed").not.toBe("");
-
-    vi.restoreAllMocks();
-    vi.unstubAllGlobals();
   });
 
   it("the modal scrim is a neutral ink wash, not the old indigo", () => {

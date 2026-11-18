@@ -42,7 +42,8 @@ const SIGNED_IN = ALL.filter(
 
 describe("page titles", () => {
   it("found the pages", () => {
-    expect(ALL.length).toBeGreaterThan(30);
+    // 30 since Settings → Labels was deleted with labels (18 Nov 2026).
+    expect(ALL.length).toBeGreaterThan(25);
     expect(SIGNED_IN.length).toBeGreaterThan(15);
   });
 

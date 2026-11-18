@@ -30,10 +30,7 @@ import { writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
 import MessageList from "../components/mail/MessageList";
 import ContactRail from "../components/mail/ContactRail";
-import LabelManager from "../components/mail/LabelManager";
-import LabelPicker from "../components/mail/LabelPicker";
 import OnboardingChecklist from "../components/mail/OnboardingChecklist";
-import SharedLinks from "../components/mail/SharedLinks";
 import Thread from "../components/mail/Thread";
 /*
   ── THE FIXTURES ARE TYPED, AND THAT IS THE POINT ──
@@ -47,9 +44,8 @@ import Thread from "../components/mail/Thread";
   field. tests/settings-views-render.test.tsx had no casts and had no wrong
   fixtures; that is not a coincidence.
 */
-import type { LabelChipDTO, LabelWithCountDTO, MailRow, ContactCard } from "../components/mail/types";
+import type { LabelChipDTO, MailRow, ContactCard } from "../components/mail/types";
 import type { TicketDTO, MessageDTO } from "../lib/serialize";
-import type { SharedLink } from "../lib/shared-links";
 import type { OnboardingProgress, OnboardingStep } from "../lib/onboarding";
 import type { ContactNoteDTO } from "../app/(dashboard)/queries";
 
@@ -148,26 +144,6 @@ const notes = [
   },
 ] satisfies ContactNoteDTO[];
 
-/*
-  The SECOND fixture found wrong the same way as the onboarding one: this used
-  { url, label, messageId }; SharedLink is { url, hostname, ticketId, atIso,
-  fromCustomer }. `hostname` is the primary label — deliberately, so a stranger
-  cannot caption a link "click here" — and with it undefined the card rendered
-  one line instead of two and measured 13px tall, which the target probe then
-  reported as a 2.5.8 failure.
-
-  A fixture that is wrong does not just hide problems; it manufactures them.
-*/
-const links = [
-  {
-    url: "https://opendoorbakery.co.uk/menu/christmas-2026",
-    hostname: "opendoorbakery.co.uk",
-    ticketId: 41,
-    atIso: iso(2),
-    fromCustomer: false,
-  },
-] satisfies SharedLink[];
-
 const ticket = {
   id: 41,
   ref: "ODB-041",
@@ -255,25 +231,41 @@ const progress = {
 
 const noop = () => {};
 
+/*
+  The simple inbox (18 Nov 2026): the list on its two tabs, an empty list,
+  the "About" panel, onboarding and the conversation. The label manager,
+  the "+ Label" menu and shared links went with their features.
+*/
 const views: Record<string, React.ReactElement> = {
-  /*
-    The Open folder as it ships on a phone: the list with swipe actions on
-    every card. (The floating tab bar that used to sit under it was removed
-    on 8 Sep 2026 — navigation is the burger menu and the folder strip.)
-  */
   inbox: (
     <MessageList
       rows={rows}
-      folder="inbox"
+      view="inbox"
+      counts={{ toReply: 57, done: 12 }}
       page={1}
       pageCount={3}
       total={57}
-      canPersonalise
-      swipeActions={{ archive: noop, trash: noop }}
+    />
+  ),
+  done: (
+    <MessageList
+      rows={rows.slice(1)}
+      view="closed"
+      counts={{ toReply: 57, done: 12 }}
+      page={1}
+      pageCount={1}
+      total={12}
     />
   ),
   "inbox-empty": (
-    <MessageList rows={[]} folder="inbox" page={1} pageCount={1} total={0} canPersonalise />
+    <MessageList
+      rows={[]}
+      view="inbox"
+      counts={{ toReply: 0, done: 0 }}
+      page={1}
+      pageCount={1}
+      total={0}
+    />
   ),
   rail: (
     <ContactRail
@@ -283,41 +275,9 @@ const views: Record<string, React.ReactElement> = {
       notes={notes}
       addNote={noop}
       deleteNote={noop}
-      links={links}
-    />
-  ),
-  labels: <LabelManager labels={labels.map((l, i) => ({ ...l, ticketCount: [12, 3, 0, 1][i]! })) satisfies LabelWithCountDTO[]} inline />,
-  /*
-    The same component as a MODAL, which is a different thing to audit: it
-    brings a scrim, role="dialog", aria-modal and a close button that the
-    inline settings panel deliberately does not have. Every fixture in this
-    file was a screen at rest until now, so the modal chrome — the layer most
-    likely to trap focus or sit at the wrong contrast — had never been
-    rendered.
-  */
-  "labels-modal": (
-    <LabelManager
-      labels={labels.map((l, i) => ({ ...l, ticketCount: [12, 3, 0, 1][i]! })) satisfies LabelWithCountDTO[]}
-      onClose={noop}
     />
   ),
   onboarding: <OnboardingChecklist progress={progress} />,
-  links: <SharedLinks links={links} />,
-  /*
-    The thread's "+ Label" menu, open. A static page cannot click to open it,
-    and its new-label row is where the squashed field and the 44px colour
-    discs were (17 Nov 2026).
-  */
-  "label-menu": (
-    <div className="pbm-subject-chips">
-      <LabelPicker
-        ticketId={41}
-        labels={labels.slice(0, 1)}
-        allLabels={labels}
-        initiallyOpen
-      />
-    </div>
-  ),
   thread: (
     <Thread
       ticket={ticket}
@@ -328,25 +288,7 @@ const views: Record<string, React.ReactElement> = {
       notes={notes}
       addNote={noop}
       deleteNote={noop}
-      links={links}
-      deletedAt={null}
-      deletedBy={null}
-      trashTicket={noop}
-      restoreTicket={noop}
-      archivedAt={null}
-      snoozedUntil={null}
-      wakeIn={null}
-      openInMailUrl="mailto:someone@example.com"
-      archiveTicket={noop}
-      unarchiveTicket={noop}
-      snoozeTicket={noop}
-      unsnoozeTicket={noop}
       backHref="/inbox"
-      starred
-      unread={false}
-      labels={labels}
-      allLabels={labels.map((l) => ({ ...l, ticketCount: 1 })) satisfies LabelWithCountDTO[]}
-      canPersonalise
     />
   ),
 };
@@ -422,16 +364,12 @@ describe("every client-facing mail view renders", () => {
     */
     const pairs: [string, string][] = [
       ["inbox", "Van Der Berg-Whitmore"],
+      // The tab counts come from the fixture, not from the rows.
+      ["inbox", ">57<"],
+      ["done", ">12<"],
       ["thread", "wrong loaf"],
       ["rail", "Wholesale customer"],
-      ["labels", "Christmas orders 2026"],
-      ["labels-modal", "Christmas orders 2026"],
-      // A name only in allLabels: proves the MENU rendered, not just the chip.
-      ["label-menu", "Christmas orders 2026"],
       ["onboarding", "Switch on an out-of-hours reply"],
-      // hostname, which is the field that was missing. Matching on the URL
-      // would have passed with hostname undefined.
-      ["links", ">opendoorbakery.co.uk<"],
     ];
     for (const [view, text] of pairs) {
       expect(
@@ -450,7 +388,8 @@ describe("every client-facing mail view renders", () => {
     */
     const html = renderToStaticMarkup(views.inbox!);
     expect(html).toContain("Van Der Berg-Whitmore");
-    expect(html).toContain("Christmas orders 2026");
+    // The row's preview, which is what the card shows under the name now.
+    expect(html).toContain("a sourdough and two boxes of pastries");
   });
 
   it("writes the browser harness when asked", () => {

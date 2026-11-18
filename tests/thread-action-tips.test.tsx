@@ -1,9 +1,8 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { render, cleanup, fireEvent } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import StarButton from "../components/mail/StarButton";
 import { useTipDismiss, TIPS_HIDDEN_ATTR } from "../lib/use-tip-dismiss";
 
 /*
@@ -12,8 +11,6 @@ import { useTipDismiss, TIPS_HIDDEN_ATTR } from "../lib/use-tip-dismiss";
   shows for a keyboard and duplicated the new one for a mouse.
   Jordan, 17 Nov 2026: "a tooltip should also show at the bottom of it".
 */
-
-vi.mock("../components/mail/live", () => ({ publishStar: vi.fn() }));
 
 afterEach(cleanup);
 
@@ -35,31 +32,13 @@ describe("thread header tooltips", () => {
     // to the first ">": an arrow function in onClick has one.
     const tags = row.split(/<(?:button|a)\b/).slice(1).map((t) => t.slice(0, t.indexOf("<")));
     const iconTags = tags.filter((t) => t.includes("pbm-icon-btn"));
-    expect(iconTags.length, "no icon buttons found in the action row").toBeGreaterThanOrEqual(7);
+    // One since the simple inbox (18 Nov 2026): Details. Mark as done is a
+    // labelled button and needs no tooltip.
+    expect(iconTags.length, "no icon buttons found in the action row").toBeGreaterThanOrEqual(1);
     for (const t of iconTags) {
       expect(t, `an icon button has no data-tip:\n${t}`).toContain("data-tip");
       expect(t, `an icon button still has a title:\n${t}`).not.toMatch(/\btitle=/);
     }
-    // The star is a component; it must be asked for its tooltip.
-    expect(row).toMatch(/<StarButton[^>]*\btip\b/);
-  });
-
-  it("the star's tooltip follows its state, and the list star keeps its title", () => {
-    const { container, rerender } = render(
-      <StarButton ticketId={1} starred={false} canStar tip />,
-    );
-    let btn = container.querySelector("button")!;
-    expect(btn.getAttribute("data-tip")).toBe("Star");
-    expect(btn.hasAttribute("title")).toBe(false);
-
-    rerender(<StarButton ticketId={1} starred canStar tip />);
-    btn = container.querySelector("button")!;
-    expect(btn.getAttribute("data-tip")).toBe("Unstar");
-
-    rerender(<StarButton ticketId={1} starred canStar className="pbm-card-star" />);
-    btn = container.querySelector("button")!;
-    expect(btn.hasAttribute("data-tip")).toBe(false);
-    expect(btn.getAttribute("title")).toBe("Remove star");
   });
 
   it("the stylesheet shows the tooltip on hover AND keyboard focus, and hides it on Escape", () => {

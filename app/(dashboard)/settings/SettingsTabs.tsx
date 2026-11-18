@@ -17,7 +17,8 @@ const TABS = [
   { href: "/settings", label: "General" },
   { href: "/settings/auto-reply", label: "Auto-reply" },
   { href: "/settings/contacts", label: "Contacts" },
-  { href: "/settings/labels", label: "Labels" },
+  // No Labels tab since 18 Nov 2026: labels left the inbox with the simple
+  // design, so there is nothing to manage them for.
   { href: "/settings/forms", label: "Forms" },
   { href: "/settings/team", label: "Team" },
   { href: "/settings/billing", label: "Billing" },

@@ -2,14 +2,7 @@ import { redirect } from "next/navigation";
 import MessageList from "@/components/mail/MessageList";
 import { resolveViewer } from "@/lib/viewer";
 import { TICKETS_PAGE_SIZE } from "@/lib/data";
-import {
-  listMailPage,
-  mailCounts,
-  mailFolderTotal,
-  parseFolder,
-  toMailRow,
-  viewerAgentId,
-} from "../../queries";
+import { listMailPage, mailCounts, parseInboxView, toMailRow } from "../../queries";
 
 export const metadata = { title: "Conversation" };
 
@@ -39,7 +32,7 @@ export default function TicketListPane({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ folder?: string; page?: string; label?: string }>;
+  searchParams: Promise<{ folder?: string; page?: string }>;
 }) {
   // Unwrapped with .then() rather than awaited so ListPane takes a plain
   // number and this component stays synchronous. See rule 2 above.
@@ -51,7 +44,7 @@ async function ListPane({
   searchParams,
 }: {
   idParam: string;
-  searchParams: Promise<{ folder?: string; page?: string; label?: string }>;
+  searchParams: Promise<{ folder?: string; page?: string }>;
 }) {
   // A non-integer id is a 404, but that is the thread slot's call to make —
   // it is the half that actually loads the ticket. Here it just means no row
@@ -59,45 +52,32 @@ async function ListPane({
   const ticketId = Number(idParam);
   const selectedId = Number.isInteger(ticketId) ? ticketId : undefined;
 
-  const {
-    folder: folderParam,
-    page: pageParam,
-    label: labelParam,
-  } = await searchParams;
-  const folder = parseFolder(folderParam);
+  const { folder: folderParam, page: pageParam } = await searchParams;
+  // To reply or Done; nothing else is offered (18 Nov 2026).
+  const view = parseInboxView(folderParam);
   const page = Math.max(1, Number(pageParam) || 1);
-  const labelNum = Number(labelParam);
-  const labelId = Number.isInteger(labelNum) && labelNum > 0 ? labelNum : undefined;
 
   const viewer = await resolveViewer();
   if (!viewer.workspace) redirect(viewer.isAdmin ? "/admin" : "/no-access");
   const workspaceId = viewer.workspace.id;
 
-  const [counts, rows, agentId] = await Promise.all([
-    mailCounts(workspaceId),
-    listMailPage(workspaceId, folder, page, labelId),
-    viewerAgentId(workspaceId),
-  ]);
-
-  // A per-label view isn't one of the folder counts, so it needs its own
-  // COUNT(*) — otherwise the pager would page against the wrong total.
-  const total =
-    labelId === undefined
-      ? counts[folder]
-      : await mailFolderTotal(workspaceId, folder, labelId);
+  const counts = await mailCounts(workspaceId);
+  const total = counts[view];
   const pageCount = Math.max(1, Math.ceil(total / TICKETS_PAGE_SIZE));
+  // Clamped before the rows are read; see the same line in inbox/page.tsx.
+  const shownPage = Math.min(page, pageCount);
+  const rows = await listMailPage(workspaceId, view, shownPage);
   const now = new Date();
 
   return (
     <MessageList
       rows={rows.map((r) => toMailRow(r, now))}
-      folder={folder}
-      page={Math.min(page, pageCount)}
+      view={view}
+      counts={{ toReply: counts.inbox, done: counts.closed }}
+      page={shownPage}
       pageCount={pageCount}
       total={total}
       selectedId={selectedId}
-      labelId={labelId}
-      canPersonalise={agentId !== null}
       hideOnMobile
     />
   );

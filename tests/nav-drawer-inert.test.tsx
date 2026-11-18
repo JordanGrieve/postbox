@@ -4,7 +4,7 @@ import { render, cleanup, fireEvent, act } from "@testing-library/react";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import postcss from "postcss";
-import type { LabelWithCountDTO, MailCountsDTO } from "../components/mail/types";
+import type { MailCountsDTO } from "../components/mail/types";
 
 /**
  * The phone nav drawer is out of reach while it is closed.
@@ -52,10 +52,6 @@ const counts = {
   archived: 1,
   trash: 4,
 } satisfies MailCountsDTO;
-
-const labels = [
-  { id: 1, name: "Billing", color: "tag_b", colorHex: null, ticketCount: 2 },
-] satisfies LabelWithCountDTO[];
 
 /* ── a viewport the test controls ── */
 let phone = true;
@@ -111,8 +107,6 @@ function show() {
         workspaceName="Open Door Bakery"
         userLabel="emma@opendoorbakery.co.uk"
         counts={counts}
-        labels={labels}
-        canPersonalise
         billing={null}
       />
       <main className="pb-main pbm-main">

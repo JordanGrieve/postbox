@@ -13,45 +13,17 @@ import {
 } from "@/lib/sheet-drag";
 import type { ContactCard } from "./types";
 import ContactNotes from "./ContactNotes";
-import SharedLinks from "./SharedLinks";
 import type { ContactNoteDTO } from "@/app/(dashboard)/queries";
-import type { SharedLink } from "@/lib/shared-links";
 import { detectEmailTypo, describeEmailTypo } from "@/lib/email-typo";
 
 /**
- * The 290px contact rail — a bottom sheet below 768px.
+ * The 290px "About" panel — a bottom sheet below 768px.
  *
- * Be warned reading this: much of the design's rail still has no data behind
- * it. Name, email, first contact, ticket count and NOTES are real. Phone
- * number, lifecycle status and the four disclosure sections are not stored
- * anywhere, so they render as explicit "not recorded" / "not built" states
- * rather than plausible-looking filler.
+ * Since 18 Nov 2026 (the simple inbox) it holds only what is real and worth a
+ * glance: when the person first got in touch, how many conversations they
+ * have had, a warning if their email address is obviously mistyped, and the
+ * team's private notes.
  */
-
-/*
- * What is left of the design's disclosure rows, and why only one remains.
- *
- * "Shared links" left on 23 Aug 2026 — derived from message bodies now
- * (lib/shared-links.ts) rather than waiting on a table.
- *
- * "Documentation" was DELETED the same day, not built. Nobody could say what it
- * would hold against a CONTACT: the business's own help articles? files the
- * customer sent (that is Shared files)? internal process notes (that is Notes)?
- * A disabled row labelled "soon" is a promise, and keeping one nobody can
- * define made the rows beside it less believable.
- *
- * "Additional info" was FOLDED INTO NOTES, also not built. The plausible
- * reading was per-contact custom fields — "Allergy", "Usual order" — which is a
- * real feature and a large one: field definitions per workspace, types,
- * validation, ordering, a settings screen. A free-text note already holds
- * "gluten free, usually orders Thursday", and it is where people were going to
- * type it anyway. If a client asks for structure, that is the moment to build
- * fields, not before.
- *
- * "Shared files" stays because it is honestly unbuilt rather than undefined: it
- * is blocked on the attachments subsystem and cannot be faked from anything.
- */
-const UNBUILT_SECTIONS = ["Shared files"];
 
 function formatFirstSeen(iso: string | null): string | null {
   if (!iso) return null;
@@ -71,7 +43,6 @@ export default function ContactRail({
   notes,
   addNote,
   deleteNote,
-  links,
 }: {
   contact: ContactCard;
   /** "auto" = column on a wide screen, hidden below 1180px. See Thread.tsx. */
@@ -85,8 +56,6 @@ export default function ContactRail({
   notes?: ContactNoteDTO[];
   addNote?: (formData: FormData) => void;
   deleteNote?: (formData: FormData) => void;
-  /** Also omitted by the skeletons, which have no messages to derive from. */
-  links?: SharedLink[];
 }) {
   /*
     How far the sheet has been dragged down, in px. Zero at rest.
@@ -224,19 +193,21 @@ export default function ContactRail({
         aria-label="Contact details"
       >
         <SheetGrip onClose={onClose} onOffset={setDragY} />
+        {/*
+          ── ABOUT THE PERSON, AND NOTHING ELSE ──
+          Jordan, 18 Nov 2026, from a mockup: "About Lesley", when they first
+          got in touch, how many conversations, and private notes. The phone
+          placeholder, the email row (it is in the header), the "status isn't
+          tracked" line, shared links and the "soon" rows are gone.
+        */}
         <div className="pbm-rail-head">
-          <h2 className="pbm-rail-title">General info</h2>
-          <button className="pbm-rail-close" onClick={onClose} aria-label="Hide contact details">
+          <h2 className="pbm-rail-title">About {firstName(contact.name)}</h2>
+          <button className="pbm-rail-close" onClick={onClose} aria-label="Hide details">
             <Icon name="close" size={16} strokeWidth={2.4} />
           </button>
         </div>
 
         <div className="pbm-rail-card">
-          <div>
-            <p className="pbm-rail-name">{contact.name}</p>
-            <p className="pbm-rail-void">No phone number on file</p>
-          </div>
-          <Field label="Email" value={contact.email} />
           {/*
             Shown only when the address is OBVIOUSLY wrong — see
             lib/email-typo.ts, which flags a short list of certain slips and
@@ -254,20 +225,14 @@ export default function ContactRail({
             <p className="pbm-rail-warn">{describeEmailTypo(emailTypo)}</p>
           )}
           <Field
-            label="First contact"
+            label="First got in touch"
             value={firstSeen}
-            fallback="Not recorded — this contact predates contact tracking"
+            fallback="Not recorded"
           />
           <Field
-            label="Tickets"
-            value={`${contact.ticketCount} in this workspace`}
+            label="Conversations with you"
+            value={String(contact.ticketCount)}
           />
-          <div>
-            <p className="pbm-rail-label">Status</p>
-            <p className="pbm-rail-void">
-              Customer lifecycle status isn&rsquo;t tracked yet
-            </p>
-          </div>
         </div>
 
         {notes && addNote && deleteNote ? (
@@ -291,25 +256,14 @@ export default function ContactRail({
           </>
         )}
 
-        {links && <SharedLinks links={links} />}
-
-        <div className="pbm-rail-sections">
-          {UNBUILT_SECTIONS.map((s) => (
-            <button
-              key={s}
-              type="button"
-              className="pbm-rail-row"
-              disabled
-              title={`${s} isn't available yet.`}
-            >
-              <span>{s}</span>
-              <span className="pbm-rail-soon">soon</span>
-            </button>
-          ))}
-        </div>
       </aside>
     </>
   );
+}
+
+/** "Lesley" from "Lesley Calder"; the whole thing when it is one word. */
+function firstName(name: string): string {
+  return name.trim().split(/\s+/)[0] || name;
 }
 
 function Field({

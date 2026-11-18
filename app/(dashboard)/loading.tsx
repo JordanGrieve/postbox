@@ -60,12 +60,12 @@ export default function DashboardLoading() {
  * the pane reads as a stack of messages rather than a table.
  */
 const CARDS = [
-  { name: 118, time: 30, subject: "88%", preview: "64%", tags: [62, 48] },
-  { name: 146, time: 38, subject: "72%", preview: "83%", tags: [54] },
-  { name: 96, time: 34, subject: "94%", preview: "58%", tags: [58, 72] },
-  { name: 132, time: 30, subject: "66%", preview: "76%", tags: [66] },
-  { name: 108, time: 42, subject: "85%", preview: "61%", tags: [50, 44] },
-  { name: 152, time: 32, subject: "59%", preview: "80%", tags: [70] },
+  { name: 118, time: 30, preview: "64%", from: 92 },
+  { name: 146, time: 38, preview: "83%", from: 104 },
+  { name: 96, time: 34, preview: "58%", from: 92 },
+  { name: 132, time: 30, preview: "76%", from: 118 },
+  { name: 108, time: 42, preview: "61%", from: 92 },
+  { name: 152, time: 32, preview: "80%", from: 104 },
 ];
 
 function MailListSkeleton() {
@@ -77,6 +77,14 @@ function MailListSkeleton() {
       aria-label="Loading messages"
     >
       <div className="pbm-list-head" aria-hidden>
+        {/* The title and the To reply / Done tabs (18 Nov 2026). */}
+        <span className="pbm-list-title pbk-text" style={{ width: 72 }}>
+          &nbsp;
+        </span>
+        <div className="pbm-tabs">
+          <span className="pbm-tab pbk-fill" />
+          <span className="pbm-tab pbk-fill" />
+        </div>
         {/* .pbm-search is a fixed 42px box, so nothing inside it can shift. */}
         <div className="pbm-search">
           <span
@@ -90,46 +98,34 @@ function MailListSkeleton() {
             &nbsp;
           </span>
         </div>
-
-        <p className="pbm-list-meta pbk-text" style={{ width: 74 }}>
-          &nbsp;
-        </p>
       </div>
 
       <div className="pbm-list-scroll">
         {CARDS.map((c, i) => (
-          <div className="pbm-card-wrap" key={i} aria-hidden>
-            <div className="pbm-card">
-              <div className="pbm-card-top">
-                <span className="pbm-card-who">
-                  <span className="pbm-dot pbk-fill" />
-                  <span
-                    className="pbm-card-name pbk-text pbk-text--fixed"
-                    style={{ width: c.name }}
-                  >
-                    &nbsp;
-                  </span>
-                </span>
-                <span
-                  className="pbm-card-time pbk-text pbk-text--fixed"
-                  style={{ width: c.time }}
-                >
-                  &nbsp;
-                </span>
-              </div>
-              <div className="pbm-card-subject pbk-text" style={{ width: c.subject }}>
+          <div className="pbm-card" key={i} aria-hidden>
+            <div className="pbm-card-top">
+              <span
+                className="pbm-card-name pbk-text pbk-text--fixed"
+                style={{ width: c.name }}
+              >
                 &nbsp;
-              </div>
-              <div className="pbm-card-preview pbk-text" style={{ width: c.preview }}>
+              </span>
+              <span
+                className="pbm-card-time pbk-text pbk-text--fixed"
+                style={{ width: c.time }}
+              >
                 &nbsp;
-              </div>
-              <div className="pbm-card-chips">
-                {c.tags.map((w, j) => (
-                  <span key={j} className="pbm-tag pbk-fill" style={{ width: w }}>
-                    &nbsp;
-                  </span>
-                ))}
-              </div>
+              </span>
+            </div>
+            {/* Two lines, as the real preview clamps to. */}
+            <div className="pbm-card-preview pbk-text" style={{ width: "92%" }}>
+              &nbsp;
+            </div>
+            <div className="pbm-card-preview pbk-text" style={{ width: c.preview }}>
+              &nbsp;
+            </div>
+            <div className="pbm-card-from pbk-text" style={{ width: c.from }}>
+              &nbsp;
             </div>
           </div>
         ))}
@@ -169,32 +165,16 @@ function ThreadSkeleton() {
             &nbsp;
           </p>
         </div>
+        {/* Mark as done, then Details (18 Nov 2026). */}
         <div className="pbm-thread-actions">
-          {[0, 1, 2, 3].map((i) => (
-            <span key={i} className="pbm-icon-btn pbk-fill" />
-          ))}
+          <span className="pbm-done-btn pbk-fill" style={{ width: 132 }} />
+          <span className="pbm-icon-btn pbk-fill" />
         </div>
       </header>
 
       <div className="pbm-thread-subject" aria-hidden>
         <div className="pbm-subject pbk-text" style={{ width: "58%" }}>
           &nbsp;
-        </div>
-        <div className="pbm-subject-chips">
-          <span className="pbm-chip-static pbk-fill" style={{ width: 88 }}>
-            &nbsp;
-          </span>
-          <span className="pbm-status-btn pbk-fill" style={{ width: 92 }}>
-            &nbsp;
-          </span>
-          <span className="pbm-chip-static pbk-fill" style={{ width: 76 }}>
-            &nbsp;
-          </span>
-          {/* "+ Label" is a cell of this same row now (LabelPicker renders
-              display: contents into it), so the skeleton draws it here. */}
-          <span className="pbm-label-add pbk-fill" style={{ width: 64 }}>
-            &nbsp;
-          </span>
         </div>
       </div>
 
@@ -219,7 +199,6 @@ function ThreadSkeleton() {
       <div className="pbm-composer-wrap" aria-hidden>
         <div className="pbm-composer">
           <span className="pbm-composer-input pbk-text">&nbsp;</span>
-          <span className="pbm-icon-btn pbk-fill" />
           <span className="pbm-send pbk-fill" style={{ width: 89 }} />
         </div>
         <p className="pbm-composer-foot pbk-text" style={{ width: "62%" }}>
@@ -246,17 +225,9 @@ function RailSkeleton() {
       </div>
 
       <div className="pbm-rail-card" aria-hidden>
-        <div>
-          <p className="pbm-rail-name pbk-text" style={{ width: "62%" }}>
-            &nbsp;
-          </p>
-          <p className="pbm-rail-void pbk-text" style={{ width: "78%" }}>
-            &nbsp;
-          </p>
-        </div>
-        {/* Email, First contact, Tickets, Status — four label/value pairs, the
-            same four ContactRail renders. */}
-        {["84%", "58%", "70%", "48%"].map((w, i) => (
+        {/* First got in touch and Conversations with you — the two
+            label/value pairs ContactRail renders. */}
+        {["58%", "30%"].map((w, i) => (
           <div key={i}>
             <p className="pbm-rail-label pbk-text" style={{ width: 54 }}>
               &nbsp;
@@ -279,19 +250,6 @@ function RailSkeleton() {
         <p className="pbm-rail-void pbk-text" style={{ width: "88%" }}>
           &nbsp;
         </p>
-      </div>
-
-      <div className="pbm-rail-sections" aria-hidden>
-        {[112, 96, 104, 124].map((w, i) => (
-          <span key={i} className="pbm-rail-row">
-            <span className="pbk-text" style={{ width: w }}>
-              &nbsp;
-            </span>
-            <span className="pbm-rail-soon pbk-fill" style={{ width: 44 }}>
-              &nbsp;
-            </span>
-          </span>
-        ))}
       </div>
     </aside>
   );
