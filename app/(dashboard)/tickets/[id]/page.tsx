@@ -61,13 +61,12 @@ async function ListPane({
   if (!viewer.workspace) redirect(viewer.isAdmin ? "/admin" : "/no-access");
   const workspaceId = viewer.workspace.id;
 
-  const [counts, rows] = await Promise.all([
-    mailCounts(workspaceId),
-    listMailPage(workspaceId, view, page),
-  ]);
-
+  const counts = await mailCounts(workspaceId);
   const total = counts[view];
   const pageCount = Math.max(1, Math.ceil(total / TICKETS_PAGE_SIZE));
+  // Clamped before the rows are read; see the same line in inbox/page.tsx.
+  const shownPage = Math.min(page, pageCount);
+  const rows = await listMailPage(workspaceId, view, shownPage);
   const now = new Date();
 
   return (
@@ -75,7 +74,7 @@ async function ListPane({
       rows={rows.map((r) => toMailRow(r, now))}
       view={view}
       counts={{ toReply: counts.inbox, done: counts.closed }}
-      page={Math.min(page, pageCount)}
+      page={shownPage}
       pageCount={pageCount}
       total={total}
       selectedId={selectedId}

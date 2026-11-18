@@ -173,6 +173,49 @@ describe("the conversation", () => {
   });
 });
 
+describe("the conversation's button stays truthful (CodeRabbit, PR 29)", () => {
+  const stubMatchMedia = () => {
+    window.matchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }) as unknown as typeof window.matchMedia;
+  };
+  const props = {
+    messages: [],
+    fromAddress: "Open Door Bakery <replies@postbox.help>",
+    contact,
+    notes: [],
+    addNote: vi.fn(),
+    deleteNote: vi.fn(),
+    backHref: "/inbox",
+  };
+
+  it("follows the server when a refresh brings a new status", () => {
+    stubMatchMedia();
+    const { rerender } = render(<Thread {...props} ticket={{ ...ticket, status: "open" }} />);
+    expect(screen.getByRole("button", { name: "Mark as done" })).toBeTruthy();
+    // A colleague marked it done; the refresh hands down the new status.
+    rerender(<Thread {...props} ticket={{ ...ticket, status: "closed" }} />);
+    expect(screen.getByRole("button", { name: "Reopen" })).toBeTruthy();
+  });
+
+  it("a dropped connection puts the button back and says so", async () => {
+    stubMatchMedia();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => {
+        throw new TypeError("Failed to fetch");
+      }),
+    );
+    render(<Thread {...props} ticket={{ ...ticket, status: "open" }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Mark as done" }));
+    await vi.waitFor(() => expect(screen.getByRole("alert").textContent).toContain("Couldn't mark this as done."));
+    const btn = screen.getByRole("button", { name: "Mark as done" }) as HTMLButtonElement;
+    expect(btn.disabled, "the button is stuck disabled").toBe(false);
+  });
+});
+
 describe("the nav", () => {
   it("is four rows: Inbox, Newsletters, Subscribers, Settings", () => {
     const nav = read("components/mail/MailNavShell.tsx");

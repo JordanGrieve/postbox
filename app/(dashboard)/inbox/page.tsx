@@ -29,9 +29,8 @@ export default async function InboxPage({
   if (!viewer.workspace) redirect(viewer.isAdmin ? "/admin" : "/no-access");
   const workspaceId = viewer.workspace.id;
 
-  const [counts, rows, onboarding] = await Promise.all([
+  const [counts, onboarding] = await Promise.all([
     mailCounts(workspaceId),
-    listMailPage(workspaceId, view, page),
     // In the Promise.all rather than awaited after it: this renders on every
     // inbox load, and neon-http gives each statement its own HTTP request, so
     // sequencing it would add a whole round trip to the page for nothing.
@@ -40,6 +39,14 @@ export default async function InboxPage({
 
   const total = counts[view];
   const pageCount = Math.max(1, Math.ceil(total / TICKETS_PAGE_SIZE));
+  /*
+    Clamped BEFORE the rows are read, not only for display. Marking the last
+    conversation on the last page as done leaves ?page= one past the end; the
+    list used to fetch that empty page and say "All caught up" over a tab
+    that still had conversations. (CodeRabbit, PR 29.)
+  */
+  const shownPage = Math.min(page, pageCount);
+  const rows = await listMailPage(workspaceId, view, shownPage);
   const now = new Date();
 
   return (
@@ -48,7 +55,7 @@ export default async function InboxPage({
         rows={rows.map((r) => toMailRow(r, now))}
         view={view}
         counts={{ toReply: counts.inbox, done: counts.closed }}
-        page={Math.min(page, pageCount)}
+        page={shownPage}
         pageCount={pageCount}
         total={total}
       />

@@ -62,6 +62,18 @@ export default function Thread({
 }) {
   const router = useRouter();
   const [status, setStatus] = useState<TicketStatus>(ticket.status);
+  /*
+    Adopt the server's status when a refresh brings a new one: a colleague
+    closing or reopening this conversation, or the 30s refresh after our own
+    reply. Without this the button kept offering "Mark as done" on a
+    conversation already done, and the first click sent `closed` again.
+    (CodeRabbit, PR 29.) The adjust-during-render pattern, not an effect.
+  */
+  const [serverStatus, setServerStatus] = useState<TicketStatus>(ticket.status);
+  if (serverStatus !== ticket.status) {
+    setServerStatus(ticket.status);
+    setStatus(ticket.status);
+  }
   /**
    * Three states, not two. The panel should start open as a column on a wide
    * screen and closed as an overlay on a narrow one — a single boolean cannot
@@ -114,13 +126,26 @@ export default function Thread({
     const prev = status;
     setBusy(true);
     setStatus(next);
-    const res = await fetch(`/api/tickets/${ticket.id}/status`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ status: next }),
-    });
-    setBusy(false);
-    if (!res.ok) {
+    /*
+      A dropped connection REJECTS rather than returning a response. Before
+      the try, that threw past setBusy(false): the button stayed disabled for
+      good, the optimistic label stayed up and nothing was said. (CodeRabbit,
+      PR 29.) A rejection and an HTTP error now end the same way.
+    */
+    let ok = false;
+    try {
+      const res = await fetch(`/api/tickets/${ticket.id}/status`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: next }),
+      });
+      ok = res.ok;
+    } catch {
+      ok = false;
+    } finally {
+      setBusy(false);
+    }
+    if (!ok) {
       setStatus(prev);
       setError(done ? "Couldn't reopen this." : "Couldn't mark this as done.");
       return;
