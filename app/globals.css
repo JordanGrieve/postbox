@@ -207,19 +207,25 @@
    * Colour is left only where it carries meaning: status (ok, warning,
    * danger), the star, label chips the client picked, and code syntax.
    */
+  /*
+   * ── THE MOCKUP'S LIGHT PALETTE (19 Nov 2026) ──
+   * Jordan's mockup, "match its colours": a soft WARM grey ground, white
+   * cards on it, warm grey insets and lines, and a dark green accent where
+   * this was near-black. Text stays the near-black it was.
+   */
   /* surfaces */
-  --page-grad: linear-gradient(#f5f5f5, #f5f5f5);
-  --screen-grad: linear-gradient(#f5f5f5, #f5f5f5);
+  --page-grad: linear-gradient(#f3f2ee, #f3f2ee);
+  --screen-grad: linear-gradient(#f3f2ee, #f3f2ee);
   --surface: #ffffff;
-  --surface-2: #f5f5f5;
-  --surface-3: #ececec;
+  --surface-2: #f3f2ee;
+  --surface-3: #ecebe6;
   --sel: #ffffff;
   --glass: rgba(255, 255, 255, 0.92);
 
   /* lines */
-  --border: #e5e5e5;
-  --border-soft: #ededed;
-  --border-strong: #d4d4d4;
+  --border: #e4e2dc;
+  --border-soft: #ecebe6;
+  --border-strong: #d3d1ca;
 
   /* type */
   --text: #0a0a0a;
@@ -236,8 +242,10 @@
   --muted: #4a4a4a;
   --muted-2: #474747;
 
-  /* accent */
-  --accent: #0a0a0a;
+  /* accent — the mockup's dark green (19 Nov 2026). #174a33, not a brighter
+     green: it carries text on --surface-3 too, and a brighter #1d5a3e
+     measured 6.85:1 there, under the 7:1 AAA bar. */
+  --accent: #174a33;
   /*
    * Ink ON the accent. White here, near-black in dark, where the accent
    * inverts to near-white. Every rule that paints text on the accent reads
@@ -255,11 +263,11 @@
      under AA. The other four palettes clear it comfortably (5.77 to 7.13);
      light is the tight one because the chip lifts a pale ground toward a
      mid-tone ink. 4.81:1 now, against the palest ground it is painted on. */
-  --accent-text: #0a0a0a;
-  --accent-strong: #0a0a0a;
-  --accent-soft: #ececec;
-  --accent-chip: #e5e5e5;
-  --accent-line: #d4d4d4;
+  --accent-text: #174a33;
+  --accent-strong: #174a33;
+  --accent-soft: #e4eee8;
+  --accent-chip: #dde9e2;
+  --accent-line: #bfd3c6;
   /* The rear message in the logo mark (components/Logo.tsx). It used to be
      --accent-strong, which is now the same near-black as the front one. */
   --mark-rear: #8a8a8a;
@@ -269,11 +277,11 @@
      end too. Deepening the light stop is the minimum change that fixes it:
      the hue is unchanged and purple, the default brand, moves by an amount
      that is hard to see. Asserted in tests/contrast-tokens.test.ts. */
-  --accent-grad: linear-gradient(#0a0a0a, #0a0a0a);
+  --accent-grad: linear-gradient(#174a33, #174a33);
   /* No glow. A coloured halo behind a button was most of the "generated"
      look; transparent keeps every box-shadow that reads it valid. */
   --glow: rgba(0, 0, 0, 0);
-  --hero-grad: linear-gradient(#ececec, #ececec);
+  --hero-grad: linear-gradient(#ecebe6, #ecebe6);
   /*
    * The Postbox Pro card. Points at the accent rather than carrying its own
    * purple: this was the ONE gradient in the product defined only here and
@@ -308,11 +316,11 @@
     same in both; the moment this ground changed, dark would have inherited
     ink chosen for a light column.
   */
-  --nav: #f5f5f5;
+  --nav: #f3f2ee;
   /* The inset inside the nav — the search field. Deliberately barely there,
      as it is in dark: the field reads as a well in the column rather than a
      box on it. */
-  --nav-deep: #ececec;
+  --nav-deep: #ecebe6;
 
   /*
     The dark brand panel. FIXED in both themes, on purpose.
@@ -354,10 +362,11 @@
   /* 8.79:1 on --nav and 8.1:1 on --nav-deep. This ink is used at 11px in
      the search field's placeholder, so it gets the full AAA bar. */
   --nav-muted: #454545;
-  /* The active row is solid ink with white text: the one strong mark in
-     the column, which is what "you are here" should be. */
-  --nav-active-bg: #0a0a0a;
-  --nav-active-fg: #ffffff;
+  /* The active row is a soft grey with dark ink, as in the mockup (19 Nov
+     2026); the count beside it carries the green. Was solid ink with white
+     text. */
+  --nav-active-bg: #e6e4de;
+  --nav-active-fg: #0a0a0a;
   /*
    * The dot beside an active nav row. It was USED by app/admin.css and defined
    * nowhere, which does not fail loudly: an undefined var() makes the whole
@@ -374,10 +383,11 @@
      the count pill, the divider. It was a fixed white 8% because the column
      was always dark; on a pale column white-on-white is nothing at all. */
   --nav-line: rgba(10, 10, 10, 0.08);
-  --nav-badge-on: #e5e5e5;
+  /* The count pill: the mockup's green with white, 10:1. */
+  --nav-badge-on: #174a33;
   /* The count is 11px, so it gets the full AAA bar for small text rather
      than the large-text concession. */
-  --nav-badge-fg: #0a0a0a;
+  --nav-badge-fg: #ffffff;
 
   /*
    * ── THE CODE BLOCK, PER THEME ──
@@ -426,7 +436,9 @@
    * clear 3:1 on white, the inset ground AND the nav at once. Near-black
    * clears all three by a wide margin; the dark palette declares its own.
    */
-  --focus-ring: #0a0a0a;
+  /* The accent's green (19 Nov 2026); clears 3:1 on --surface, --surface-3
+     and --nav, which tests/contrast-tokens.test.ts measures. */
+  --focus-ring: #174a33;
 
   /* elevation */
   --shadow: rgba(0, 0, 0, 0.08);
@@ -516,13 +528,15 @@
 [data-theme="dark"] {
   /* Dark scrollbars and native controls; see the light block. */
   color-scheme: dark;
-  /* Monochrome, inverted: near-white accent with near-black ink on it. The
-     accent, its gradient and --on-accent are stated here rather than
-     inherited from :root, whose values are the light ones. */
-  --focus-ring: #fafafa;
-  --accent: #fafafa;
+  /* The light theme's green, lifted for a dark ground (19 Nov 2026): the
+     dark backgrounds stay, the accent is the same family as the mockup's
+     #174a33, with near-black ink on it. The accent, its gradient and
+     --on-accent are stated here rather than inherited from :root, whose
+     values are the light ones. */
+  --focus-ring: #8fd4ac;
+  --accent: #8fd4ac;
   --on-accent: #0a0a0a;
-  --accent-grad: linear-gradient(#fafafa, #fafafa);
+  --accent-grad: linear-gradient(#8fd4ac, #8fd4ac);
   --hero-grad: linear-gradient(#262626, #262626);
   --pro-shadow: rgba(0, 0, 0, 0.4);
   --label-bg-l: 0.30;
@@ -566,12 +580,12 @@
   /* The darker of the two muted inks. It carries the explanatory prose on
      cards and chips, so it is measured on --surface-3 as well as the page. */
   --muted-2: #bababa;
-  --accent-text: #fafafa;
+  --accent-text: #8fd4ac;
   /* Stated, not inherited: :root's value is the light accent. */
-  --accent-strong: #fafafa;
-  --accent-soft: #262626;
-  --accent-chip: #2e2e2e;
-  --accent-line: #404040;
+  --accent-strong: #8fd4ac;
+  --accent-soft: #16261d;
+  --accent-chip: #1b2e23;
+  --accent-line: #2c4a39;
   --mark-rear: #737373;
   --nav: #0a0a0a;
   /*
@@ -588,8 +602,8 @@
   --nav-active-bg: #fafafa;
   --nav-active-fg: #0a0a0a;
   --nav-line: rgba(255, 255, 255, 0.08);
-  --nav-badge-on: #262626;
-  --nav-badge-fg: #fafafa;
+  --nav-badge-on: #8fd4ac;
+  --nav-badge-fg: #0a0a0a;
 
   /* The code block in dark. The inks are far brighter than an editor's:
      7:1 on a ground this dark needs a relative luminance around 0.38, which
@@ -629,13 +643,15 @@
        the two agree. */
     /* Dark scrollbars and native controls; see the light block. */
     color-scheme: dark;
-    /* Monochrome, inverted: near-white accent with near-black ink on it. The
-       accent, its gradient and --on-accent are stated here rather than
-       inherited from :root, whose values are the light ones. */
-    --focus-ring: #fafafa;
-    --accent: #fafafa;
+    /* The light theme's green, lifted for a dark ground (19 Nov 2026): the
+       dark backgrounds stay, the accent is the same family as the mockup's
+       #174a33, with near-black ink on it. The accent, its gradient and
+       --on-accent are stated here rather than inherited from :root, whose
+       values are the light ones. */
+    --focus-ring: #8fd4ac;
+    --accent: #8fd4ac;
     --on-accent: #0a0a0a;
-    --accent-grad: linear-gradient(#fafafa, #fafafa);
+    --accent-grad: linear-gradient(#8fd4ac, #8fd4ac);
     --hero-grad: linear-gradient(#262626, #262626);
     --pro-shadow: rgba(0, 0, 0, 0.4);
     --label-bg-l: 0.30;
@@ -679,12 +695,12 @@
     /* The darker of the two muted inks. It carries the explanatory prose on
        cards and chips, so it is measured on --surface-3 as well as the page. */
     --muted-2: #bababa;
-    --accent-text: #fafafa;
+    --accent-text: #8fd4ac;
     /* Stated, not inherited: :root's value is the light accent. */
-    --accent-strong: #fafafa;
-    --accent-soft: #262626;
-    --accent-chip: #2e2e2e;
-    --accent-line: #404040;
+    --accent-strong: #8fd4ac;
+    --accent-soft: #16261d;
+    --accent-chip: #1b2e23;
+    --accent-line: #2c4a39;
     --mark-rear: #737373;
     --nav: #0a0a0a;
     /*
@@ -701,8 +717,8 @@
     --nav-active-bg: #fafafa;
     --nav-active-fg: #0a0a0a;
     --nav-line: rgba(255, 255, 255, 0.08);
-    --nav-badge-on: #262626;
-    --nav-badge-fg: #fafafa;
+    --nav-badge-on: #8fd4ac;
+    --nav-badge-fg: #0a0a0a;
 
     /* The code block in dark. The inks are far brighter than an editor's:
        7:1 on a ground this dark needs a relative luminance around 0.38, which
