@@ -9,7 +9,6 @@ import { useTipDismiss } from "@/lib/use-tip-dismiss";
 import type { TicketDTO, MessageDTO } from "@/lib/serialize";
 import { formatDateTime } from "@/lib/serialize";
 import type { TicketStatus } from "@/db/schema";
-import { SOURCE_META } from "@/lib/theme";
 import { Icon, OverflowIcon } from "./icons";
 import ContactRail from "./ContactRail";
 import type { ContactNoteDTO } from "@/app/(dashboard)/queries";
@@ -115,7 +114,6 @@ export default function Thread({
     endRef.current?.scrollIntoView({ block: "end" });
   }, [messages.length]);
 
-  const src = SOURCE_META[ticket.source];
   const done = status === "closed";
   const canSend = replyText.trim().length > 0 && !sending;
 
@@ -172,9 +170,13 @@ export default function Thread({
     const data = (await res.json()) as { emailSent?: boolean };
     setReplyText("");
     if (inputRef.current) inputRef.current.style.height = "auto";
-    if (status !== "closed") setStatus("in_progress");
     if (data.emailSent === false) {
+      // Not sent, so not done: the route leaves it in To reply.
+      if (status !== "closed") setStatus("in_progress");
       setError("Saved to the thread, but email delivery isn't configured yet.");
+    } else {
+      // Sent: the route moved it to Done.
+      setStatus("closed");
     }
     router.refresh();
   }
@@ -214,10 +216,9 @@ export default function Thread({
           </div>
         </header>
 
-        <div className="pbm-thread-subject">
-          <h1 className="pbm-subject">{ticket.subject}</h1>
-        </div>
-
+        {/* No subject row (19 Nov 2026, Jordan's mockup): it was almost
+            always "Website contact form", and the header already says who
+            this is. The subject still travels on every reply email. */}
         <div className="pbm-transcript pb-scroll">
           {hasOlderMessages && (
             <p className="pbm-transcript-note">
@@ -240,22 +241,24 @@ export default function Thread({
             return (
               <div key={m.id} className="pbm-bubble-row" data-out={out || undefined}>
                 <div className="pbm-bubble-wrap">
-                  <div className="pbm-bubble">{m.body}</div>
-                  {/* The design's "Delivered" is now a claim we can back: the
-                      Resend webhook advances delivery_status. It is still only
-                      ever what the provider told us, so this falls back to
-                      "Sent" when nothing has come back yet rather than
-                      assuming the better outcome. */}
+                  {/*
+                    Who and when, ABOVE the message (19 Nov 2026, Jordan's
+                    mockup: "Lesley · Today, 9:12 am"). Ours carry the
+                    delivery state too: the Resend webhook advances it, and
+                    it falls back to "Sent" rather than assuming the better
+                    outcome when nothing has come back yet.
+                  */}
                   <p
-                    className="pbm-bubble-foot"
+                    className="pbm-bubble-meta"
                     data-delivery={out ? (m.deliveryStatus ?? undefined) : undefined}
                     suppressHydrationWarning
                   >
+                    <b>{out ? "You" : firstName(ticket.customerName)}</b>
+                    {" · "}
                     {formatDateTime(m.sentAtIso)}
-                    {out
-                      ? ` · ${describeDeliveryStatus(m.deliveryStatus) ?? "Sent"}`
-                      : ` · via ${src.label.toLowerCase()}`}
+                    {out && ` · ${describeDeliveryStatus(m.deliveryStatus) ?? "Sent"}`}
                   </p>
+                  <div className="pbm-bubble">{m.body}</div>
                 </div>
               </div>
             );
@@ -263,19 +266,31 @@ export default function Thread({
           <div ref={endRef} />
         </div>
 
+        {/*
+          ── THE REPLY CARD (19 Nov 2026, Jordan's mockup) ──
+          A labelled box rather than a one-line pill: "Reply to Lesley", room
+          to write, then what sending does and the Send button along its foot.
+          Sending moves the conversation to Done when the email leaves (the
+          reply route), and a customer reply brings it back to To reply (the
+          inbound route); the note says both, because neither is visible
+          otherwise.
+        */}
         <div className="pbm-composer-wrap">
-          <div className="pbm-composer">
+          <div className="pbm-composer pbm-reply-card">
+            <label className="pbm-reply-label" htmlFor={`pbm-reply-${ticket.id}`}>
+              Reply to {firstName(ticket.customerName)}
+            </label>
             <textarea
+              id={`pbm-reply-${ticket.id}`}
               ref={inputRef}
               className="pbm-composer-input"
-              rows={1}
+              rows={3}
               value={replyText}
-              aria-label="Write a reply"
               placeholder="Write your reply…"
               onChange={(e) => {
                 setReplyText(e.target.value);
                 e.target.style.height = "auto";
-                e.target.style.height = `${Math.min(e.target.scrollHeight, 132)}px`;
+                e.target.style.height = `${Math.min(Math.max(e.target.scrollHeight, 72), 200)}px`;
               }}
               onKeyDown={(e) => {
                 /*
@@ -291,27 +306,32 @@ export default function Thread({
                 }
               }}
             />
-            <button
-              className="pbm-send"
-              onClick={() => void sendReply()}
-              disabled={!canSend}
-            >
-              <span>{sending ? "Sending…" : "Send"}</span>
-              <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden focusable="false">
-                <path d="M3.5 11.8L20 4.5l-7.3 16.5-2.2-6.6-7-2.6z" fill="currentColor" />
-              </svg>
-            </button>
+            <div className="pbm-reply-foot">
+              <p className="pbm-composer-foot" role={error ? "alert" : undefined}>
+                {error ? (
+                  <span className="pbm-error">{error}</span>
+                ) : (
+                  <>
+                    Sends as <b>{businessName(fromAddress)}</b> and moves this to
+                    Done. If they write back, it comes back to To reply.
+                  </>
+                )}
+              </p>
+              <button
+                className="pbm-send"
+                onClick={() => void sendReply()}
+                disabled={!canSend}
+                // Ctrl/⌘+Enter, said where the person looks for "how do I
+                // send", not in a sentence nobody reads.
+                title="Send (Ctrl+Enter)"
+              >
+                <span>{sending ? "Sending…" : "Send"}</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" aria-hidden focusable="false">
+                  <path d="M3.5 11.8L20 4.5l-7.3 16.5-2.2-6.6-7-2.6z" fill="currentColor" />
+                </svg>
+              </button>
+            </div>
           </div>
-          <p className="pbm-composer-foot" role={error ? "alert" : undefined}>
-            {error ? (
-              <span className="pbm-error">{error}</span>
-            ) : (
-              <>
-                Sends a real email from <b>{fromAddress}</b>. Enter starts a new
-                line; Ctrl+Enter (⌘+Enter on a Mac) sends.
-              </>
-            )}
-          </p>
         </div>
       </section>
 
@@ -326,4 +346,15 @@ export default function Thread({
       />
     </>
   );
+}
+
+/** "Lesley" from "Lesley Calder"; the whole thing when it is one word. */
+function firstName(name: string): string {
+  return name.trim().split(/\s+/)[0] || name;
+}
+
+/** "Open Door Bakery" from "Open Door Bakery <replies@postbox.help>". */
+function businessName(fromAddress: string): string {
+  const lt = fromAddress.indexOf("<");
+  return (lt > 0 ? fromAddress.slice(0, lt) : fromAddress).trim();
 }
