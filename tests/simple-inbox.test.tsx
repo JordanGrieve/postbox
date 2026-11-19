@@ -333,6 +333,22 @@ describe("sending and marking done never overlap (CodeRabbit, PR 30)", () => {
   });
 });
 
+describe("the conversation is a rounded card on the page ground (19 Nov 2026)", () => {
+  it("from tablet width up, with enough specificity to beat the panes' later base rules", () => {
+    const css = read("app/mail.css");
+    const start = css.indexOf("@media (min-width: 769px) {");
+    expect(start, "no tablet-up block").toBeGreaterThan(0);
+    const block = css.slice(start, css.indexOf("\n}", start));
+    // .pbm-prefixed: the base .pbm-thread / .pbm-list rules come LATER in the
+    // file, and an equal-specificity rule earlier loses to them.
+    const card = block.match(/\.pbm \.pbm-thread\s*\{([^}]*)\}/)?.[1] ?? "";
+    expect(card).toContain("border-radius: 20px");
+    expect(card).toContain("margin: 12px");
+    expect(card).toContain("overflow: hidden");
+    expect(block).toMatch(/\.pbm \.pb-main\s*\{[^}]*background: var\(--surface-2\)/);
+  });
+});
+
 describe("the nav", () => {
   it("is four rows: Inbox, Newsletters, Subscribers, Settings", () => {
     const nav = read("components/mail/MailNavShell.tsx");
