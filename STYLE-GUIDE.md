@@ -66,7 +66,7 @@ Rules:
 | `--surface`, `--surface-2`, `--surface-3` | Card, page ground, inset ground (inputs, chips) |
 | `--text`, `--text-2`, `--text-3`, `--text-4` | Ink, from headline to the palest AAA-passing label |
 | `--muted`, `--muted-2` | Secondary text. Already AAA on `--surface-3`; do not lighten them |
-| `--accent`, `--accent-grad` | The accent: near-black in light, near-white in dark (monochrome since 11 Nov 2026). `--accent-grad` is a flat one-colour gradient; use it for filled buttons |
+| `--accent`, `--accent-grad` | The accent: dark green `#174a33` in light, light green `#8fd4ac` in dark (from Jordan's mockup, 19 Nov 2026; it was monochrome from 11 Nov). Light's grounds are the mockup's warm greys (`#f3f2ee` page, `#ecebe6` inset) with white cards. `--accent-grad` is a flat one-colour gradient; use it for filled buttons |
 | `--on-accent` | The ink on the accent: white in light, near-black in dark. Never write `#fff` on an accent background; the dark theme would be white on white, and `tests/contrast-tokens.test.ts` fails on it |
 | `--accent-text`, `--accent-chip`, `--accent-soft` | Accent ink and the neutral grounds it sits on |
 | `--tag-a/b/c-fg` + `-bg` | Label and source chip pairs (green / neutral / amber) |
