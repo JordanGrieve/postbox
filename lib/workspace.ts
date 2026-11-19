@@ -9,8 +9,6 @@ import { forwardedIp } from "./http";
 import { rateLimitDurable } from "./rate-limit-store";
 import { verifiedPrimaryEmail } from "./clerk-email";
 
-import { seedStarterLabels } from "./labels";
-
 /**
  * Self-serve workspaces one address may create per hour.
  *
@@ -149,23 +147,8 @@ export async function provisionWorkspace(input: {
     .values({ workspaceId: workspace.id, clerkUserId: input.clerkUserId, email })
     .returning();
 
-  /*
-    Starter labels — a suggestion, not part of the account.
-
-    Deliberately after the two inserts above and deliberately swallowed. Both
-    rows are already committed by this point and neon-http gives us no
-    transaction to unwind them with, so a throw here would leave a real
-    workspace behind an error screen. Three decorative rows are not worth that.
-
-    The consequence is stated rather than hidden: a workspace can exist with no
-    labels, which is exactly the state every workspace was in before this, and
-    the picker still works.
-  */
-  try {
-    await seedStarterLabels(workspace.id);
-  } catch (err) {
-    console.error("[workspace] starter labels not created:", err);
-  }
+  // No starter labels since 19 Nov 2026: labels left the interface with the
+  // simple inbox, so seeding rows nothing can show would only add clutter.
 
   return { workspace, agent };
 }

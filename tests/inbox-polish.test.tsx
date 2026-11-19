@@ -88,8 +88,10 @@ describe("inbox review, 17 Nov 2026", () => {
       ["app/subscribers.css", ".psb-filter"],
       ["app/settings.css", ".st-chip"],
       ["app/newsletter.css", ".nl-token"],
-      ["app/mail.css", ".pbm-label-swatch--pick"],
-      ["app/mail.css", ".pbm-label-pick"],
+      // The label picker's swatches were here until labels left the inbox on
+      // 19 Nov 2026; the inbox's own controls now are its tabs and icon buttons.
+      ["app/mail.css", ".pbm-tab"],
+      ["app/mail.css", ".pbm-icon-btn"],
     ];
     for (const [file, sel] of controls) {
       const body = rule(read(file), sel);
@@ -97,8 +99,6 @@ describe("inbox review, 17 Nov 2026", () => {
       expect(r, `${sel} declares no radius`).toBeDefined();
       expect(r, `${sel} is round`).not.toMatch(/50%|999px|9999px/);
     }
-    // And the picker's small swatch, which overrides the shape.
-    expect(rule(MAIL, ".pbm-label-new .pbm-label-swatch--pick")).toMatch(/border-radius:\s*[0-8]px/);
   });
 
   it("the list of stylesheets checked above is still where the controls live", () => {

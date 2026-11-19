@@ -40,17 +40,8 @@ vi.mock("@/components/AuditedSignOutButton", () => ({ default: () => null }));
 import MailNavShell from "../components/mail/MailNavShell";
 
 const counts = {
-  all: 7,
-  unread: 2,
-  awaiting: 1,
   inbox: 5,
   closed: 1,
-  sent: 5,
-  starred: 0,
-  labeled: 5,
-  snoozed: 0,
-  archived: 1,
-  trash: 4,
 } satisfies MailCountsDTO;
 
 /* ── a viewport the test controls ── */

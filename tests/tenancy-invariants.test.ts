@@ -125,7 +125,16 @@ function parentlessTablesIn(stmt: string): string[] {
 }
 
 describe("parentless tables are never touched without a workspace filter", () => {
-  const files = ["lib/data.ts", "lib/labels.ts"];
+  /*
+   * Discovered, not listed. This was ["lib/data.ts", "lib/labels.ts"] until
+   * 19 Nov 2026, when the star, read and label writes left with the simple
+   * inbox and both files stopped touching a parentless table at all. A list
+   * would have kept passing over two files with nothing in them to police;
+   * the discovery follows the statements wherever they live.
+   */
+  const files = [...sourcesUnder("lib"), ...sourcesUnder("app")].filter((f) =>
+    rawSqlStatements(read(f)).some((s) => parentlessTablesIn(s).length > 0),
+  );
 
   /**
    * A static guard that matches nothing is worse than no guard, because it
@@ -187,20 +196,35 @@ describe("parentless tables are never touched without a workspace filter", () =>
     const touching = files
       .flatMap((f) => rawSqlStatements(read(f)))
       .filter((s) => parentlessTablesIn(s).length > 0);
-    // ticket_stars insert+delete, ticket_reads insert+delete, ticket_labels
-    // insert+delete. If this drops to zero the guard has gone blind — most
-    // likely because the statements moved to another file or to the query
-    // builder, in which case add that file to `files` above.
+    // The campaign pipeline (campaign_recipients) and double opt-in
+    // (list_subscribers) are the writers that remain. If these vanish the
+    // guard has gone blind — most likely because sql`` gained a spelling
+    // rawSqlStatements does not read.
+    expect(files).toContain("lib/campaign-send.ts");
+    expect(files).toContain("lib/subscribe-store.ts");
     expect(touching.length).toBeGreaterThanOrEqual(6);
   });
 
+  /*
+   * WRITES only, since the discovery widened past lib/data.ts. A correlated
+   * read such as `SELECT count(*) FROM campaign_recipients cr WHERE
+   * cr.campaign_id = <outer campaigns.id>` takes its tenancy from the outer
+   * query, which no single fragment can show; those reads are policed by the
+   * sweep further down, with a reason recorded for each. A write has no outer
+   * query to lean on, so its parent filter must be in the statement itself.
+   */
+  const WRITE = new RegExp(
+    `(INSERT\\s+INTO|DELETE\\s+FROM|UPDATE)\\s+(${PARENTLESS.join("|")})\\b`,
+    "i",
+  );
+
   for (const file of files) {
-    it(`${file}: every raw statement touching a parentless table filters workspace_id`, () => {
+    it(`${file}: every raw write to a parentless table filters workspace_id`, () => {
       const offenders: string[] = [];
 
       for (const stmt of rawSqlStatements(read(file))) {
         const touches = parentlessTablesIn(stmt);
-        if (touches.length === 0) continue;
+        if (touches.length === 0 || !WRITE.test(stmt)) continue;
         // The parent filter must be part of THIS statement, not a check done
         // beforehand that a concurrent request could invalidate.
         if (!/workspace_id\s*=/.test(stmt)) {
@@ -214,29 +238,46 @@ describe("parentless tables are never touched without a workspace filter", () =>
     });
   }
 
-  it("the star/read/label writes really are INSERT…SELECT-guarded, not check-then-write", () => {
-    // A bare `INSERT INTO ticket_stars (…) VALUES (…)` would mean the workspace
-    // check happened somewhere else and can go stale. Every insert into a
-    // parentless table must select its rows out of the parent instead.
-    for (const file of ["lib/data.ts", "lib/labels.ts"]) {
+  it("finds raw writes to police", () => {
+    // Without this the per-file checks above could all pass over nothing.
+    const writes = files
+      .flatMap((f) => rawSqlStatements(read(f)))
+      .filter((s) => WRITE.test(s));
+    expect(writes.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it("inserts into parentless tables are INSERT…SELECT-guarded, not check-then-write", () => {
+    // A bare `INSERT INTO campaign_recipients (…) VALUES (…)` would mean the
+    // workspace check happened somewhere else and can go stale. Every insert
+    // into a parentless table must select its rows out of the parent instead.
+    const INSERT = new RegExp(`INSERT\\s+INTO\\s+(${PARENTLESS.join("|")})\\b`, "i");
+    let checked = 0;
+    for (const file of files) {
       for (const stmt of rawSqlStatements(read(file))) {
-        const insert = stmt.match(
-          /INSERT\s+INTO\s+(ticket_labels|ticket_stars|ticket_reads)\b/i,
-        );
+        const insert = stmt.match(INSERT);
         if (!insert) continue;
-        expect(stmt, `${file}: ${insert[1]} insert must be INSERT…SELECT`).toMatch(
-          /INSERT\s+INTO[\s\S]*?SELECT[\s\S]*?FROM[\s\S]*?workspace_id\s*=/i,
+        checked++;
+        // The rows come out of a SELECT, never a VALUES list. The workspace
+        // predicate may sit in a CTE above the INSERT (double opt-in scopes
+        // its subject and target list that way), so it is asserted on the
+        // whole statement rather than after the INSERT keyword.
+        const tail = stmt.slice(stmt.search(INSERT));
+        expect(tail, `${file}: ${insert[1]} insert must be INSERT…SELECT`).toMatch(
+          /^INSERT\s+INTO\s+\w+\s*\([^)]*\)\s*SELECT\b/i,
+        );
+        expect(stmt, `${file}: ${insert[1]} insert has no workspace predicate`).toMatch(
+          /workspace_id\s*=/i,
         );
       }
     }
+    expect(checked).toBeGreaterThan(0);
   });
 
   it("deletes from parentless tables join up to the parent (USING)", () => {
-    for (const file of ["lib/data.ts", "lib/labels.ts"]) {
+    const DELETE = new RegExp(`DELETE\\s+FROM\\s+(${PARENTLESS.join("|")})\\b`, "i");
+    for (const file of files) {
       for (const stmt of rawSqlStatements(read(file))) {
-        const del = stmt.match(
-          /DELETE\s+FROM\s+(ticket_labels|ticket_stars|ticket_reads)\b/i,
-        );
+        const del = stmt.match(DELETE);
         if (!del) continue;
         expect(stmt, `${file}: ${del[1]} delete must join the parent`).toMatch(
           /USING[\s\S]*?workspace_id\s*=/i,
@@ -261,11 +302,12 @@ describe("the ticket_messages export path filters through its ticket", () => {
 
 /**
  * Drizzle renders a column interpolated into a raw sql`` fragment WITHOUT a
- * table qualifier when the surrounding select has a single table. lib/labels.ts
- * depends on knowing this: its per-label ticket count writes `labels.id`
- * literally rather than interpolating the column, because the subquery joins
- * `tickets` and an unqualified "id" would bind to the wrong table and silently
- * count zero.
+ * table qualifier when the surrounding select has a single table. lib/search.ts
+ * and app/(dashboard)/queries.ts depend on knowing this: they spell outer
+ * columns out with sql.raw rather than interpolating them, because a subquery
+ * that joins `tickets` would bind an unqualified "id" to the wrong table and
+ * silently count zero. (The per-label count in lib/labels.ts, removed on
+ * 19 Nov 2026, was the first place it bit.)
  *
  * These assertions pin that behaviour so a Drizzle upgrade that changes
  * qualification can't quietly reintroduce the bug.
@@ -295,14 +337,6 @@ describe("Drizzle column qualification inside raw subqueries", () => {
     // The hazard: a bare "id" inside a subquery that has joined `tickets`.
     expect(rendered).toMatch(/tl\.label_id = "id"/);
     expect(rendered).not.toMatch(/tl\.label_id = "labels"\."id"/);
-  });
-
-  it("lib/labels.ts therefore writes labels.id literally in the count subquery", () => {
-    const src = read("lib/labels.ts");
-    // The correlated count must name the outer table itself.
-    expect(src).toMatch(/WHERE\s+tl\.label_id\s*=\s*labels\.id/);
-    // …and must not have regressed to the interpolated form.
-    expect(src).not.toMatch(/tl\.label_id\s*=\s*\$\{labels\.id\}/);
   });
 
   /**
@@ -342,7 +376,7 @@ describe("Drizzle column qualification inside raw subqueries", () => {
     );
 
     // If this ever fails, qualify the subquery in listContactsWithCounts
-    // (write `contacts.email` literally, as lib/labels.ts does).
+    // (spell `contacts.email` out with sql.raw, as lib/search.ts does).
     expect(ticketsBlock).not.toMatch(/\bemail:\s*text\("email"\)/);
   });
 });
@@ -742,83 +776,59 @@ describe("the mail list's correlated subqueries are anchored and outer-scoped", 
     }
   });
 
-  it("folderWhere ANDs the tenant filter into every folder", () => {
-    const start = src.indexOf("function folderWhere(");
+  /*
+   * Two views since 19 Nov 2026 (To reply, Done), where there were ten
+   * folders. The invariant is unchanged: the tenant filter and the
+   * deleted filter are unconditional arguments of the returned and(), out of
+   * reach of the one branch that picks the view.
+   */
+  function viewWhereBody(): string {
+    const start = src.indexOf("function viewWhere(");
     expect(start).toBeGreaterThan(0);
-    const body = src.slice(start, src.indexOf("export type MailCounts"));
-    // `mine` is built first and returned first, so no folder branch can drop
-    // it — adding a folder cannot accidentally widen the query.
-    expect(body).toMatch(/const mine = eq\(tickets\.workspaceId, workspaceId\)/);
-    /*
-     * `mine` must be the FIRST argument of the returned and(), and outside the
-     * spread. Deliberately no longer pinned to the exact argument list: it was
-     * `and(mine, ...extra)` until the trash filter joined it, and a test that
-     * pins the literal forces the next always-on predicate either to weaken
-     * this guard or to be squeezed into `extra`, where a folder branch could
-     * drop it. What matters is that the tenant filter is unconditional and out
-     * of reach of the branching above.
-     */
-    expect(body).toMatch(/return and\(\s*mine\s*[,)]/);
-    expect(body).not.toMatch(/return and\(\s*\.\.\.extra/);
-  });
+    return src.slice(start, src.indexOf("export type MailCounts"));
+  }
 
-  it("folderWhere ANDs the trash filter into every folder too", () => {
-    // Same shape of invariant, same reason. `bin` is computed unconditionally
-    // from the folder and passed outside the spread, so a folder added later
-    // hides deleted tickets by doing nothing at all. The alternative — every
-    // folder remembering to add `notDeleted` — works until somebody forgets
-    // once, and then deleted mail reappears in one folder and nobody can say
-    // when it started.
-    const start = src.indexOf("function folderWhere(");
-    const body = src.slice(start, src.indexOf("export type MailCounts"));
-    expect(body).toMatch(
-      /const bin = folder === "trash" \? isDeleted : notDeleted/,
+  it("viewWhere ANDs the tenant filter into every view", () => {
+    expect(viewWhereBody()).toMatch(
+      /return and\(\s*eq\(tickets\.workspaceId, workspaceId\),/,
     );
-    expect(body).toMatch(/return and\(mine, bin[,)]/);
   });
 
-  it("the folder counts exclude deleted tickets in every count but trash", () => {
-    // mailCounts does NOT go through folderWhere — it computes every folder in
-    // one pass — so it is the one place the trash predicate has to be repeated,
-    // and therefore the one place it can be forgotten. A nav badge counting
-    // deleted mail sends somebody hunting for a ticket that is not there.
+  it("viewWhere ANDs the deleted filter into every view too", () => {
+    // Tickets trashed before the trash screen went still sit in the table
+    // until the purge takes them; neither view may show them.
+    expect(viewWhereBody()).toMatch(
+      /return and\(\s*eq\(tickets\.workspaceId, workspaceId\),\s*notDeleted,/,
+    );
+  });
+
+  it("both view counts exclude deleted tickets", () => {
+    // mailCounts does NOT go through viewWhere — it computes both views in
+    // one pass — so it is the one place the deleted predicate has to be
+    // repeated, and therefore the one place it can be forgotten.
     const start = src.indexOf("export const mailCounts");
     expect(start).toBeGreaterThan(0);
-    const body = src.slice(start, start + 3000);
+    const body = src.slice(start, start + 1500);
 
-    for (const folder of [
-      "all",
-      "inbox",
-      "closed",
-      "awaiting",
-      "unread",
-      "starred",
-      "labeled",
-      "sent",
-    ]) {
+    for (const view of ["inbox", "closed"]) {
       const line = body
         .split("\n")
-        .find((l) => l.trim().startsWith(folder + ":"));
-      expect(line, "no count line found for " + folder).toBeTruthy();
-      expect(line, folder + " count does not exclude deleted tickets").toMatch(
+        .find((l) => l.trim().startsWith(view + ":"));
+      expect(line, "no count line found for " + view).toBeTruthy();
+      expect(line, view + " count does not exclude deleted tickets").toMatch(
         /\$\{notDeleted\}/,
       );
     }
-
-    const trashLine = body
-      .split("\n")
-      .find((l) => l.trim().startsWith("trash:"));
-    expect(trashLine).toMatch(/\$\{isDeleted\}/);
   });
 
   it("no select in that file reads tickets without a workspace filter", () => {
     // The subqueries inherit their tenancy from these. If one loses its
     // filter, anchoring is no longer protecting anything.
     const froms = [...src.matchAll(/\.from\(tickets\)([\s\S]{0,300})/g)];
-    expect(froms.length).toBeGreaterThanOrEqual(4);
+    expect(froms.length).toBeGreaterThanOrEqual(3);
     for (const [, after] of froms) {
       expect(after).toMatch(
-        /eq\(tickets\.workspaceId, workspaceId\)|folderWhere\(\s*workspaceId/,
+        /eq\(tickets\.workspaceId, workspaceId\)|viewWhere\(\s*workspaceId/,
       );
     }
   });

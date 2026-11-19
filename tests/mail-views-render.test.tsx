@@ -44,7 +44,7 @@ import Thread from "../components/mail/Thread";
   field. tests/settings-views-render.test.tsx had no casts and had no wrong
   fixtures; that is not a coincidence.
 */
-import type { LabelChipDTO, MailRow, ContactCard } from "../components/mail/types";
+import type { MailRow, ContactCard } from "../components/mail/types";
 import type { TicketDTO, MessageDTO } from "../lib/serialize";
 import type { OnboardingProgress, OnboardingStep } from "../lib/onboarding";
 import type { ContactNoteDTO } from "../app/(dashboard)/queries";
@@ -71,7 +71,7 @@ import type { ContactNoteDTO } from "../app/(dashboard)/queries";
  * ── WHAT THE FIXTURES ARE FOR ──
  * Not a happy path. The row set below is deliberately the awkward one: a name
  * longer than the column, an address with no display name, an empty preview,
- * a ticket with no order id, and four labels on one row. Those are the shapes
+ * a ticket with no order id. Those are the shapes
  * that break a layout, and a fixture that only holds "Jane Smith · Order 1182"
  * proves the view can render the one case nobody worried about.
  */
@@ -79,13 +79,6 @@ import type { ContactNoteDTO } from "../app/(dashboard)/queries";
 const OUT = process.env.MAIL_HARNESS_OUT;
 
 const iso = (h: number) => new Date(Date.UTC(2026, 8, 6, 11, 20) - h * 3600_000).toISOString();
-
-const labels = [
-  { id: 1, name: "Wholesale", color: "tag_a", colorHex: null },
-  { id: 2, name: "Complaint", color: "tag_b", colorHex: null },
-  { id: 3, name: "Christmas orders 2026", color: "tag_c", colorHex: "#3d7dd8" },
-  { id: 4, name: "VIP", color: "tag_a", colorHex: null },
-] satisfies LabelChipDTO[];
 
 const rows = [
   {
@@ -96,15 +89,9 @@ const rows = [
     preview:
       "Hello, I placed an order on Tuesday for a sourdough and two boxes of pastries but what arrived was",
     time: "12m",
-    sentTime: null,
-    sentPreview: "",
     source: "email",
     status: "open",
     orderId: "1182",
-    awaitingReply: true,
-    unread: true,
-    starred: true,
-    labels,
   },
   {
     // No display name, empty preview, no order — the sparse end of the range.
@@ -114,15 +101,9 @@ const rows = [
     subject: "",
     preview: "",
     time: "3h",
-    sentTime: "2h",
-    sentPreview: "Thanks for getting in touch — we can do that for Friday.",
     source: "contact_form",
     status: "closed",
     orderId: null,
-    awaitingReply: false,
-    unread: false,
-    starred: false,
-    labels: [],
   },
 ] satisfies MailRow[];
 

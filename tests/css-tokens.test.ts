@@ -62,8 +62,6 @@ const RUNTIME_DEFINED: Record<string, string> = {
     "next/font in app/layout.tsx — Plus_Jakarta_Sans({ variable }) puts it on <html> via className.",
   "--font-spline-mono":
     "next/font in app/layout.tsx — Spline_Sans_Mono({ variable }), same mechanism.",
-  "--label-hex":
-    "Set inline per element by labelChipProps in components/mail/label-style.ts, and only on chips that carry data-custom.",
 };
 
 describe("CSS custom properties", () => {
