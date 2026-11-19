@@ -101,6 +101,40 @@
 }
 
 /*
+  ── THE CONVERSATION IS A CARD (19 Nov 2026) ──
+  Jordan, from the mockup: "make it more like the white one ... the
+  messenger part is a circular". The list and the About panel sit on the
+  page ground; the conversation is a rounded white card floating on it,
+  12px clear of everything around it. The dividers either side of it went:
+  the gap does that job now.
+
+  From tablet width up. A phone shows the conversation full screen, where a
+  card inset 12px would only cost reading width.
+*/
+/* Prefixed with .pbm: these sit ABOVE the panes' base rules in this file,
+   and an equal-specificity rule earlier in the file loses to a later one. */
+@media (min-width: 769px) {
+  .pbm .pb-main {
+    background: var(--surface-2);
+  }
+  .pbm .pbm-list {
+    border-right: none;
+  }
+  .pbm .pbm-thread {
+    margin: 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+  }
+}
+/* In-flow column only: as an overlay (1180px and below) it keeps its edge. */
+@media (min-width: 1181px) {
+  .pbm .pbm-rail {
+    border-left: none;
+  }
+}
+
+/*
   Routes inside the shell that aren't the mail client (/contacts, /install).
   They render one document-shaped pane in the space the list + thread would use.
 */
