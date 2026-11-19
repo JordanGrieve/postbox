@@ -16,10 +16,10 @@ export default function WelcomeNewsletterLoading() {
     <div className="pbm-page pb-scroll pbk" aria-busy="true" aria-label="Loading the welcome email">
       <div className="nw" aria-hidden>
         <header className="nw-head">
-          <div className="nw-back">
-            <span className="pbk-text" style={{ width: 96 }}>
-              &nbsp;
-            </span>
+          {/* The real button's classes, so it is the button's size and the
+              header does not move when the form arrives. */}
+          <div className="stg-button stg-button--secondary nw-back pbk-fill" style={{ width: 113 }}>
+            &nbsp;
           </div>
           <div className="nw-head-row">
             <div className="nw-head-text">
