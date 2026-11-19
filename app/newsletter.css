@@ -1730,9 +1730,15 @@ body:has(.pbi-banner) .nl-overview {
 
 /* A drawing of what each layout sends (LookPicture in WelcomeEmailForm).
    Decorative, so no contrast floor, but each one is drawn in the colours of
-   its email: Plain is text on a plain page, Branded is a name and a rule in
-   the accent over a card on grey, Feature is dark, centred and picture first. */
+   its EMAIL, not of the app's theme: Plain and Branded are white in every
+   theme (LIGHT_PALETTE in lib/newsletter.ts), Feature is near-black. So the
+   inks here come from the --brand-panel family, the tokens that do not flip,
+   and the in-between greys are mixed from them. */
 .nw-look-pic {
+  --look-paper: var(--brand-panel-fg);
+  --look-ink: var(--brand-panel);
+  --look-line: color-mix(in srgb, var(--brand-panel) 22%, var(--brand-panel-fg));
+  --look-edge: color-mix(in srgb, var(--brand-panel) 12%, var(--brand-panel-fg));
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -1742,13 +1748,13 @@ body:has(.pbi-banner) .nl-overview {
   border: 1px solid var(--border-soft);
   border-radius: 8px;
   overflow: hidden;
+  background: var(--look-paper);
 }
 .nw-look-pic[data-look="plain"] {
-  background: var(--surface);
   padding-top: 14px;
 }
+/* White canvas and a white bordered card, as the branded shell draws it. */
 .nw-look-pic[data-look="branded"] {
-  background: var(--surface-3);
   gap: 4px;
 }
 .nw-look-pic[data-look="editorial"] {
@@ -1764,7 +1770,7 @@ body:has(.pbi-banner) .nl-overview {
   width: 100%;
   height: 4px;
   border-radius: 2px;
-  background: var(--border-strong);
+  background: var(--look-line);
   flex: 0 0 auto;
 }
 .nw-look-line--short {
@@ -1773,7 +1779,8 @@ body:has(.pbi-banner) .nl-overview {
 /* The greeting: a short, darker first line. */
 .nw-look-line--hi {
   width: 30%;
-  background: var(--text-3);
+  background: var(--look-ink);
+  opacity: 0.6;
 }
 
 .nw-look-brand {
@@ -1781,7 +1788,7 @@ body:has(.pbi-banner) .nl-overview {
   width: 45%;
   height: 6px;
   border-radius: 2px;
-  background: var(--text);
+  background: var(--look-ink);
   flex: 0 0 auto;
 }
 .nw-look-rule {
@@ -1797,9 +1804,9 @@ body:has(.pbi-banner) .nl-overview {
   gap: 5px;
   margin-top: 3px;
   padding: 7px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--look-edge);
   border-radius: 4px;
-  background: var(--surface);
+  background: var(--look-paper);
 }
 
 .nw-look-hero {
