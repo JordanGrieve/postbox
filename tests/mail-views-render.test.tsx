@@ -258,7 +258,13 @@ const views: Record<string, React.ReactElement> = {
       deleteNote={noop}
     />
   ),
-  onboarding: <OnboardingChecklist progress={progress} />,
+  /* In the pane the inbox page puts it in (app/(dashboard)/inbox/page.tsx):
+     the empty conversation pane, which pads it and, on a phone, hides it. */
+  onboarding: (
+    <section className="pbm-thread pbm-thread--empty">
+      <OnboardingChecklist progress={progress} />
+    </section>
+  ),
   thread: (
     <Thread
       ticket={ticket}
@@ -321,7 +327,7 @@ function page(title: string, body: string) {
     transition: none;
   }
 </style>
-</head><body><div class="pb-shell pbm"><div class="pbm-page">${body}</div></div>
+</head><body><div class="pb-shell pbm"><main class="pb-main pbm-main">${body}</main></div>
 <script src="./audit.js"></script></body></html>`;
 }
 

@@ -50,8 +50,12 @@ describe("inbox review, 17 Nov 2026", () => {
     for (const m of ms) expect(Number(m[2]), `${m[1]} is too quick to see`).toBeGreaterThanOrEqual(300);
     // Wide screens: the column slides off by its own width rather than
     // vanishing, both closing and (via @starting-style) opening.
-    const wide = MAIL.match(/@media \(min-width: 1181px\) \{([\s\S]*?)\n\}/);
-    expect(wide, "no wide-screen rail block").not.toBeNull();
+    // The block that slides the rail, not merely the first 1181px block:
+    // the conversation card (19 Nov 2026) has one of its own above it.
+    const wide = [...MAIL.matchAll(/@media \(min-width: 1181px\) \{([\s\S]*?)\n\}/g)].find((m) =>
+      m[1]!.includes('.pbm-rail[data-rail="closed"]'),
+    );
+    expect(wide, "no wide-screen rail block").toBeDefined();
     expect(wide![1]).toContain('.pbm-rail[data-rail="closed"]');
     expect(wide![1]).toContain("@starting-style");
     expect(wide![1].match(/margin-right: -290px/g)?.length).toBe(2);
