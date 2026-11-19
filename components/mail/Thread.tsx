@@ -115,11 +115,18 @@ export default function Thread({
   }, [messages.length]);
 
   const done = status === "closed";
-  const canSend = replyText.trim().length > 0 && !sending;
+  /*
+    Sending and marking done never overlap (CodeRabbit, PR 30). A reply
+    sets the status to closed; a status request that failed meanwhile would
+    then roll back to the status it captured BEFORE the reply, and the
+    header would offer "Mark as done" on a closed conversation. Each waits
+    for the other.
+  */
+  const canSend = replyText.trim().length > 0 && !sending && !busy;
 
   /** Mark as done (closed), or reopen (open). */
   async function toggleDone() {
-    if (busy) return;
+    if (busy || sending) return;
     const next: TicketStatus = done ? "open" : "closed";
     const prev = status;
     setBusy(true);
@@ -154,7 +161,8 @@ export default function Thread({
 
   async function sendReply() {
     const message = replyText.trim();
-    if (!message || sending) return;
+    // Also covers Ctrl/⌘+Enter, which does not go through the button.
+    if (!message || sending || busy) return;
     setSending(true);
     setError(null);
     const res = await fetch(`/api/tickets/${ticket.id}/reply`, {
@@ -197,7 +205,7 @@ export default function Thread({
               type="button"
               className="pbm-done-btn"
               onClick={() => void toggleDone()}
-              disabled={busy}
+              disabled={busy || sending}
               aria-pressed={done}
             >
               <Icon name={done ? "mail" : "check"} size={15} strokeWidth={2.2} />

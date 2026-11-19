@@ -294,6 +294,45 @@ describe("the conversation pane, like the mockup (19 Nov 2026)", () => {
   });
 });
 
+describe("sending and marking done never overlap (CodeRabbit, PR 30)", () => {
+  it("while the status request is in flight, Send and Ctrl+Enter do nothing; while sending, Mark as done waits", async () => {
+    window.matchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }) as unknown as typeof window.matchMedia;
+    let release!: (r: Response) => void;
+    const pending = new Promise<Response>((r) => (release = r));
+    const fetchMock = vi.fn(() => pending);
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <Thread
+        ticket={{ ...ticket, status: "open" }}
+        messages={[]}
+        fromAddress="Open Door Bakery <replies@postbox.help>"
+        contact={contact}
+        notes={[]}
+        addNote={vi.fn()}
+        deleteNote={vi.fn()}
+        backHref="/inbox"
+      />,
+    );
+    const box = screen.getByLabelText("Reply to Lesley");
+    fireEvent.change(box, { target: { value: "Thanks!" } });
+
+    // Status request in flight.
+    fireEvent.click(screen.getByRole("button", { name: "Mark as done" }));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const send = screen.getByRole("button", { name: /Send/ }) as HTMLButtonElement;
+    expect(send.disabled, "Send is open while the status is changing").toBe(true);
+    fireEvent.keyDown(box, { key: "Enter", ctrlKey: true });
+    expect(fetchMock, "Ctrl+Enter sent a reply mid status change").toHaveBeenCalledTimes(1);
+
+    release(new Response("{}", { status: 200 }));
+    await vi.waitFor(() => expect(send.disabled).toBe(false));
+  });
+});
+
 describe("the nav", () => {
   it("is four rows: Inbox, Newsletters, Subscribers, Settings", () => {
     const nav = read("components/mail/MailNavShell.tsx");
