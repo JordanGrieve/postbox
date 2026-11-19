@@ -40,6 +40,7 @@ import {
   type RequeueState,
   type ScheduleState,
 } from "./composer-model";
+import Link from "next/link";
 import CampaignList, { type PendingNav } from "./CampaignList";
 import AudienceReadout from "./AudienceReadout";
 import PreviewCard from "./PreviewCard";
@@ -143,6 +144,8 @@ type FieldKey = "subject" | "preheader" | "body";
 
 export default function Composer({
   initialCampaigns,
+  initialOpenId = null,
+  showRail = true,
   workspaceName,
   legalName,
   postalAddress,
@@ -154,6 +157,16 @@ export default function Composer({
   welcomeEnabled,
 }: {
   initialCampaigns: CampaignRowDTO[];
+  /**
+   * A campaign to open on arrival: /newsletters/write?id= from the
+   * overview's "Keep writing" and "View" (19 Nov 2026). Null starts blank.
+   */
+  initialOpenId?: number | null;
+  /**
+   * The campaign list down the left. Off on /newsletters/write, where the
+   * overview at /newsletters is the list and this links back to it.
+   */
+  showRail?: boolean;
   workspaceName: string;
   /**
    * The CAN-SPAM identity, straight off the workspace row. Both nullable, and
@@ -525,6 +538,19 @@ export default function Composer({
       setLoadingId(null);
     }
   }
+
+  /*
+    Open the campaign the overview linked to (/newsletters/write?id=), once.
+    `force`: nothing is unsaved on arrival, so there is nothing to guard.
+  */
+  const openedOnArrival = useRef(false);
+  useEffect(() => {
+    if (initialOpenId === null || openedOnArrival.current) return;
+    openedOnArrival.current = true;
+    void open(initialOpenId, true);
+    // Arrival only: `open` is a new function every render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialOpenId]);
 
   async function save() {
     if (saving) return;
@@ -1078,25 +1104,32 @@ export default function Composer({
     draft.body.trim().length > 0;
 
   return (
-    <div className="nl-wrap">
+    <div className="nl-wrap" data-rail={showRail ? undefined : "off"}>
       {/* ── Campaign list ──────────────────────────────────────── */}
-      <CampaignList
-        campaigns={campaigns}
-        currentId={draft.id}
-        loadingId={loadingId}
-        pendingNav={pendingNav}
-        welcomeEnabled={welcomeEnabled}
-        // Not `onNew={startNew}`: an argument would arrive as `force`.
-        onNew={() => startNew()}
-        onOpen={(id) => void open(id)}
-        onKeepEditing={keepEditing}
-        onDiscardAndGo={discardAndGo}
-      />
+      {showRail && (
+        <CampaignList
+          campaigns={campaigns}
+          currentId={draft.id}
+          loadingId={loadingId}
+          pendingNav={pendingNav}
+          welcomeEnabled={welcomeEnabled}
+          // Not `onNew={startNew}`: an argument would arrive as `force`.
+          onNew={() => startNew()}
+          onOpen={(id) => void open(id)}
+          onKeepEditing={keepEditing}
+          onDiscardAndGo={discardAndGo}
+        />
+      )}
 
       {/* ── Composer ───────────────────────────────────────────── */}
       <div className="nl-main">
         <header className="nl-head">
           <div className="nl-head-text">
+            {!showRail && (
+              <Link href="/newsletters" className="nl-back">
+                ← Newsletters
+              </Link>
+            )}
             <h2 className="nl-title">
               {draft.id === null ? "New campaign" : draft.name || "Untitled"}
             </h2>

@@ -20,9 +20,10 @@ import { renderToStaticMarkup } from "react-dom/server";
 // vi.mock is hoisted above every const in the file, so the stand-ins have to
 // be created inside vi.hoisted() or the factory below closes over a binding
 // that does not exist yet.
-const { listSubscriberPage, statusCounts } = vi.hoisted(() => ({
+const { listSubscriberPage, statusCounts, listCampaigns } = vi.hoisted(() => ({
   listSubscriberPage: vi.fn(),
   statusCounts: vi.fn(),
+  listCampaigns: vi.fn(async () => [] as CampaignSummary[]),
 }));
 
 vi.mock("@/lib/viewer", () => ({
@@ -53,10 +54,51 @@ vi.mock("../app/(dashboard)/subscribers/queries", async () => {
   };
 });
 
+// The list is the People tab on /newsletters since 19 Nov 2026, so the page
+// under test is the Newsletter overview, which also reads the campaigns and
+// the welcome email. Both are stood in; the Newsletters tab gets fixtures
+// below so its rows can be swept too.
+vi.mock("@/lib/campaign-send", () => ({ listCampaigns }));
+vi.mock("@/lib/welcome-store", async () => ({
+  DEFAULT_WELCOME: (await vi.importActual<typeof import("@/lib/welcome-store")>("@/lib/welcome-store"))
+    .DEFAULT_WELCOME,
+  getWelcomeEmail: async () => null,
+}));
+
 import { writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
-import SubscribersPage from "../app/(dashboard)/subscribers/page";
+import NewslettersPage from "../app/(dashboard)/newsletters/page";
+import SubscribersRedirect from "../app/(dashboard)/subscribers/page";
 import type { SubscriberRow, StatusCounts } from "../app/(dashboard)/subscribers/queries";
+import type { CampaignSummary } from "@/lib/campaign-send";
+
+const campaign = (
+  id: number,
+  name: string,
+  status: CampaignSummary["status"],
+  sentAt: Date | null,
+  recipientCount = 0,
+) =>
+  ({
+    id,
+    name,
+    subject: name,
+    status,
+    listId: 1,
+    listName: "Newsletter",
+    recipientCount,
+    scheduledAt: null,
+    sentAt,
+    createdAt: new Date(Date.UTC(2026, 10, 1)),
+    updatedAt: new Date(Date.UTC(2026, 10, 1)),
+  }) satisfies CampaignSummary;
+
+const campaigns = [
+  campaign(4, "Christmas opening hours and a very long name that has to wrap somewhere", "draft", null),
+  campaign(3, "November offers", "sent", new Date(Date.UTC(2026, 10, 3)), 7),
+  campaign(2, "", "draft", null),
+  campaign(1, "Autumn menu", "sent", new Date(Date.UTC(2025, 9, 12)), 1),
+];
 
 const at = (h: number) => new Date(Date.UTC(2026, 8, 6, 11, 20) - h * 3600_000);
 
@@ -111,12 +153,20 @@ const counts = { all: 118, subscribed: 104, unsubscribed: 12, bounced: 2, compla
 
 async function render(
   params: { status?: string; page?: string },
-  data: { rows: unknown[]; hasMore: boolean },
+  data: { rows: SubscriberRow[]; hasMore: boolean },
 ) {
   listSubscriberPage.mockResolvedValue(data);
   statusCounts.mockResolvedValue(counts);
-  const el = await SubscribersPage({ searchParams: Promise.resolve(params) });
+  const el = await NewslettersPage({
+    searchParams: Promise.resolve({ tab: "people", ...params }),
+  });
   return renderToStaticMarkup(el);
+}
+
+async function renderNewsletters() {
+  statusCounts.mockResolvedValue(counts);
+  listCampaigns.mockResolvedValue(campaigns);
+  return renderToStaticMarkup(await NewslettersPage({ searchParams: Promise.resolve({}) }));
 }
 
 const OUT = process.env.SUBSCRIBERS_HARNESS_OUT;
@@ -132,6 +182,7 @@ function page(title: string, body: string) {
 <link rel="stylesheet" href="./globals.css">
 <link rel="stylesheet" href="./mail.css">
 <link rel="stylesheet" href="./subscribers.css">
+<link rel="stylesheet" href="./newsletter.css">
 </head><body><div class="pb-shell pbm"><div class="pbm-page pb-scroll">${body}</div></div>
 <script src="./audit.js"></script></body></html>`;
 }
@@ -142,6 +193,29 @@ describe("the subscribers screen renders", () => {
     expect(html.length).toBeGreaterThan(400);
     // The canary: a page that dropped its rows would still be long enough.
     expect(html).toContain("margarethe.vandenberg-whitmore@");
+    // Inside the Newsletter page, on its People tab.
+    expect(html).toContain(">Newsletter</h1>");
+    expect(html).toMatch(/aria-current="page"[^>]*>People/);
+  });
+
+  it("the Newsletters tab lists them, and does not read anyone", async () => {
+    listSubscriberPage.mockClear();
+    const html = await renderNewsletters();
+    expect(html).toContain("Welcome newsletter");
+    expect(html).toContain("Sent 3 Nov to 7 people");
+    expect(html).toContain("Sent 12 Oct 2025 to 1 person");
+    expect(html).toContain("Not sent yet");
+    expect(html).toContain('href="/newsletters/write?id=4"');
+    // The tile reads the NEWEST sent one, not the first in the list.
+    expect(html).toMatch(/Last newsletter<\/p><p class="nl-ov-tile-value">3 Nov</);
+    expect(html).not.toContain("psb-list");
+    expect(listSubscriberPage).not.toHaveBeenCalled();
+  });
+
+  it("/subscribers sends old links to the People tab, filter and page kept", async () => {
+    await expect(
+      SubscribersRedirect({ searchParams: Promise.resolve({ status: "bounced", page: "2" }) }),
+    ).rejects.toThrow("unexpected redirect to /newsletters?tab=people&status=bounced&page=2");
   });
 
   it("an empty workspace", async () => {
@@ -166,7 +240,7 @@ describe("the subscribers screen renders", () => {
   it("writes the browser harness when asked", async () => {
     if (!OUT) return;
     mkdirSync(OUT, { recursive: true });
-    for (const src of ["app/globals.css", "app/mail.css", "app/subscribers.css"]) {
+    for (const src of ["app/globals.css", "app/mail.css", "app/subscribers.css", "app/newsletter.css"]) {
       copyFileSync(join(process.cwd(), src), join(OUT, src.split("/").pop()!));
     }
     copyFileSync(join(process.cwd(), "tests/audit-probes.js"), join(OUT, "audit.js"));
@@ -175,6 +249,7 @@ describe("the subscribers screen renders", () => {
       page("subscribers", await render({}, { rows, hasMore: true })),
       "utf8",
     );
+    writeFileSync(join(OUT, "newsletters.html"), page("newsletters", await renderNewsletters()), "utf8");
     writeFileSync(
       join(OUT, "subscribers-empty.html"),
       page("subscribers-empty", await render({}, { rows: [], hasMore: false })),

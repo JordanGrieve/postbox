@@ -350,10 +350,10 @@ describe("the conversation is a rounded card on the page ground (19 Nov 2026)", 
 });
 
 describe("the nav", () => {
-  it("is four rows: Inbox, Newsletters, Subscribers, Settings", () => {
+  it("is three rows: Inbox, Newsletter, Settings (People lives inside Newsletter)", () => {
     const nav = read("components/mail/MailNavShell.tsx");
     const folders = nav.slice(nav.indexOf('<div className="pbm-folders">'), nav.indexOf('<div className="pbm-nav-spacer"'));
     const hrefs = [...folders.matchAll(/href="([^"]+)"/g)].map((m) => m[1]);
-    expect(hrefs).toEqual(["/inbox", "/newsletters", "/subscribers", "/settings"]);
+    expect(hrefs).toEqual(["/inbox", "/newsletters", "/settings"]);
   });
 });

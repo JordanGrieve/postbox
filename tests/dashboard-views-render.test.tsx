@@ -235,12 +235,13 @@ describe("the signed-in screens that had no harness", () => {
     // Canaries. A nav that rendered its chrome but lost every link would still
     // be long enough to pass a length check.
     expect(html).toContain("Open Door Bakery");
-    // The four rows of the simple nav (18 Nov 2026), and nothing of the
-    // eleven folders or the labels block it replaced.
-    for (const row of ["Inbox", "Newsletters", "Subscribers", "Settings"]) {
+    // The three rows of the simple nav (19 Nov 2026: Subscribers became the
+    // People tab inside Newsletter), and nothing of the eleven folders or
+    // the labels block it replaced.
+    for (const row of ["Inbox", "Newsletter", "Settings"]) {
       expect(html).toContain(`>${row}<`);
     }
-    for (const gone of ["All mail", "Awaiting reply", "Starred", "Trash", "Labels"]) {
+    for (const gone of ["Subscribers", "All mail", "Awaiting reply", "Starred", "Trash", "Labels"]) {
       expect(html, `the nav still shows "${gone}"`).not.toContain(`>${gone}<`);
     }
     expect(html.length).toBeGreaterThan(1500);

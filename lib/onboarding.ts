@@ -256,7 +256,9 @@ export function onboardingSteps(f: OnboardingFacts): OnboardingStep[] {
         ? "You have someone to write to. Start from the template — it is already filled in, so the job is editing rather than staring at an empty page."
         : "Nothing to do yet: this needs at least one confirmed subscriber. Once somebody has signed up, there is a template waiting with the wording already in it.",
       done: f.hasSentNewsletter,
-      href: "/newsletters",
+      // The composer itself, since /newsletters became the overview
+      // (19 Nov 2026): this step is "start from the template".
+      href: "/newsletters/write",
       optional: true,
     },
     {

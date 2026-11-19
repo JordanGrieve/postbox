@@ -104,6 +104,10 @@ export default function MailNavShell({
 
   // The inbox is the list and every thread opened from it.
   const inInbox = pathname === "/inbox" || pathname.startsWith("/tickets/");
+  // The Newsletter page, the composer, and one person's page from its People
+  // tab (/subscribers/[id] kept its address).
+  const newsletterActive =
+    pathname.startsWith("/newsletters") || pathname.startsWith("/subscribers");
 
 
 
@@ -196,13 +200,12 @@ export default function MailNavShell({
         )}
 
         {/*
-          ── FOUR ROWS ──
+          ── THREE ROWS ──
           Jordan, 18 Nov 2026, from a mockup: the dashboard was "too
           complicated". Eleven folders, a More/Less group and a Labels block
-          became Inbox (To reply and Done are tabs on the list), Newsletters,
-          Subscribers and Settings. Labels, stars, unread, snooze, archive,
-          trash and Sent are gone from the interface; their data and server
-          code are untouched.
+          became Inbox (To reply and Done are tabs on the list), Newsletter
+          and Settings. Subscribers was a fourth row until 19 Nov 2026; it is
+          the Newsletter page's People tab now.
         */}
         <div className="pbm-folders">
           <Link
@@ -220,21 +223,14 @@ export default function MailNavShell({
           <Link
             href="/newsletters"
             className="pbm-folder"
-            data-active={pathname.startsWith("/newsletters")}
+            data-active={newsletterActive}
+            aria-current={newsletterActive ? "page" : undefined}
           >
             <Icon name="news" size={18} />
-            <span className="pbm-folder-label">Newsletters</span>
+            <span className="pbm-folder-label">Newsletter</span>
           </Link>
-          {/* The audience behind the newsletters, so it sits next to them
-              rather than in /settings: who is on the list is not a setting. */}
-          <Link
-            href="/subscribers"
-            className="pbm-folder"
-            data-active={pathname.startsWith("/subscribers")}
-          >
-            <Icon name="people" size={18} />
-            <span className="pbm-folder-label">Subscribers</span>
-          </Link>
+          {/* No Subscribers row since 19 Nov 2026: the people who signed up
+              are the People tab on the Newsletter page, as in the mockup. */}
           {/*
             Settings is a row again (it was only in the account menu from
             26 Sep 2026, when the column was long). The mockup has it here,
