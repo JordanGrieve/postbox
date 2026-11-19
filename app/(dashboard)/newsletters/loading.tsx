@@ -1,66 +1,59 @@
-import "../../skeleton.css";
 import "../../newsletter.css";
+import "../../skeleton.css";
 
 /**
- * /newsletters skeleton.
+ * /newsletters — the overview (19 Nov 2026).
  *
- * Reuses the real .nl-* classes so the frame — rail width, card radii, page
- * padding, the two-up grid and its collapse points — is exact and nothing
- * shifts when the composer swaps in. Only the shapes inside the cards are
- * approximated, and only where their height is predictable: the preview frame
- * has a fixed height, so it is worth imitating; the help text underneath every
- * field is not, so the fields get one block each.
+ * Every box wears the real .nl-ov-* / .pbm-tabs class and skeleton.css only
+ * paints a fill over it, so the column, the tiles, the tabs and the row
+ * padding are declared once, in app/newsletter.css, and this cannot drift
+ * from the page it stands in for. Only bar widths are inline.
  */
 export default function NewslettersLoading() {
   return (
     <div className="pbm-page pb-scroll">
-      <div
-        className="nl-wrap pbk"
-        aria-busy="true"
-        aria-label="Loading newsletters"
-      >
-        <aside className="nl-rail" aria-hidden>
-          <div className="nl-rail-head">
-            <div className="nl-rail-title pbk-text" style={{ width: 116 }}>
+      <div className="nl-overview pbk" aria-busy="true" aria-label="Loading newsletters">
+        <header className="nl-ov-head" aria-hidden>
+          <div>
+            <div className="nl-ov-title pbk-text" style={{ width: 140 }}>
               &nbsp;
             </div>
-            <div className="pbk-fill" style={{ width: 58, height: 32, borderRadius: 11 }} />
+            <div className="nl-ov-sub pbk-text" style={{ width: 320, maxWidth: "100%" }}>
+              &nbsp;
+            </div>
           </div>
-          <div className="nl-list">
-            {Array.from({ length: 4 }, (_, i) => (
-              <div
-                key={i}
-                className="pbk-fill"
-                style={{ height: 74, borderRadius: 13 }}
-              />
-            ))}
-          </div>
-        </aside>
+          <div className="pbk-fill" style={{ width: 168, height: 44, borderRadius: 10 }} />
+        </header>
 
-        <div className="nl-main" aria-hidden>
-          <header className="nl-head">
-            <div className="nl-head-text" style={{ flex: 1 }}>
-              <div className="nl-title pbk-text" style={{ width: 168 }}>
-                &nbsp;
-              </div>
-              <div className="nl-sub pbk-text" style={{ width: "70%" }}>
-                &nbsp;
-              </div>
+        <div className="nl-ov-tiles" aria-hidden>
+          {[0, 1].map((i) => (
+            <div className="nl-ov-tile pbk-fill" key={i}>
+              <div className="nl-ov-tile-label">&nbsp;</div>
+              <div className="nl-ov-tile-value">&nbsp;</div>
             </div>
-            <div className="pbk-fill" style={{ width: 116, height: 40, borderRadius: 12 }} />
-          </header>
-
-          <div className="nl-grid">
-            <div className="nl-col">
-              <div className="pbk-fill" style={{ height: 372, borderRadius: 18 }} />
-              <div className="pbk-fill" style={{ height: 330, borderRadius: 18 }} />
-            </div>
-            <div className="nl-col">
-              <div className="pbk-fill" style={{ height: 700, borderRadius: 18 }} />
-              <div className="pbk-fill" style={{ height: 260, borderRadius: 18 }} />
-            </div>
-          </div>
+          ))}
         </div>
+
+        <div className="pbm-tabs nl-ov-tabs pbk-fill" aria-hidden>
+          <span className="pbm-tab">&nbsp;</span>
+          <span className="pbm-tab">&nbsp;</span>
+        </div>
+
+        <ul className="nl-ov-list" aria-hidden>
+          {[180, 220, 150, 200].map((w, i) => (
+            <li className="nl-ov-row" key={i}>
+              <div className="nl-ov-row-text">
+                <div className="nl-ov-row-name pbk-text" style={{ width: w, maxWidth: "100%" }}>
+                  &nbsp;
+                </div>
+                <div className="nl-ov-row-meta pbk-text" style={{ width: w - 40 }}>
+                  &nbsp;
+                </div>
+              </div>
+              <div className="pbk-fill nl-ov-act" style={{ width: 96, height: 44, borderRadius: 10 }} />
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
