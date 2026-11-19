@@ -1552,21 +1552,14 @@ body:has(.pbi-banner) .nl-overview {
 }
 
 .nw-head {
-  padding: 14px 28px 18px;
+  padding: 18px 28px 18px;
   border-bottom: 1px solid var(--border-soft);
 }
 
+/* The standard secondary button (Jordan, 19 Nov 2026: "like a normal
+   button we have across the site"); this only spaces it from the title. */
 .nw-back {
-  display: inline-flex;
-  align-items: center;
-  min-height: var(--tap-min, 44px);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--text-3);
-  text-decoration: none;
-}
-.nw-back:hover {
-  color: var(--text);
+  margin-bottom: 14px;
 }
 
 .nw-head-row {
@@ -1707,14 +1700,6 @@ body:has(.pbi-banner) .nl-overview {
   border-color: var(--border-strong);
 }
 
-.nw-hint {
-  margin: 0;
-  max-width: 54ch;
-  font-size: 0.75rem;
-  line-height: 1.5;
-  color: var(--muted);
-}
-
 .nw-looks {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1743,36 +1728,40 @@ body:has(.pbi-banner) .nl-overview {
   box-shadow: inset 0 0 0 1px var(--accent);
 }
 
-/* The drawing of each layout. Decorative, so no contrast floor; the band
-   and the picture show only on the layouts that have them. */
+/* A drawing of what each layout sends (LookPicture in WelcomeEmailForm).
+   Decorative, so no contrast floor, but each one is drawn in the colours of
+   its email: Plain is text on a plain page, Branded is a name and a rule in
+   the accent over a card on grey, Feature is dark, centred and picture first. */
 .nw-look-pic {
   display: flex;
   flex-direction: column;
   gap: 5px;
-  height: 64px;
+  height: 84px;
   margin-bottom: 6px;
-  padding: 8px;
+  padding: 10px;
+  border: 1px solid var(--border-soft);
   border-radius: 8px;
-  background: var(--surface-3);
   overflow: hidden;
 }
-.nw-look-band,
-.nw-look-hero {
-  display: none;
-  border-radius: 3px;
-  background: var(--border-strong);
-  flex: 0 0 auto;
+.nw-look-pic[data-look="plain"] {
+  background: var(--surface);
+  padding-top: 14px;
 }
-.nw-look[data-look="branded"] .nw-look-band {
-  display: block;
-  height: 10px;
+.nw-look-pic[data-look="branded"] {
+  background: var(--surface-3);
+  gap: 4px;
 }
-.nw-look[data-look="editorial"] .nw-look-hero {
-  display: block;
-  height: 22px;
+.nw-look-pic[data-look="editorial"] {
+  align-items: center;
+  border-color: transparent;
+  /* Dark in both themes, as the email is. --nav is light in the light
+     theme since 18 Nov; the brand panel is the token that never flips. */
+  background: var(--brand-panel);
 }
+
 .nw-look-line {
   display: block;
+  width: 100%;
   height: 4px;
   border-radius: 2px;
   background: var(--border-strong);
@@ -1780,6 +1769,64 @@ body:has(.pbi-banner) .nl-overview {
 }
 .nw-look-line--short {
   width: 60%;
+}
+/* The greeting: a short, darker first line. */
+.nw-look-line--hi {
+  width: 30%;
+  background: var(--text-3);
+}
+
+.nw-look-brand {
+  display: block;
+  width: 45%;
+  height: 6px;
+  border-radius: 2px;
+  background: var(--text);
+  flex: 0 0 auto;
+}
+.nw-look-rule {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: var(--accent);
+  flex: 0 0 auto;
+}
+.nw-look-card {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 3px;
+  padding: 7px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--surface);
+}
+
+.nw-look-hero {
+  display: block;
+  width: 100%;
+  height: 30px;
+  border-radius: 3px;
+  background: var(--brand-panel-pill-fg);
+  opacity: 0.3;
+  flex: 0 0 auto;
+}
+.nw-look-headline {
+  display: block;
+  width: 70%;
+  height: 6px;
+  margin: 2px 0 1px;
+  border-radius: 2px;
+  background: var(--brand-panel-fg);
+  flex: 0 0 auto;
+}
+.nw-look-pic[data-look="editorial"] .nw-look-line {
+  width: 85%;
+  background: var(--brand-panel-pill-fg);
+  opacity: 0.5;
+}
+.nw-look-pic[data-look="editorial"] .nw-look-line--short {
+  width: 50%;
 }
 
 .nw-look-name {

@@ -241,7 +241,7 @@ export default function WelcomeEmailForm({
   return (
     <div className="nw">
       <header className="nw-head">
-        <Link className="nw-back" href="/newsletters">
+        <Link className="stg-button stg-button--secondary nw-back" href="/newsletters">
           ← Newsletter
         </Link>
         <div className="nw-head-row">
@@ -307,7 +307,6 @@ export default function WelcomeEmailForm({
               rows={10}
               maxLength={5000}
               disabled={saving}
-              aria-describedby="nw-body-hint"
               onChange={(e) => {
                 setBody(e.target.value);
                 touch();
@@ -327,11 +326,6 @@ export default function WelcomeEmailForm({
                 </button>
               ))}
             </div>
-            <p className="nw-hint" id="nw-body-hint">
-              [First name] becomes their name, or &ldquo;there&rdquo; if we
-              don&rsquo;t know it. Your address and unsubscribe link are added
-              for you.
-            </p>
           </div>
 
           <fieldset className="nw-field nw-fieldset">
@@ -350,15 +344,7 @@ export default function WelcomeEmailForm({
                     touch();
                   }}
                 >
-                  {/* A drawing of the layout: lines for text, a block for the
-                      picture, a band for the branded header. */}
-                  <span className="nw-look-pic" aria-hidden>
-                    <span className="nw-look-band" />
-                    <span className="nw-look-hero" />
-                    <span className="nw-look-line" />
-                    <span className="nw-look-line" />
-                    <span className="nw-look-line nw-look-line--short" />
-                  </span>
+                  <LookPicture look={key} />
                   <span className="nw-look-name">{TEMPLATE_LABELS[key].name}</span>
                   <span className="nw-look-desc">{TEMPLATE_LABELS[key].description}</span>
                 </button>
@@ -514,5 +500,52 @@ export default function WelcomeEmailForm({
         </div>
       </footer>
     </div>
+  );
+}
+
+/**
+ * A small drawing of what each layout actually sends, so the three cards
+ * differ the way the emails do (Jordan, 19 Nov 2026: "make them look more
+ * like it"):
+ *
+ *   Plain    — text on white, nothing else.
+ *   Branded  — the business name over a rule in its colour, then the
+ *              message in a white card on a grey ground.
+ *   Feature  — dark and centred: the picture first, the opening line as a
+ *              headline, the text under it.
+ *
+ * Decorative: the card's name and description are what a screen reader hears.
+ */
+function LookPicture({ look }: { look: TemplateKey }) {
+  if (look === "plain") {
+    return (
+      <span className="nw-look-pic" data-look={look} aria-hidden>
+        <span className="nw-look-line nw-look-line--hi" />
+        <span className="nw-look-line" />
+        <span className="nw-look-line" />
+        <span className="nw-look-line nw-look-line--short" />
+      </span>
+    );
+  }
+  if (look === "branded") {
+    return (
+      <span className="nw-look-pic" data-look={look} aria-hidden>
+        <span className="nw-look-brand" />
+        <span className="nw-look-rule" />
+        <span className="nw-look-card">
+          <span className="nw-look-line" />
+          <span className="nw-look-line" />
+          <span className="nw-look-line nw-look-line--short" />
+        </span>
+      </span>
+    );
+  }
+  return (
+    <span className="nw-look-pic" data-look={look} aria-hidden>
+      <span className="nw-look-hero" />
+      <span className="nw-look-headline" />
+      <span className="nw-look-line" />
+      <span className="nw-look-line nw-look-line--short" />
+    </span>
   );
 }
