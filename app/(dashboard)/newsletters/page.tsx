@@ -126,7 +126,7 @@ export default async function NewslettersPage({
             */}
             <li className="nl-ov-row">
               <div className="nl-ov-row-text">
-                <p className="nl-ov-row-name">Welcome newsletter</p>
+                <p className="nl-ov-row-name">Welcome email</p>
                 <p className="nl-ov-row-meta">
                   {welcomeSends
                     ? "Sent automatically when someone signs up"
@@ -136,7 +136,7 @@ export default async function NewslettersPage({
               <Link
                 href="/newsletters/welcome"
                 className="stg-button stg-button--secondary nl-ov-act"
-                aria-label="Edit the welcome newsletter"
+                aria-label="Edit the welcome email"
               >
                 Edit
               </Link>

@@ -79,18 +79,20 @@ export const TEMPLATE_LABELS: Record<
   TemplateKey,
   { name: string; description: string }
 > = {
+  // Short, from Jordan's mockup (19 Nov 2026): each is the caption on a
+  // picture of the layout, so it says what it is like rather than how it is
+  // built. The key stays "editorial"; only the name a client reads changed.
   plain: {
     name: "Plain",
-    description: "Text on white, no framing.",
+    description: "Like a personal email",
   },
   branded: {
     name: "Branded",
-    description: "Your workspace name and colour above a white card.",
+    description: "Your name and colour on top",
   },
   editorial: {
-    name: "Editorial",
-    description:
-      "Dark and centred, photography first — the opening line becomes the headline.",
+    name: "Feature",
+    description: "Big picture and headline",
   },
 };
 

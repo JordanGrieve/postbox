@@ -104,8 +104,8 @@ export type { CampaignRowDTO } from "./composer-model";
 
 /*
   The layout names live in lib/newsletter.ts beside the layouts themselves, so
-  this screen and the welcome form cannot disagree about what "Editorial"
-  means — and so a fourth layout has one place to be named rather than two to
+  this screen and the welcome form cannot disagree about what "Feature" (the
+  editorial layout) means — and so a fourth layout has one place to be named rather than two to
   be forgotten in.
 */
 const templateOption = (key: TemplateKey) =>

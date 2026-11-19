@@ -46,6 +46,8 @@ export default function WelcomePreview({
   brandAccentHex,
   brandSignOff,
   viewerEmail,
+  recipientName,
+  fromAddress,
 }: {
   subject: string;
   body: string;
@@ -60,6 +62,14 @@ export default function WelcomePreview({
   brandSignOff: string | null;
   /** Shown as the recipient, so the merge tags resolve to somebody real. */
   viewerEmail: string;
+  /**
+   * The name the preview's subscriber gave, or null for one who gave none.
+   * The "With a name / Without" switch above the preview sets it: both are
+   * real subscribers, and {first_name} reads differently for each.
+   */
+  recipientName: string | null;
+  /** The address it is sent from, for the line a mail client shows. */
+  fromAddress: string;
 }) {
   /*
     The whole rendered email, not just its HTML.
@@ -75,10 +85,10 @@ export default function WelcomePreview({
     try {
       return renderCampaign({
         campaign: { subject, body, preheader: null, templateKey },
-        // The person looking at it. {first_name} has nothing to resolve from an
-        // address alone, which is itself worth seeing: this is what a
-        // subscriber who gave no name receives.
-        recipient: { email: viewerEmail, name: null },
+        // The person looking at it, with the sample name or none. With none,
+        // {first_name} has nothing to resolve from an address alone, which is
+        // itself worth seeing: it is what a subscriber who gave no name gets.
+        recipient: { email: viewerEmail, name: recipientName },
         workspaceName,
         // Inert. A live token here would be a working unsubscribe link sitting
         // in a preview, one stray click from removing the client from their
@@ -124,17 +134,21 @@ export default function WelcomePreview({
     brandAccentHex,
     brandSignOff,
     viewerEmail,
+    recipientName,
   ]);
 
   return (
-    <div className="stg-preview">
-      <div className="stg-preview-head">
-        <span className="stg-field-label">Preview</span>
-        {/* The RENDERED subject — what lands in the inbox, merge tags filled
-            in — not the text in the box above. */}
-        <span className="stg-preview-subject" title={rendered.subject}>
+    <div className="nw-mail">
+      {/* What a mail client shows above the message: who it is from, and the
+          RENDERED subject with its merge tags filled in, not the text in the
+          box beside it. */}
+      <div className="nw-mail-head">
+        <p className="nw-mail-from">
+          <b>{workspaceName}</b> · {fromAddress}
+        </p>
+        <p className="nw-mail-subject" title={rendered.subject}>
           {rendered.subject || "No subject yet"}
-        </span>
+        </p>
       </div>
       {/*
         Sandboxed with no allow-* flags, so the email's own HTML cannot run a
@@ -143,7 +157,7 @@ export default function WelcomePreview({
         HTML is allowed to carry its own colours at all.
       */}
       <iframe
-        className="stg-preview-frame"
+        className="nw-mail-frame"
         title="Welcome email preview"
         sandbox=""
         srcDoc={rendered.html}
