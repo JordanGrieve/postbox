@@ -1,91 +1,72 @@
 import "../../../skeleton.css";
 import "../../../settings.css";
+import "../../../newsletter.css";
 
 /**
  * /newsletters/welcome.
  *
- * Reuses the real .stg-* classes, so the column width, section padding and
- * every line-height come from the stylesheet exactly once. The install
- * skeleton restated its frame inline and was still drawing a 760px centred
- * column weeks after that page went full width — a placeholder that copies
- * geometry only stays right until somebody edits the page it stands for.
- *
- * The shapes are the form's: a switch row, two text fields, the layout
- * buttons, the image field, and the preview panel, which is the tall one.
+ * Wears the real .nw-* classes, so the header, the two columns, their padding
+ * and the bar at the bottom are declared once, in app/newsletter.css, and
+ * this cannot drift from the screen it stands in for. Only bar widths and
+ * the heights of boxes with no fixed height (the message, the preview) are
+ * inline.
  */
 export default function WelcomeNewsletterLoading() {
   return (
-    <div className="pbm-page pb-scroll pbk" aria-busy="true" aria-label="Loading the welcome newsletter">
-      <div className="stg-wrap" aria-hidden>
-        <header className="stg-head">
-          <div className="stg-title pbk-text" style={{ width: 232 }}>
-            &nbsp;
+    <div className="pbm-page pb-scroll pbk" aria-busy="true" aria-label="Loading the welcome email">
+      <div className="nw" aria-hidden>
+        <header className="nw-head">
+          <div className="nw-back">
+            <span className="pbk-text" style={{ width: 96 }}>
+              &nbsp;
+            </span>
           </div>
-          <div className="stg-sub pbk-text" style={{ width: "58%" }}>
-            &nbsp;
+          <div className="nw-head-row">
+            <div className="nw-head-text">
+              <div className="nw-title pbk-text" style={{ width: 168 }}>
+                &nbsp;
+              </div>
+              <div className="nw-sub pbk-text" style={{ width: 300, maxWidth: "100%" }}>
+                &nbsp;
+              </div>
+            </div>
+            <div className="pbk-fill" style={{ width: 236, height: 44, borderRadius: 12 }} />
           </div>
         </header>
 
-        <section className="stg-section">
-          {/* The on/off row: a label and the switch at the end of it. */}
-          <div className="stg-switch-row">
-            <span className="stg-field-label pbk-text" style={{ width: 268 }}>
-              &nbsp;
-            </span>
-            <span
-              className="pbk-fill"
-              style={{ width: 48, height: 28, borderRadius: 14 }}
-            />
-          </div>
-
-          {[132, 96].map((w, i) => (
-            <div className="stg-field" key={i}>
-              <span className="stg-field-label pbk-text" style={{ width: w }}>
+        <div className="nw-body">
+          <div className="nw-form">
+            {[44, 180].map((h, i) => (
+              <div className="nw-field" key={i}>
+                <span className="nw-label pbk-text" style={{ width: i ? 72 : 60 }}>
+                  &nbsp;
+                </span>
+                <span className="pbk-fill" style={{ height: h, borderRadius: 10 }} />
+              </div>
+            ))}
+            <div className="nw-field">
+              <span className="nw-label pbk-text" style={{ width: 40 }}>
                 &nbsp;
               </span>
-              <span
-                className="pbk-fill"
-                style={{ height: i === 1 ? 180 : 44, borderRadius: 10 }}
-              />
+              <div className="nw-looks">
+                {[0, 1, 2].map((i) => (
+                  <span key={i} className="pbk-fill" style={{ height: 124, borderRadius: 14 }} />
+                ))}
+              </div>
             </div>
-          ))}
-
-          <div className="stg-fieldset">
-            <span className="stg-field-label pbk-text" style={{ width: 62 }}>
-              &nbsp;
-            </span>
-            <div className="stg-seg">
-              {[104, 82].map((w) => (
-                <span
-                  key={w}
-                  className="pbk-fill"
-                  style={{ width: w, height: 44, borderRadius: 11 }}
-                />
-              ))}
-            </div>
+            <span className="pbk-fill" style={{ height: 96, borderRadius: 14 }} />
           </div>
 
-          <div className="stg-field">
-            <span className="stg-field-label pbk-text" style={{ width: 148 }}>
-              &nbsp;
-            </span>
-            <span className="pbk-fill" style={{ height: 44, borderRadius: 10 }} />
-          </div>
-
-          {/* The preview. Tall on purpose — it is the tallest thing on the real
-              page, and a short placeholder here would make the content jump. */}
-          <div className="stg-preview">
-            <div className="stg-preview-head">
-              <span className="stg-field-label pbk-text" style={{ width: 64 }}>
+          <div className="nw-preview">
+            <div className="nw-preview-head">
+              <span className="nw-preview-title pbk-text" style={{ width: 120 }}>
                 &nbsp;
               </span>
+              <span className="pbk-fill" style={{ width: 160, height: 44, borderRadius: 12 }} />
             </div>
-            <span
-              className="pbk-fill"
-              style={{ display: "block", height: 520 }}
-            />
+            <span className="pbk-fill" style={{ display: "block", height: 700, borderRadius: 16 }} />
           </div>
-        </section>
+        </div>
       </div>
     </div>
   );

@@ -64,15 +64,23 @@ export default function ProductsHeroEditor({
   disabled,
   onChange,
   newProduct,
+  showHero = true,
+  addClassName = "stg-button",
 }: HeroAndProducts & {
   disabled: boolean;
+  /** False where the screen draws its own picture box (the welcome email). */
+  showHero?: boolean;
+  /** The add button's look; the welcome email uses the quiet one. */
+  addClassName?: string;
   onChange: (next: Partial<HeroAndProducts>) => void;
   /** Mints the next row. Its id must be unique for the life of the form. */
   newProduct: () => DraftProduct;
 }) {
   function setField(id: number, field: ProductField, value: string) {
     onChange({
-      products: products.map((q) => (q.id === id ? { ...q, [field]: value } : q)),
+      products: products.map((q) =>
+        q.id === id ? { ...q, [field]: value } : q,
+      ),
     });
   }
 
@@ -88,30 +96,32 @@ export default function ProductsHeroEditor({
         somebody has not corresponded with, which is most recipients
         of a first newsletter. For them the description IS the image.
       */}
-      <div className="nl-field">
-        <label className="nl-label" htmlFor="nl-hero-url">
-          Image <span className="nl-optional">OPTIONAL</span>
-        </label>
-        <input
-          id="nl-hero-url"
-          className="nl-input"
-          type="url"
-          inputMode="url"
-          placeholder="https://yourshop.com/photo.jpg"
-          value={heroImageUrl}
-          maxLength={2000}
-          disabled={disabled}
-          onChange={(e) => onChange({ heroImageUrl: e.target.value })}
-        />
-        {heroImageUrl.trim() && !safeImageUrl(heroImageUrl) && (
-          <p className="nl-warn" role="status">
-            That link can&rsquo;t be used. It needs to start with{" "}
-            <b>https://</b>
-          </p>
-        )}
-      </div>
+      {showHero && (
+        <div className="nl-field">
+          <label className="nl-label" htmlFor="nl-hero-url">
+            Image <span className="nl-optional">OPTIONAL</span>
+          </label>
+          <input
+            id="nl-hero-url"
+            className="nl-input"
+            type="url"
+            inputMode="url"
+            placeholder="https://yourshop.com/photo.jpg"
+            value={heroImageUrl}
+            maxLength={2000}
+            disabled={disabled}
+            onChange={(e) => onChange({ heroImageUrl: e.target.value })}
+          />
+          {heroImageUrl.trim() && !safeImageUrl(heroImageUrl) && (
+            <p className="nl-warn" role="status">
+              That link can&rsquo;t be used. It needs to start with{" "}
+              <b>https://</b>
+            </p>
+          )}
+        </div>
+      )}
 
-      {heroImageUrl.trim() && (
+      {showHero && heroImageUrl.trim() && (
         <div className="nl-field">
           <label className="nl-label" htmlFor="nl-hero-alt">
             Describe the image
@@ -127,9 +137,9 @@ export default function ProductsHeroEditor({
             onChange={(e) => onChange({ heroImageAlt: e.target.value })}
           />
           <p className="nl-help">
-            Most people have images turned off, and read this instead.
-            Keep anything that matters — a price, a date — in the
-            message as well as the picture.
+            Most people have images turned off, and read this instead. Keep
+            anything that matters — a price, a date — in the message as well as
+            the picture.
           </p>
         </div>
       )}
@@ -218,8 +228,8 @@ export default function ProductsHeroEditor({
               />
               {p.imageUrl.trim() && !safeImageUrl(p.imageUrl) && (
                 <p className="nl-warn" role="status">
-                  That photo link can&rsquo;t be used. It needs to start
-                  with <b>https://</b>
+                  That photo link can&rsquo;t be used. It needs to start with{" "}
+                  <b>https://</b>
                 </p>
               )}
 
@@ -250,7 +260,7 @@ export default function ProductsHeroEditor({
         {products.length < MAX_PRODUCTS ? (
           <button
             type="button"
-            className="stg-button"
+            className={addClassName}
             disabled={disabled}
             onClick={() => onChange({ products: [...products, newProduct()] })}
           >
@@ -258,8 +268,7 @@ export default function ProductsHeroEditor({
           </button>
         ) : (
           <p className="nl-help" role="status">
-            That&rsquo;s {MAX_PRODUCTS}, the most one newsletter can
-            carry.
+            That&rsquo;s {MAX_PRODUCTS}, the most one newsletter can carry.
           </p>
         )}
       </div>

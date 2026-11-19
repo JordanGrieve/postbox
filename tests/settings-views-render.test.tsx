@@ -23,7 +23,7 @@ import ThemePicker from "../app/(dashboard)/settings/ThemePicker";
 import SettingsTabs from "../app/(dashboard)/settings/SettingsTabs";
 import SenderIdentityForm from "../app/(dashboard)/settings/SenderIdentityForm";
 import NewsletterBrandForm from "../app/(dashboard)/settings/NewsletterBrandForm";
-import WelcomeEmailForm from "../app/(dashboard)/settings/WelcomeEmailForm";
+import WelcomeEmailForm from "../app/(dashboard)/newsletters/welcome/WelcomeEmailForm";
 import { DEFAULT_WELCOME } from "../lib/welcome-store";
 import AutoReplySettings from "../app/(dashboard)/settings/auto-reply/AutoReplySettings";
 import InstallView from "../components/InstallView";
@@ -86,6 +86,7 @@ const views: Record<string, React.ReactElement> = {
       brandAccentHex={null}
       brandSignOff={null}
       viewerEmail="hello@opendoorbakery.co.uk"
+      fromAddress="replies@postbox.help"
     />
   ),
   "welcome-on": (
@@ -98,6 +99,7 @@ const views: Record<string, React.ReactElement> = {
       brandAccentHex={null}
       brandSignOff={null}
       viewerEmail="hello@opendoorbakery.co.uk"
+      fromAddress="replies@postbox.help"
     />
   ),
   /*
@@ -140,6 +142,7 @@ const views: Record<string, React.ReactElement> = {
       brandAccentHex="#7a4a2b"
       brandSignOff="See you Saturday,\nAda"
       viewerEmail="hello@opendoorbakery.co.uk"
+      fromAddress="replies@postbox.help"
     />
   ),
   "auto-reply-off": (

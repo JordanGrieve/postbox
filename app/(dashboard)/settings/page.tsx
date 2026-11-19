@@ -95,7 +95,7 @@ export default async function GeneralSettingsPage() {
           old place is a signpost rather than a dead end — one editor, one
           home, no second copy to drift. */}
       <section className="stg-section">
-        <h2 className="stg-section-title">Welcome newsletter</h2>
+        <h2 className="stg-section-title">Welcome email</h2>
         <dl className="stg-rows">
           <Row label="Sent on signup">
             <span className="stg-row-value">

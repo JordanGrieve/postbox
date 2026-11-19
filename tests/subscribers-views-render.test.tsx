@@ -201,7 +201,7 @@ describe("the subscribers screen renders", () => {
   it("the Newsletters tab lists them, and does not read anyone", async () => {
     listSubscriberPage.mockClear();
     const html = await renderNewsletters();
-    expect(html).toContain("Welcome newsletter");
+    expect(html).toContain("Welcome email");
     expect(html).toContain("Sent 3 Nov to 7 people");
     expect(html).toContain("Sent 12 Oct 2025 to 1 person");
     expect(html).toContain("Not sent yet");
