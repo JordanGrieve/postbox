@@ -11,7 +11,8 @@ import { EMAIL_FROM_ADDRESS } from "@/lib/config";
  * POST /api/tickets/:id/reply  (authed)
  * Body: { message }
  * Sends a real email from the workspace's address with a per-ticket Reply-To,
- * then saves an outbound message and nudges the ticket to "in progress".
+ * then saves an outbound message and moves the ticket to Done (closed) — or,
+ * if the email did not leave, keeps it in To reply (in progress).
  */
 export async function POST(
   req: Request,
@@ -96,7 +97,21 @@ export async function POST(
     ticketId: ticket.id,
     direction: "outbound",
     body: message,
-    status: ticket.status === "closed" ? "closed" : "in_progress",
+    /*
+      Replying moves the conversation to Done — Jordan's mockup, 19 Nov 2026:
+      "Sends as {business} and moves this to Done. If they write back, it
+      comes back to To reply." The coming back is the inbound route's
+      existing `status: "open"` on a customer reply.
+
+      Only when the email actually LEFT. A reply that failed to send stays in
+      To reply (in_progress), so a message the customer never received is not
+      filed away as handled.
+    */
+    status: emailResult.sent
+      ? "closed"
+      : ticket.status === "closed"
+        ? "closed"
+        : "in_progress",
     /*
      * Both of these are known here and nowhere else afterwards.
      *

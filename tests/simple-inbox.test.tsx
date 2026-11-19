@@ -216,6 +216,123 @@ describe("the conversation's button stays truthful (CodeRabbit, PR 29)", () => {
   });
 });
 
+describe("the conversation pane, like the mockup (19 Nov 2026)", () => {
+  const stubMatchMedia = () => {
+    window.matchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }) as unknown as typeof window.matchMedia;
+  };
+  const messages = [
+    {
+      id: 1,
+      direction: "inbound",
+      body: "Could I reserve two loaves?",
+      sentAtIso: "2026-11-19T09:12:00.000Z",
+      deliveryStatus: null,
+    },
+    {
+      id: 2,
+      direction: "outbound",
+      body: "Of course.",
+      sentAtIso: "2026-11-19T09:20:00.000Z",
+      deliveryStatus: "delivered",
+    },
+  ] as unknown as Parameters<typeof Thread>[0]["messages"];
+
+  it("has no subject row, puts who and when above each message, and labels the reply card", () => {
+    stubMatchMedia();
+    const { container } = render(
+      <Thread
+        ticket={{ ...ticket, status: "open" }}
+        messages={messages}
+        fromAddress="Open Door Bakery <replies@postbox.help>"
+        contact={contact}
+        notes={[]}
+        addNote={vi.fn()}
+        deleteNote={vi.fn()}
+        backHref="/inbox"
+      />,
+    );
+    expect(container.querySelector(".pbm-thread-subject, .pbm-subject")).toBeNull();
+    const rows = [...container.querySelectorAll(".pbm-bubble-wrap")];
+    // The meta line comes BEFORE the bubble in each row.
+    for (const r of rows) {
+      expect(r.firstElementChild?.className).toBe("pbm-bubble-meta");
+    }
+    expect(rows[0]!.textContent).toMatch(/^Lesley · /);
+    expect(rows[1]!.querySelector(".pbm-bubble-meta")!.textContent).toMatch(/^You · .* · Delivered$/);
+    // The textarea is named by the card's visible label.
+    expect(screen.getByLabelText("Reply to Lesley").tagName).toBe("TEXTAREA");
+    expect(container.querySelector(".pbm-composer-foot")!.textContent).toContain(
+      "Sends as Open Door Bakery and moves this to Done.",
+    );
+  });
+
+  it("a sent reply shows the conversation as Done", async () => {
+    stubMatchMedia();
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () => new Response(JSON.stringify({ emailSent: true }), { status: 201 })),
+    );
+    render(
+      <Thread
+        ticket={{ ...ticket, status: "open" }}
+        messages={[]}
+        fromAddress="Open Door Bakery <replies@postbox.help>"
+        contact={contact}
+        notes={[]}
+        addNote={vi.fn()}
+        deleteNote={vi.fn()}
+        backHref="/inbox"
+      />,
+    );
+    fireEvent.change(screen.getByLabelText("Reply to Lesley"), { target: { value: "Thanks!" } });
+    fireEvent.click(screen.getByRole("button", { name: /Send/ }));
+    await vi.waitFor(() => expect(screen.getByRole("button", { name: "Reopen" })).toBeTruthy());
+  });
+});
+
+describe("sending and marking done never overlap (CodeRabbit, PR 30)", () => {
+  it("while the status request is in flight, Send and Ctrl+Enter do nothing; while sending, Mark as done waits", async () => {
+    window.matchMedia = vi.fn().mockReturnValue({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }) as unknown as typeof window.matchMedia;
+    let release!: (r: Response) => void;
+    const pending = new Promise<Response>((r) => (release = r));
+    const fetchMock = vi.fn(() => pending);
+    vi.stubGlobal("fetch", fetchMock);
+    render(
+      <Thread
+        ticket={{ ...ticket, status: "open" }}
+        messages={[]}
+        fromAddress="Open Door Bakery <replies@postbox.help>"
+        contact={contact}
+        notes={[]}
+        addNote={vi.fn()}
+        deleteNote={vi.fn()}
+        backHref="/inbox"
+      />,
+    );
+    const box = screen.getByLabelText("Reply to Lesley");
+    fireEvent.change(box, { target: { value: "Thanks!" } });
+
+    // Status request in flight.
+    fireEvent.click(screen.getByRole("button", { name: "Mark as done" }));
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const send = screen.getByRole("button", { name: /Send/ }) as HTMLButtonElement;
+    expect(send.disabled, "Send is open while the status is changing").toBe(true);
+    fireEvent.keyDown(box, { key: "Enter", ctrlKey: true });
+    expect(fetchMock, "Ctrl+Enter sent a reply mid status change").toHaveBeenCalledTimes(1);
+
+    release(new Response("{}", { status: 200 }));
+    await vi.waitFor(() => expect(send.disabled).toBe(false));
+  });
+});
+
 describe("the nav", () => {
   it("is four rows: Inbox, Newsletters, Subscribers, Settings", () => {
     const nav = read("components/mail/MailNavShell.tsx");

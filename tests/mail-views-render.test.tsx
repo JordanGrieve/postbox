@@ -367,7 +367,11 @@ describe("every client-facing mail view renders", () => {
       // The tab counts come from the fixture, not from the rows.
       ["inbox", ">57<"],
       ["done", ">12<"],
-      ["thread", "wrong loaf"],
+      // A message body, not the subject: the subject row went with the
+      // mockup's conversation pane (19 Nov 2026).
+      ["thread", "a rye and one box"],
+      // The reply card names the customer.
+      ["thread", "Reply to Margarethe"],
       ["rail", "Wholesale customer"],
       ["onboarding", "Switch on an out-of-hours reply"],
     ];

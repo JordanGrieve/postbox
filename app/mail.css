@@ -1185,6 +1185,30 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   font-weight: 700;
 }
 
+/*
+  Who and when, ABOVE each message: "Lesley · Today, 9:12 am" (19 Nov 2026,
+  Jordan's mockup). Replaces the timestamp under the bubble. The same
+  bounced/failed colour rule as before, for the same reason.
+*/
+.pbm-bubble-meta {
+  margin: 0 6px 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.pbm-bubble-meta b {
+  font-weight: 800;
+  color: var(--text-3);
+}
+.pbm-bubble-row[data-out] .pbm-bubble-meta {
+  text-align: right;
+}
+.pbm-bubble-meta[data-delivery="bounced"],
+.pbm-bubble-meta[data-delivery="failed"] {
+  color: var(--pdf-fg);
+  font-weight: 700;
+}
+
 .pbm-composer-wrap {
   flex: none;
   padding: 0 20px 18px;
@@ -1277,6 +1301,48 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
 .pbm-composer-foot b {
   font-weight: 700;
   color: var(--text-4);
+}
+
+/*
+  ── THE REPLY CARD (19 Nov 2026, Jordan's mockup) ──
+  "Reply to Lesley", room to write, then what sending does and Send along
+  the foot. A column, where the old composer was a one-line row with the
+  button beside the field.
+*/
+.pbm-reply-card {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 16px;
+}
+.pbm-reply-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-3);
+}
+.pbm-reply-card .pbm-composer-input {
+  padding: 4px 0;
+  min-height: 72px;
+  max-height: 200px;
+}
+.pbm-reply-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pbm-reply-foot .pbm-composer-foot {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  line-height: 1.5;
+}
+/* 44px like every control (2.5.5); the old row's 40px button sat beside a
+   field that made up the difference. */
+.pbm-reply-foot .pbm-send {
+  min-height: var(--tap-min, 44px);
 }
 .pbm-error {
   color: var(--pdf-fg);
