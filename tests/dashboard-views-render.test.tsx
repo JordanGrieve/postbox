@@ -40,7 +40,6 @@ const h = vi.hoisted(() => ({
   readsForSessions: vi.fn(),
   exportsForWorkspace: vi.fn(),
   activeWorkspace: vi.fn(),
-  listLabelsWithCounts: vi.fn(),
 }));
 
 const WORKSPACE = { id: 3, name: "Open Door Bakery", accent: "terracotta" };
@@ -94,19 +93,6 @@ vi.mock("../app/(dashboard)/queries", async () => ({
 vi.mock("@/lib/data", async () => ({
   ...(await vi.importActual<typeof import("@/lib/data")>("@/lib/data")),
   listContactsWithCounts: h.listContactsWithCounts,
-}));
-
-/*
-  listLabelsWithCounts lives in lib/labels, not lib/data.
-
-  Mocking the wrong module is silent: the import resolves to the real function,
-  which reaches for the database, and the db stub throws REACHED_REAL_DB. That
-  guard is the only reason this surfaced as a clear message rather than a
-  timeout or an empty nav.
-*/
-vi.mock("@/lib/labels", async () => ({
-  ...(await vi.importActual<typeof import("@/lib/labels")>("@/lib/labels")),
-  listLabelsWithCounts: h.listLabelsWithCounts,
 }));
 
 vi.mock("@/lib/forms", async () => ({
@@ -187,18 +173,10 @@ const at = (h: number) => new Date(Date.UTC(2026, 8, 6, 11, 20) - h * 3600_000);
   in this type and never has been; tsc named it the moment the fixture said
   what it was, which is the entire argument for saying so.
 */
+// The two tab counts since the simple inbox (19 Nov 2026).
 const counts = {
-  all: 128,
-  unread: 6,
-  awaiting: 4,
   inbox: 12,
   closed: 96,
-  starred: 3,
-  labeled: 41,
-  sent: 8,
-  archived: 19,
-  snoozed: 2,
-  trash: 1,
 } satisfies MailCountsDTO;
 
 const seg = (text: string, hit = false) => ({ text, hit });

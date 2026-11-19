@@ -740,6 +740,12 @@ export const ticketLabels = pgTable(
 /**
  * Starring is PER AGENT, not per workspace — my starred inbox is mine alone.
  * Presence of the row is the star; unstarring deletes it.
+ *
+ * NOTHING READS OR WRITES THIS YET — or rather, any more. Stars left the
+ * interface with the simple inbox on 19 Nov 2026 and their code went with
+ * them. The table and its rows are kept on purpose: dropping customer-facing
+ * state is a migration of its own, to be decided separately, and keeping the
+ * rows costs nothing while it is.
  */
 export const ticketStars = pgTable(
   "ticket_stars",
@@ -765,6 +771,10 @@ export const ticketStars = pgTable(
  * Per-agent unread tracking. A ticket is unread for an agent when there is no
  * row, or when `tickets.updatedAt > lastReadAt` — so we never have to write a
  * row per message, only per agent per ticket.
+ *
+ * NOTHING READS OR WRITES THIS YET — or rather, any more. Unread state left
+ * the interface with the simple inbox on 19 Nov 2026 and its code went with
+ * it. The table and its rows are kept on purpose, as with ticket_stars above.
  */
 export const ticketReads = pgTable(
   "ticket_reads",

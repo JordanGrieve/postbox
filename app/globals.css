@@ -191,13 +191,6 @@
    */
   color-scheme: light;
   /*
-   * How light a user-picked label chip is. The HUE comes from their colour;
-   * these two decide the rest, which is what stops any pick being unreadable.
-   * See the data-custom rules in app/mail.css.
-   */
-  --label-bg-l: 0.93;
-  --label-fg-l: 0.33;
-  /*
    * ── MONOCHROME, FROM 11 NOVEMBER 2026 ──
    *
    * Jordan, 11 Nov: "the purple needs to go … should be black and white
@@ -539,8 +532,6 @@
   --accent-grad: linear-gradient(#8fd4ac, #8fd4ac);
   --hero-grad: linear-gradient(#262626, #262626);
   --pro-shadow: rgba(0, 0, 0, 0.4);
-  --label-bg-l: 0.30;
-  --label-fg-l: 0.9;
   --page-grad: linear-gradient(#0a0a0a, #0a0a0a);
   --screen-grad: linear-gradient(#0a0a0a, #0a0a0a);
   --surface: #171717;
@@ -654,8 +645,6 @@
     --accent-grad: linear-gradient(#8fd4ac, #8fd4ac);
     --hero-grad: linear-gradient(#262626, #262626);
     --pro-shadow: rgba(0, 0, 0, 0.4);
-    --label-bg-l: 0.30;
-    --label-fg-l: 0.9;
     --page-grad: linear-gradient(#0a0a0a, #0a0a0a);
     --screen-grad: linear-gradient(#0a0a0a, #0a0a0a);
     --surface: #171717;
@@ -829,7 +818,6 @@ body {
   html .pbl-link {
     min-height: 44px;
   }
-  html .pbm-nav-manage,
   html .stg-link {
     display: inline-flex;
     align-items: center;
@@ -845,36 +833,14 @@ body {
   html .pbn-del {
     min-width: 44px;
   }
-  html .pbm-label-pick {
-    width: 44px;
-    height: 44px;
-  }
   html .pba-root summary {
     display: flex;
     align-items: center;
     min-height: 44px;
   }
-  /* Its 44px hit circle must sit above the neighbouring chip, or the pointer
-     lands on the chip's text instead. */
-  html .pbm-label-x {
-    position: relative;
-    z-index: 1;
-  }
-  html .pbm-icon-btn,
-  html .pbm-card-star {
+  html .pbm-icon-btn {
     width: 44px;
     height: 44px;
-  }
-  /* Only the PICKER's swatches are targets. The bare class is also the 12px
-     dot in front of a label's row in the drawer, and this rule un-suffixed
-     drew that dot 44px wide — "labels are way too big" (Jordan, 9 Sep 2026). */
-  html .pbm-label-swatch--pick {
-    width: 44px;
-    height: 44px;
-  }
-  /* The remove cross on a label chip: 14px drawn, 44px hit. */
-  html .pbm-label-x::after {
-    inset: -15px;
   }
   /*
     The switch keeps its 48x28 drawing — a 44px-tall toggle looks like a
@@ -1172,7 +1138,6 @@ summary:focus-visible,
 */
 .pba-list-sub,
 .pba-cell-sub,
-.pbm-card-subject,
 .pbm-thread-email,
 .pbm-transcript-note,
 .pbm-bubble-foot,

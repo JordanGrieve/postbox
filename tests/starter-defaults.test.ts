@@ -7,17 +7,6 @@ import {
   buildCampaignMergeValues,
 } from "../lib/newsletter";
 import { CAMPAIGN_TEMPLATES } from "../lib/campaign-templates";
-import { STARTER_LABELS } from "../lib/starter-labels";
-import type { LabelColor } from "../db/schema";
-
-/*
- * lib/labels.ts owns isLabelColor but is `server-only` — it imports the
- * database, which throws at import time with no DATABASE_URL, which is the
- * whole reason CI cannot reach it. So the tokens are restated here and TYPED,
- * which is what does the work: remove or rename one in db/schema.ts and this
- * line stops compiling.
- */
-const VALID_COLORS: LabelColor[] = ["tag_a", "tag_b", "tag_c"];
 
 /**
  * Pre-written defaults where a blank field used to be (onboarding research,
@@ -115,30 +104,5 @@ describe("spotting placeholders somebody forgot", () => {
   it("ignores empty and unclosed brackets", () => {
     expect(unfilledSlots("[]")).toEqual([]);
     expect(unfilledSlots("a [ b")).toEqual([]);
-  });
-});
-
-describe("the starter label set", () => {
-  it("offers a usable number of them", () => {
-    // Long enough to be a filing system, short enough to read in one go.
-    expect(STARTER_LABELS.length).toBeGreaterThanOrEqual(3);
-    expect(STARTER_LABELS.length).toBeLessThanOrEqual(6);
-  });
-
-  it("carries colours the API will accept", () => {
-    // These are POSTed straight to /api/labels, which rejects an unknown one
-    // with a 400 — so a bad token here would be a button that simply fails.
-    for (const label of STARTER_LABELS) {
-      expect(VALID_COLORS).toContain(label.color);
-      expect(label.name.trim()).toBe(label.name);
-      expect(label.name.length).toBeGreaterThan(0);
-    }
-  });
-
-  it("has no duplicate names", () => {
-    // (workspace_id, name) is unique, so a duplicate here would make the
-    // button silently create fewer labels than it shows.
-    const names = STARTER_LABELS.map((l) => l.name.toLowerCase());
-    expect(new Set(names).size).toBe(names.length);
   });
 });

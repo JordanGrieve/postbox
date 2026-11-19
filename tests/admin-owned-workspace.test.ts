@@ -20,7 +20,6 @@ vi.mock("@/db", () => ({ db: {} }));
 vi.mock("next/headers", () => ({ headers: vi.fn() }));
 vi.mock("@clerk/nextjs/server", () => ({ auth: vi.fn(), currentUser: vi.fn() }));
 vi.mock("@/lib/rate-limit-store", () => ({ rateLimitDurable: vi.fn() }));
-vi.mock("@/lib/labels", () => ({ seedStarterLabels: vi.fn() }));
 
 const { ownerClerkId, INVITE_PREFIX } = await import("@/lib/workspace");
 

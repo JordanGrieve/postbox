@@ -1,81 +1,15 @@
 import "server-only";
-import { and, eq, isNotNull, isNull, sql } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 import { db } from "@/db";
-import { tickets } from "@/db/schema";
 import { TRASH_RETENTION_DAYS } from "./trash";
 
 /**
  * Trash: the IO half. The rules live in lib/trash.ts.
  *
- * ── TENANCY ──
- * Every statement here carries the workspace predicate INSIDE the mutating
- * statement, never a read-then-write. A ticket id arrives from a request; a
- * check performed beforehand can be invalidated between the check and the
- * write, and on a delete that means deleting somebody else's mail.
- *
- * The purge is the exception and says why at its own comment: it is a
- * platform-wide sweep with no caller-supplied workspace.
+ * Only the purge is left (19 Nov 2026). Moving a ticket to the trash and
+ * restoring it went with the trash interface; this sweep still runs so
+ * tickets trashed before then are destroyed on schedule.
  */
-
-/**
- * Move a ticket to the trash.
- *
- * Idempotent by `deleted_at IS NULL`: deleting an already-deleted ticket is a
- * no-op rather than resetting its 30-day clock. Without that, a double-click —
- * or a second tab — would silently buy the ticket another month, which is the
- * opposite of what the person pressing delete intends.
- *
- * Returns false when nothing matched: wrong workspace, no such ticket, or it
- * was already in the trash. The caller cannot tell those apart, and should not
- * — distinguishing them for an id supplied by a request is an oracle for
- * whether another tenant's ticket exists.
- */
-export async function moveTicketToTrash(input: {
-  workspaceId: number;
-  ticketId: number;
-  /** Email snapshot of whoever pressed delete. See tickets.deletedBy. */
-  deletedBy: string;
-}): Promise<boolean> {
-  const res = await db
-    .update(tickets)
-    .set({ deletedAt: sql`now()`, deletedBy: input.deletedBy })
-    .where(
-      and(
-        eq(tickets.id, input.ticketId),
-        eq(tickets.workspaceId, input.workspaceId),
-        isNull(tickets.deletedAt),
-      ),
-    )
-    .returning({ id: tickets.id });
-
-  return res.length > 0;
-}
-
-/**
- * Take a ticket back out of the trash.
- *
- * `deletedBy` is cleared too. Keeping it would leave a restored ticket
- * carrying a stale "deleted by Emma" that no screen shows and the next reader
- * of the row would have to work out was historical.
- */
-export async function restoreTicketFromTrash(input: {
-  workspaceId: number;
-  ticketId: number;
-}): Promise<boolean> {
-  const res = await db
-    .update(tickets)
-    .set({ deletedAt: null, deletedBy: null })
-    .where(
-      and(
-        eq(tickets.id, input.ticketId),
-        eq(tickets.workspaceId, input.workspaceId),
-        isNotNull(tickets.deletedAt),
-      ),
-    )
-    .returning({ id: tickets.id });
-
-  return res.length > 0;
-}
 
 /**
  * Permanently destroy tickets whose 30 days are up.

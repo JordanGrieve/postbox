@@ -32,7 +32,7 @@ const read = (p: string) => readFileSync(join(ROOT, p), "utf8");
  * Tables no application code touches yet. The reason belongs beside the table
  * in db/schema.ts, not here — this list is the assertion, that is the record.
  */
-const DECLARED_UNUSED = ["attachments", "sendingDomains"];
+const DECLARED_UNUSED = ["attachments", "sendingDomains", "ticketStars", "ticketReads"];
 
 /**
  * Files that may legitimately NAME a table without using it.

@@ -26,18 +26,9 @@ vi.mock("../app/(dashboard)/queries", async (orig) => ({
 }));
 
 const counts = {
-  all: 60,
-  unread: 0,
-  awaiting: 0,
   inbox: 50,
   closed: 10,
-  starred: 0,
-  labeled: 0,
-  sent: 0,
-  archived: 0,
-  snoozed: 0,
-  trash: 0,
-};
+} satisfies Awaited<ReturnType<typeof import("../app/(dashboard)/queries").mailCounts>>;
 
 beforeEach(() => {
   h.listMailPage.mockClear();

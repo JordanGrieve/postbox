@@ -35,15 +35,9 @@ const row = {
   subject: "Website contact form",
   preview: "Hope you are well. We're still only getting the one sourdough",
   time: "2h",
-  sentTime: null,
-  sentPreview: "",
   source: "contact_form",
   status: "open",
   orderId: null,
-  awaitingReply: true,
-  unread: true,
-  starred: true,
-  labels: [{ id: 1, name: "Wholesale", color: "tag_a", colorHex: null }],
 } satisfies MailRow;
 
 describe("the list", () => {
@@ -71,7 +65,6 @@ describe("the list", () => {
     expect(card.textContent).toContain("still only getting the one sourdough");
     expect(card.textContent).toContain("from contact form");
     expect(container.querySelector(".pbm-card-star, .pbm-label, .pbm-dot, .pbm-tag")).toBeNull();
-    expect(container.textContent).not.toContain("Wholesale");
     // The Done tab is carried into the conversation link, so Back returns there.
     expect(card.getAttribute("href")).toBe("/tickets/7?page=1");
   });
@@ -87,10 +80,17 @@ describe("the list", () => {
     // Archive and snooze cannot be undone from the interface any more, so the
     // inbox must not keep excluding them — in its list or its count.
     const q = read("app/(dashboard)/queries.ts");
-    expect(q).toMatch(/const WORKING_FOLDERS: MailFolder\[\] = \["unread", "awaiting"\];/);
+    // Code only: the reason is told in a comment that names both columns.
+    const code = q.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
+    expect(code, "the inbox reads archived or snoozed state again").not.toMatch(
+      /archivedAt|snoozedUntil|archived_at|snoozed_until/,
+    );
     const inboxCount = q.match(/\n\s*inbox: sql<number>`([^`]*)`/)?.[1] ?? "";
     expect(inboxCount, "no inbox count found").toContain("notClosed");
-    expect(inboxCount).not.toMatch(/notArchived|notSnoozed/);
+    expect(inboxCount).toContain("notDeleted");
+    // The list reads the same predicate as the count.
+    const where = q.match(/function viewWhere[\s\S]*?\n\}/)?.[0] ?? "";
+    expect(where, "no viewWhere found").toContain("notClosed");
   });
 });
 

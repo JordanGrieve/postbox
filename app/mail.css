@@ -48,30 +48,10 @@
 .pbm-folder:focus-visible {
   border-radius: 18px;
 }
-.pbm-label-add:focus-visible {
-  border-radius: 12px;
-}
-.pbm-nav-manage:focus-visible {
-  border-radius: 50%;
-}
 .pbm-icon-btn:focus-visible,
 .pbm-send:focus-visible,
 .pbm-btn:focus-visible {
   border-radius: 13px;
-}
-.pbm-card-star:focus-visible,
-.pbm-label-icon:focus-visible {
-  border-radius: 10px;
-}
-.pbm-label-x:focus-visible {
-  border-radius: 50%;
-}
-.pbm-label-swatch--pick:focus-visible,
-.pbm-label-pick:focus-visible {
-  border-radius: 10px;
-}
-.pbm-label-input:focus-visible {
-  border-radius: 10px;
 }
 .pbm-composer-input:focus-visible {
   border-radius: 12px;
@@ -301,32 +281,6 @@
 
 /* A folder the schema cannot answer. Genuinely disabled, never a dead link,
    and carrying no count — a "0" would read as a fact we do not have. */
-
-.pbm-nav-divider {
-  height: 1px;
-  flex: none;
-  background: var(--pbm-nav-line);
-  margin: 14px 6px;
-}
-.pbm-nav-heading {
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  color: var(--nav-muted, #a3a3a3);
-  /*
-    No opacity knock-back. It was `opacity: 0.75`, which cost this 11px
-    heading a different amount in each theme: fading LIGHT ink toward a dark
-    ground barely moves it (7.29:1, scraping AAA), while fading DARK ink
-    toward a pale one collapses it — 4.28:1 in the light nav, under AA, on
-    11px 800-weight text. The trick only ever worked because the column was
-    dark in every theme.
-
-    --nav-muted is already the quiet ink, measured on this exact ground:
-    8.24:1 light, 12.13:1 dark.
-  */
-  padding: 0 14px 7px;
-}
 .pbm-nav-spacer {
   flex: 1 1 auto;
   min-height: 16px;
@@ -476,13 +430,6 @@
      everywhere … it's not good". The border sets it apart. */
   box-shadow: none;
 }
-.pbm-menu--status {
-  top: calc(100% + 6px);
-  bottom: auto;
-  left: 0;
-  right: auto;
-  width: 180px;
-}
 .pbm-menu-item {
   display: flex;
   align-items: center;
@@ -507,10 +454,6 @@
 }
 .pbm-menu-item--danger {
   color: var(--pdf-fg);
-}
-.pbm-menu-check {
-  margin-left: auto;
-  color: var(--accent-text);
 }
 
 /* ───────────────────────────── list pane ───────────────────────── */
@@ -560,12 +503,6 @@
      makes the whole bar the tap target, with no visual change: the background
      and border belong to .pbm-search, and this is transparent. */
   align-self: stretch;
-}
-
-/* The phone's folder strip. Hidden here: above 768px the navigation column
-   lists every folder already. The phone block below shows it. */
-.pbm-folder-strip {
-  display: none;
 }
 
 .pbm-list-meta {
@@ -660,19 +597,6 @@
   justify-content: space-between;
   gap: 8px;
 }
-.pbm-card-who {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-.pbm-dot {
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--accent);
-}
 .pbm-card-name {
   font-size: 0.84375rem;
   font-weight: 700;
@@ -686,15 +610,6 @@
   font-size: 0.6875rem;
   font-weight: 600;
   color: var(--muted);
-}
-.pbm-card-subject {
-  font-size: 0.78125rem;
-  font-weight: 600;
-  color: var(--text-3);
-  margin-top: 2px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 .pbm-card-preview {
   font-size: 0.75rem;
@@ -720,15 +635,6 @@
   font-size: 0.75rem;
   font-weight: 600;
   color: var(--muted-2);
-}
-.pbm-card-chips {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-top: 8px;
-  flex-wrap: wrap;
-  /* Clears the star, which floats over the card's bottom-right corner. */
-  padding-right: 30px;
 }
 .pbm-tag {
   font-size: 0.6875rem;
@@ -1044,7 +950,7 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
 
   The bottom padding goes from 6px to 14px with it. A rule 6px under a row of
   chips whose interactive ones carry 44px hit areas — 6px of invisible target
-  above and below a 32px chip (see .pbm-subject-chips) — would have the line
+  above and below a 32px chip (the chips row, since removed) — would have the line
   drawn straight through the bottom of those targets.
 */
 .pbm-thread-subject {
@@ -1059,95 +965,8 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   color: var(--text);
   text-wrap: pretty;
 }
-/*
-  ── ONE ROW OF CHIPS, ALL THE SAME SIZE ──
-  The message count, the status, the source, the labels and "+ Label" are one
-  flex row (the label picker renders `display: contents` into it — see
-  .pbm-labels). They used to be two rows in three sizes: 21px static chips,
-  a 44px status button, 22px labels on a second line 24px below. Jordan on
-  9 Sep 2026: "this is not nice to look at, should be 1 line and same sizes".
-
-  Every chip is 32px tall (--chip-h), 0.75rem, radius 10. The INTERACTIVE
-  ones — status, "+ Label", each label's remove cross — grow a 44px hit area
-  with a pseudo-element rather than a 44px box, so the row stays a row. The
-  vertical gap is 12px because 32 + 12 = 44: a wrapped second row's hit areas
-  start exactly where the first row's end and never overlap.
-*/
-.pbm-subject-chips {
-  --chip-h: 32px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px 8px;
-  margin-top: 10px;
-  flex-wrap: wrap;
-}
-.pbm-chip-static {
-  display: inline-flex;
-  align-items: center;
-  height: var(--chip-h, 32px);
-  padding: 0 12px;
-  border-radius: 10px;
-  font-size: 0.75rem;
-  font-weight: 700;
-  background: var(--accent-chip);
-  color: var(--accent-text);
-}
-/* The label chips, sized to match their neighbours only on this row. On an
-   inbox card (.pbm-label--sm) they keep their own size. */
-.pbm-subject-chips .pbm-label {
-  height: var(--chip-h, 32px);
-  padding: 0 10px 0 12px;
-  border-radius: 10px;
-  font-size: 0.75rem;
-  gap: 6px;
-}
-.pbm-subject-chips .pbm-label-x {
-  width: 16px;
-  height: 16px;
-}
-/* 16 + 28 = 44: the square reaches 6px past the chip top and bottom, which
-   is half of the row's 12px gap, so two rows of crosses meet and do not
-   overlap. Outranks the un-scoped -15px in globals.css by specificity. */
-.pbm-subject-chips .pbm-label-x::after {
-  inset: -14px;
-}
-.pbm-chip-static--src {
-  background: var(--surface-3);
-  color: var(--text-4);
-}
-
-.pbm-status {
-  position: relative;
-}
-.pbm-status-btn {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  height: var(--chip-h, 32px);
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface);
-  font-size: 0.75rem;
-  font-weight: 700;
-  cursor: pointer;
-}
 /* 32px drawn, 44px hit: the pseudo-element adds 6px above and below, which
    the row's 12px vertical gap is sized to leave room for. */
-.pbm-status-btn::before,
-.pbm-label-add::before {
-  content: "";
-  position: absolute;
-  inset: -6px 0;
-}
-.pbm-status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  flex: none;
-}
 
 .pbm-transcript {
   flex: 1;
@@ -1519,11 +1338,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   border-style: dashed;
   background: transparent;
 }
-.pbm-rail-name {
-  font-size: 0.8125rem;
-  font-weight: 800;
-  color: var(--text);
-}
 .pbm-rail-label {
   font-size: 0.6875rem;
   font-weight: 700;
@@ -1543,53 +1357,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   line-height: 1.5;
   color: var(--muted);
   margin-top: 3px;
-}
-.pbm-rail-sections {
-  display: flex;
-  flex-direction: column;
-  margin-top: 4px;
-}
-.pbm-rail-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  width: 100%;
-  padding: 13px 2px;
-  border: none;
-  border-bottom: 1px solid var(--border);
-  background: transparent;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  /*
-    Quiet by ink, not by fading the whole row.
-
-    It was `color: var(--text)` at `opacity: 0.45`, which measured 4.05:1 in
-    dark and 2.75:1 in light — the same asymmetry that caught the LABELS
-    heading, because fading dark ink toward a pale ground loses far more than
-    fading light ink toward a dark one.
-
-    WCAG 1.4.3 exempts an inactive control and this one is genuinely disabled,
-    so it was not a violation. It was just hard to read, and this row is not
-    decoration: it is the product telling somebody that shared files are
-    coming. --muted says "not now" perfectly well at 7.77:1 in light and
-    9.42:1 in dark, and the "soon" badge, the not-allowed cursor and the
-    `disabled` attribute all still say it is not a thing you can press.
-  */
-  color: var(--muted);
-  text-align: left;
-  cursor: not-allowed;
-}
-.pbm-rail-soon {
-  /* Was 9.5px, the smallest type in the codebase. */
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
-  padding: 3px 7px;
-  border-radius: 7px;
-  border: 1px dashed var(--border-strong);
 }
 
 /* ───────────────────────────── labels ──────────────────────────── */
@@ -1613,20 +1380,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   background: var(--tag-c-bg);
   color: var(--tag-c-fg);
 }
-/* Dots and swatches: the ink alone, since there is no text to sit on it. */
-.pbm-label-swatch {
-  background: var(--tag-a-fg);
-  color: var(--tag-a-fg);
-}
-.pbm-label-swatch[data-color="tag_b"] {
-  background: var(--tag-b-fg);
-  color: var(--tag-b-fg);
-}
-.pbm-label-swatch[data-color="tag_c"] {
-  background: var(--tag-c-fg);
-  color: var(--tag-c-fg);
-}
-
 .pbm-label {
   display: inline-flex;
   align-items: center;
@@ -1638,575 +1391,11 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   font-size: 0.6875rem;
   font-weight: 700;
 }
-.pbm-label--sm {
-  font-size: 0.6875rem;
-  padding: 3px 7px;
-}
 .pbm-label-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-/*
-  Remove this label from the ticket.
-
-  ── A 14px TARGET FOR A DESTRUCTIVE ACTION ──
-  The visible cross has to stay 14px: it lives inside a label chip, and a
-  24px one would inflate every chip on the thread. So the HIT AREA is grown
-  instead, with a pseudo-element centred on the cross — 24px square, invisible,
-  and outside the layout, so nothing moves.
-
-  This cleared WCAG 2.5.8 before the change, but only through the spacing
-  exception: with four labels on a ticket the crosses sit far enough apart that
-  a 24px circle on each centre catches no other target. Passing on a
-  technicality is a poor argument for a control that throws work away, and the
-  chips are the smallest things on the busiest screen.
-*/
-.pbm-label-x {
-  position: relative;
-  width: 14px;
-  height: 14px;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 50%;
-  background: transparent;
-  color: inherit;
-  opacity: 0.6;
-  cursor: pointer;
-}
-.pbm-label-x::after {
-  content: "";
-  position: absolute;
-  /* -15px each side takes the 14px cross to a 44px hit SQUARE (2.5.5), at
-     every width — it was -5px here and -15px only on a phone, and it was a
-     circle: a 44px circle's corners fall 8px short of a 44x44 target, which
-     is exactly where the sweep's corner points landed on the row above. */
-  inset: -15px;
-}
-.pbm-label-x:hover {
-  opacity: 1;
-}
-
-/* The dot in front of a label's nav row, and the picker's colour swatches. */
-.pbm-label-swatch {
-  width: 12px;
-  height: 12px;
-  flex: none;
-  border-radius: 50%;
-  border: none;
-  padding: 0;
-}
-/*
-  A colour you can pick is a BUTTON, and buttons here are rounded squares.
-  The dot in front of a label's name stays round: it is a mark, not a
-  control. Jordan, 17 Nov 2026: "we have no circle buttons anywhere else,
-  make these more on theme".
-*/
-.pbm-label-swatch--pick {
-  border-radius: 10px;
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 2px var(--border);
-}
-.pbm-label-swatch--pick[data-on] {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px currentColor;
-}
-
-/*
-  Colour picking on a phone.
-
-  The swatches are 18px dots 8px apart, which is fine for a mouse and close to
-  unusable with a thumb — reported as "I can't do this on the labels on
-  mobile". 18px is under the 24px WCAG 2.5.8 floor, and the obvious repair of
-  padding the hit area is worse than the problem: at an 8px gap each target
-  would have to grow 5px a side to reach 28px, and adjacent hit areas would
-  then overlap by 2px, so a near miss selects the wrong colour silently.
-
-  So they get their own line instead of a bigger box in the same space. `order`
-  moves them after the rename and delete buttons, which are already comfortable
-  at 28px, leaving the whole row width for four targets that can be 26px with
-  12px between them. Nothing is faked and nothing overlaps.
-*/
-@media (max-width: 768px) {
-  .pbm-label-row .pbm-swatches {
-    order: 1;
-    flex-basis: 100%;
-    margin-left: 0;
-    gap: 12px;
-    padding-top: 2px;
-  }
-  .pbm-label-swatch--pick {
-    width: 26px;
-    height: 26px;
-  }
-  /*
-    Only while editing. With the swatches on every row a label was 113px
-    tall and a 375px phone showed three; the row is 56px now and the sheet
-    shows all of them. The pencil opens the row (data-editing) and the
-    colours appear with the name field. The new-label row keeps its swatches,
-    because choosing a colour is part of creating one.
-  */
-  .pbm-label-row:not([data-editing]):not(.pbm-label-row--new) .pbm-swatches {
-    display: none;
-  }
-  .pbm-label-row .pbm-label-icon:first-of-type {
-    margin-left: auto;
-  }
-}
-
-/* The label row under a thread's subject. */
-/*
-  The label picker is not a row of its own any more: `display: contents`
-  hands its chips and its "+ Label" button to the parent .pbm-subject-chips
-  row, so the labels sit beside the status and source chips at the same
-  size. The picker's menu anchors to that row instead — .pbm-subject-chips is
-  the positioned ancestor now, and an element with display: contents cannot
-  be one.
-*/
-.pbm-labels {
-  display: contents;
-}
-/* "+ Label" and its menu: the box the menu hangs from (LabelPicker.tsx). */
-.pbm-label-anchor {
-  position: relative;
-  display: inline-flex;
-  flex: none;
-}
-.pbm-label-add {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  flex: none;
-  height: var(--chip-h, 32px);
-  padding: 0 12px;
-  border: 1px dashed var(--border-strong);
-  border-radius: 10px;
-  background: transparent;
-  color: var(--muted-2);
-  font-size: 0.75rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: color 0.16s ease, border-color 0.16s ease;
-}
-.pbm-label-add:hover {
-  color: var(--accent-text);
-  border-color: var(--accent-text);
-}
-
-.pbm-menu--labels {
-  top: calc(100% + 6px);
-  bottom: auto;
-  left: 0;
-  right: auto;
-  /* 272, up from 232, for the fourth colour (the custom one) beside Add. */
-  width: 272px;
-  max-height: 320px;
-  overflow-y: auto;
-}
-.pbm-menu-text {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.pbm-menu-divider {
-  height: 1px;
-  background: var(--border);
-  margin: 6px 4px;
-}
-.pbm-menu-note {
-  font-size: 0.6875rem;
-  line-height: 1.5;
-  color: var(--muted-2);
-  padding: 6px 10px;
-}
-.pbm-menu-note--error {
-  color: var(--pdf-fg);
-  font-weight: 700;
-}
-
-.pbm-label-new {
-  padding: 2px 4px 4px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.pbm-label-input {
-  width: 100%;
-  min-width: 0;
-  flex: 1;
-  /*
-   * 36px tall with 12px of side padding, up from 32 and 10.
-   *
-   * It sits in a row beside three 22px colour swatches and an Add button, and
-   * at 32/10 the placeholder sat tight against the border while the controls
-   * next to it had room — the field looked like the cramped one in a row of
-   * comfortable ones. 36px also matches the swatch row height, so the whole
-   * line shares one baseline instead of three.
-   */
-  height: 44px;
-  padding: 0 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--surface-2);
-  font-family: inherit;
-  font-size: 0.78125rem;
-  color: var(--text);
-}
-.pbm-swatches {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: none;
-}
-
-/*
-  ── THE NEW-LABEL ROW IN THE THREAD'S LABEL MENU ──
-  Jordan, 17 Nov 2026: "this looks horrible, the buttons are too big, the
-  input field is not like the rest of ours". Two causes:
-
-  - The field. .pbm-label-new is a COLUMN, and .pbm-label-input carries
-    flex: 1 for the Labels settings page, where it sits in a row. In a column
-    that is flex-basis 0, which beat its 44px height and squashed it to a
-    ~20px pill. flex: none here gives it its height back, and the rest is the
-    product's standard field (.stg-input): --surface-2, 1px --border, radius
-    10, 12px across.
-  - The colour dots. The touch floor in globals.css draws every
-    .pbm-label-swatch--pick at 44px, so three 44px discs crowded the Add
-    button. Here they are DRAWN at 24px and keep a 44px hit area with an
-    invisible square ::after (STYLE-GUIDE section 4). 20px between them keeps
-    the squares from overlapping (24 + 20 = 44), so a near miss never picks
-    the neighbouring colour. Scoped to this menu with two classes, so it
-    beats the floor's html-plus-one-class without touching the settings
-    page's swatches.
-*/
-.pbm-label-new .pbm-label-input {
-  flex: none;
-  font-size: 0.8125rem;
-}
-.pbm-label-new .pbm-swatches {
-  gap: 20px;
-  /* The first dot's hit square reaches 10px left of it. */
-  padding-left: 10px;
-}
-.pbm-label-new .pbm-label-swatch--pick {
-  position: relative;
-  width: 24px;
-  height: 24px;
-  border-radius: 6px;
-}
-.pbm-label-new .pbm-label-swatch--pick::after {
-  content: "";
-  position: absolute;
-  inset: -10px;
-}
-/* The colours and Add on one line. */
-.pbm-label-new-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-/*
-  "Any colour", added to the menu 17 Nov 2026 ("add the custom one here
-  too"). It is a native <input type="color">, which cannot carry an ::after,
-  so its 44px target is its own box: 10px of padding around a 24px drawing
-  that matches the presets. The ring goes on the drawn swatch, not the box,
-  so all four ring the same size. -10px of margin puts the drawing 20px from
-  the last preset, the same as the presets are from each other, and leaves
-  their hit squares touching, not overlapping.
-*/
-.pbm-label-new .pbm-label-pick {
-  width: 44px;
-  height: 44px;
-  padding: 10px;
-  margin-left: -10px;
-  border: none;
-  overflow: visible;
-}
-.pbm-label-new .pbm-label-pick[data-on] {
-  box-shadow: none;
-}
-.pbm-label-new .pbm-label-pick::-webkit-color-swatch {
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px var(--border-strong);
-}
-.pbm-label-new .pbm-label-pick::-moz-color-swatch {
-  border-radius: 6px;
-  box-shadow: inset 0 0 0 1px var(--border-strong);
-}
-.pbm-label-new .pbm-label-pick[data-on]::-webkit-color-swatch {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent-text);
-}
-.pbm-label-new .pbm-label-pick[data-on]::-moz-color-swatch {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent-text);
-}
-/*
-  Placement only. The button itself is the shared .stg-button (globals.css)
-  since 17 Nov 2026; this class just pushes it to the end of its row.
-*/
-.pbm-label-create {
-  margin-left: auto;
-  flex: none;
-  gap: 5px;
-}
-
-/* ── labels in the nav ── */
-
-.pbm-nav-heading-row {
-  display: flex;
-  /* Centre, not baseline: the round "+" has no text to share a baseline. */
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding-right: 8px;
-}
-/*
-  Manage labels: a round "+" (Jordan, 17 Nov 2026: "this manage should just be
-  a + that is circular"). The one round button in the product, by request;
-  everything else is a rounded rectangle. 44px for 2.5.5, the size the touch
-  floor in globals.css already gave the word "Manage". Hover is the nav's own
-  active pair, the way a selected folder row looks.
-*/
-.pbm-nav-manage {
-  flex: none;
-  width: var(--tap-min, 44px);
-  height: var(--tap-min, 44px);
-  justify-content: center;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: var(--pbm-nav-line);
-  color: var(--nav-fg);
-  cursor: pointer;
-  transition: background 160ms ease, color 160ms ease;
-}
-.pbm-nav-manage:hover {
-  background: var(--nav-active-bg);
-  color: var(--nav-active-fg);
-}
-
-/* ── the label manager ──
-   In the nav it is the shared modal (components/Modal.tsx) since 17 Nov 2026;
-   the scrim, centring and phone-sheet rules it had are gone with the
-   home-made overlay. .pbm-modal is now only the Settings → Labels panel
-   (pbm-modal--inline, below). */
-
-.pbm-modal {
-  display: flex;
-  flex-direction: column;
-  border-radius: 22px;
-  border: 1px solid var(--border);
-  background: var(--surface);
-}
-/* Inside the shared modal the body neither scrolls nor pads: the modal's
-   own inner box does both. */
-.pb-modal .pbm-modal-body {
-  padding: 0;
-  overflow: visible;
-}
-.pbm-modal-body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 12px 18px 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.pbm-modal-note {
-  font-size: 0.75rem;
-  line-height: 1.55;
-  color: var(--muted-2);
-}
-.pbm-modal-note--error {
-  color: var(--pdf-fg);
-  font-weight: 700;
-}
-
-.pbm-label-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 10px 2px;
-  border-bottom: 1px solid var(--border);
-}
-.pbm-label-row--new {
-  border-bottom: none;
-  border-top: 1px dashed var(--border-strong);
-  margin-top: 6px;
-  padding-top: 14px;
-}
-.pbm-label-count {
-  font-size: 0.6875rem;
-  font-weight: 600;
-  color: var(--muted);
-}
-.pbm-label-icon {
-  /* 36px drawn, 44px hit: the pseudo-element below adds 4px a side. The
-     row has 10px of padding above and below, so neighbouring rows' hit
-     areas do not meet. */
-  position: relative;
-  width: 36px;
-  height: 36px;
-  flex: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 10px;
-  background: var(--surface-3);
-  color: var(--text-3);
-  cursor: pointer;
-}
-.pbm-label-icon::after {
-  content: "";
-  position: absolute;
-  inset: -4px;
-}
-.pbm-label-icon:hover {
-  color: var(--accent-text);
-}
-.pbm-label-icon--danger:hover {
-  color: var(--pdf-fg);
-}
-/* Push the two icon buttons to the right of whatever is before them. */
-.pbm-label-row .pbm-swatches {
-  margin-left: auto;
-}
-
-/* ── delete confirmation, in the row ──
-   Replaces window.confirm. The row it belongs to turns into the question, so
-   the consequence sits on the thing it applies to. Every colour is a token:
-   --pdf-bg/--pdf-fg are the danger pair, defined in both themes. */
-.pbm-confirm {
-  flex: 1 1 100%;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 10px;
-  padding: 4px 2px;
-}
-.pbm-confirm-q {
-  flex: 1 1 200px;
-  margin: 0;
-  font-size: 0.75rem;
-  line-height: 1.55;
-  font-weight: 600;
-  color: var(--text-2);
-}
-.pbm-confirm-acts {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex: none;
-}
-/* Cancel and Delete are the shared .stg-button--secondary and
-   .stg-button--danger (globals.css) since 17 Nov 2026. */
-
-/* ───────────────────────────── stars ───────────────────────────── */
-
-/*
-  The card is a link and the star is a button, so they cannot nest. The wrapper
-  is the positioning context; the star floats over the card's bottom-right
-  corner, which is why .pbm-card-chips reserves room for it.
-*/
-.pbm-card-wrap {
-  position: relative;
-  flex: none;
-}
-
-/*
-  ── SWIPE TO REVEAL ARCHIVE / DELETE ──
-  components/mail/SwipeRow.tsx. The front slides; the actions wait behind it.
-
-  Above 768px there is no gesture and the actions are not rendered visible at
-  all — the thread header has both buttons and a mouse has no swipe.
-*/
-.pbm-swipe {
-  position: relative;
-  flex: none;
-}
-.pbm-swipe-actions {
-  display: none;
-}
-/*
-  Type on the base rule, not only the phone rule: a <button> does not inherit
-  font-size, so above 768px the (hidden) labels sat on the UA's 13.33px and
-  the 200% zoom probe reported them as text that could not be enlarged.
-*/
-.pbm-swipe-btn {
-  font-size: 0.6875rem;
-  font-weight: 800;
-  letter-spacing: 0.02em;
-}
-.pbm-swipe-front {
-  position: relative;
-  z-index: 1;
-}
-.pbm-card-star {
-  position: absolute;
-  right: 12px;
-  bottom: 12px;
-  z-index: 2;
-  width: 26px;
-  height: 26px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 10px;
-  background: transparent;
-  color: var(--muted);
-  cursor: pointer;
-  opacity: 0.45;
-  transition: opacity 0.16s ease, color 0.16s ease;
-}
-.pbm-card-wrap:hover .pbm-card-star,
-.pbm-card-star:focus-visible {
-  opacity: 1;
-}
-/* A star that is on is a fact, not a hover affordance — always at full
-   strength, and in the accent so it reads at 15px. */
-.pbm-card-star[data-star="on"],
-.pbm-card-wrap:hover .pbm-card-star[data-star="on"] {
-  opacity: 1;
-  color: var(--accent-text);
-}
-.pbm-card-star:disabled {
-  display: none;
-}
-.pbm-icon-btn[data-star="on"] {
-  color: var(--accent-text);
-}
-
-/* ───────────────────────────── unread ──────────────────────────── */
-
-/*
-  Two different signals, deliberately not merged:
-    the dot + weight  = unread by ME (personal, cleared by opening the thread)
-    the "Awaiting" chip = nobody has answered the customer (shared, cleared by
-                          replying)
-  A ticket can carry either without the other.
-*/
-.pbm-card[data-unread] .pbm-card-name {
-  font-weight: 800;
-}
-.pbm-card[data-unread] .pbm-card-subject {
-  color: var(--text);
-  font-weight: 700;
-}
-.pbm-tag--awaiting {
-  background: var(--accent-soft);
-  color: var(--accent-text);
 }
 
 /* ───────────────────────────── mobile chrome ───────────────────── */
@@ -2391,64 +1580,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   .pbm-search-input {
     font-size: 0.875rem;
   }
-  /*
-    ── FOLDERS UNDER THE SEARCH BOX ──
-    On a phone the strip under the search box is every folder
-    (components/mail/MessageList.tsx, MOBILE_FOLDERS), because the column
-    that lists them is a drawer two taps away. 44px tall for 2.5.5. It scrolls
-    sideways rather than wrapping: eleven folders wrapped would push the
-    first card below the fold.
-  */
-  /*
-    .pbm-folder-strip, NOT .pbm-folders. The strip shipped under the drawer's
-    class name on 8 Sep 2026, and this block turned every folder group in the
-    drawer into a clipped horizontal row: the burger opened on "Awaiting
-    reply" and nothing else. One class per component, however similar.
-
-    It bleeds to both screen edges. The list head has 18px of side padding,
-    and a strip that stopped at that padding looked like a row that ended —
-    Jordan: "this carousel has to go off the screen, as you can see it
-    stops". Negative margins take it to the edges and the same padding inside
-    puts the first chip back in line with the search box.
-  */
-  .pbm-folder-strip {
-    display: flex;
-    flex-direction: row;
-    gap: 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    margin: 0 -18px;
-    padding: 2px 18px 6px;
-    scroll-padding-inline: 18px;
-    /* A strip that scrolls sideways must not hand a horizontal drag to the
-       swipe rows below it. */
-    touch-action: pan-x;
-  }
-  .pbm-folder-strip::-webkit-scrollbar {
-    display: none;
-  }
-  .pbm-folder-chip {
-    flex: none;
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0 15px;
-    border-radius: 14px;
-    background: var(--surface);
-    color: var(--text-3);
-    font-size: 0.8125rem;
-    font-weight: 700;
-    text-decoration: none;
-    box-shadow: 0 4px 10px var(--shadow);
-  }
-  .pbm-folder-chip:hover {
-    text-decoration: none;
-    color: var(--text);
-  }
-  .pbm-folder-chip[data-on] {
-    background: var(--accent-grad);
-    color: var(--pbm-on-dark, #fff);
-  }
   .pbm-list-scroll {
     /* No longer the scroller here — see .pbm-list above. */
     flex: none;
@@ -2467,58 +1598,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   .pbm-card[data-selected] {
     background: var(--sel);
   }
-  /* No hover on a touch screen, so the star can't be a hover affordance. */
-  .pbm-card-star {
-    opacity: 1;
-    right: 14px;
-    bottom: 14px;
-    width: 32px;
-    height: 32px;
-  }
-
-  /*
-    The swipe. Widths here MUST match ACTION_PX and ACTION_GAP_PX in
-    lib/swipe.ts — 72 and 8 — because the maths decides how far the card
-    travels and the CSS decides how much room that uncovers.
-
-    The actions are visibility:hidden until the card is open or moving, not
-    merely covered: the card has rounded corners and a shadow, and a red
-    button sitting behind a 22px radius shows at the corners of every row.
-  */
-  .pbm-swipe-actions {
-    display: flex;
-    gap: 8px;
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    right: 0;
-    padding-left: 8px;
-    visibility: hidden;
-  }
-  .pbm-swipe[data-open] .pbm-swipe-actions,
-  .pbm-swipe[data-dragging] .pbm-swipe-actions {
-    visibility: visible;
-  }
-  .pbm-swipe-actions form {
-    display: flex;
-  }
-  .pbm-swipe-btn {
-    width: 72px;
-    height: 100%;
-    min-height: 44px;
-    border: 0;
-    border-radius: 20px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 5px;
-    font-size: 0.6875rem;
-    font-weight: 800;
-    letter-spacing: 0.02em;
-    color: #fff;
-    cursor: pointer;
-  }
   /*
     Literals, deliberately, and the same in both themes: these are the two
     colours everybody already knows for "put away" and "destroy", and a theme
@@ -2527,26 +1606,8 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
     than AA — a destructive control is the one place the extra margin is
     cheap to give. #52506a: 7.6:1. #a3211a: 7.5:1.
   */
-  .pbm-swipe-btn--archive {
-    background: #52506a;
-  }
-  .pbm-swipe-btn--delete {
-    background: #a3211a;
-  }
-  .pbm-swipe-front {
-    /* Vertical stays the browser's; horizontal is ours. See SwipeRow.tsx. */
-    touch-action: pan-y;
-    transition: transform 0.18s ease;
-    will-change: transform;
-  }
-  .pbm-swipe[data-dragging] .pbm-swipe-front {
-    transition: none;
-  }
   .pbm-card-name {
     font-size: 0.90625rem;
-  }
-  .pbm-card-subject {
-    font-size: 0.8125rem;
   }
   .pbm-card-preview {
     font-size: 0.78125rem;
@@ -2800,15 +1861,8 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
 
 @media (prefers-reduced-motion: reduce) {
   .pbm-folder,
-  .pbm-card,
-  .pbm-card-star,
-  .pbm-label-add {
+  .pbm-card {
     transition: none;
-  }
-  /* Without a transition the star has no fade to rely on, so it must not
-     depend on hover to be findable. */
-  .pbm-card-star {
-    opacity: 1;
   }
 }
 
@@ -3084,40 +2138,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   }
 }
 
-/* ── Label manager, inline (Settings → Labels) ───────────────────
-   The same component as the nav modal with its chrome off. Only the
-   positioning differs: a modal is fixed and centred over a scrim, a settings
-   panel is in the flow. Everything inside — rows, swatches, the create form,
-   the confirm-in-row delete — is shared, so the two placements cannot drift.
-*/
-.pbm-modal--inline {
-  position: static;
-  transform: none;
-  max-width: 100%;
-  width: 100%;
-  box-shadow: none;
-  /* The modal's own max-height exists to keep it inside the viewport; in the
-     flow it would clip the list against nothing. */
-  max-height: none;
-}
-
-.pbm-modal--inline .pbm-modal-body {
-  /* pb-scroll on the body is for a fixed-height dialog. Inline, the page
-     scrolls instead — a nested scroller inside a short list is a trap that
-     hides rows with no visible cue. */
-  overflow: visible;
-  max-height: none;
-  /*
-   * The side padding STAYS inline. It was zeroed here on the assumption that
-   * the settings card around it supplies its own, and it does not — so every
-   * label chip sat 2px from the card edge and the edit and delete buttons ran
-   * into the other one. The rows only carry 2px of their own, which is right
-   * inside a dialog that already has 18px, and wrong on a bare card.
-   */
-  padding-left: 18px;
-  padding-right: 18px;
-}
-
 /* ── Contact rail: internal notes ────────────────────────────────
    Plain form posts to server actions. No fetch, no client-side copy of the
    list — the action revalidates and the server sends the new one. */
@@ -3314,21 +2334,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   color: var(--text-4);
 }
 
-/* ── A thread that is in the trash ───────────────────────────────
-   Amber rather than the accent: this is a state the reader needs to notice,
-   not a feature being advertised. It sits directly under the thread header so
-   it is impossible to read the conversation without seeing that it is going. */
-
-.pbm-trashed {
-  margin: 0;
-  padding: 10px 20px;
-  background: var(--warn-bg);
-  color: var(--warn-fg);
-  border-bottom: 1px solid var(--warn-fg);
-  font-size: 0.8125rem;
-  line-height: 1.55;
-}
-
 /* An address the product believes is mistyped. Amber: it is a problem the
    business needs to notice, not a feature. See lib/email-typo.ts for why it
    fires so rarely. */
@@ -3342,57 +2347,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   line-height: 1.5;
 }
 
-/* ──────────────────── archive and snooze ──────────────────── */
-
-/* The snooze menu's anchor. Needs its own positioned wrapper because the menu
-   is absolutely positioned and the action bar is not. */
-.pbm-snooze {
-  position: relative;
-  display: inline-flex;
-}
-
-/* Opens DOWNWARD and right-aligned, unlike the status menu.
-   The trigger sits in the thread header at the top of the screen, so the
-   default upward menu would open off the top of the viewport, and it sits near
-   the right edge, so a left-aligned menu would run past it. */
-.pbm-menu--snooze {
-  top: calc(100% + 6px);
-  bottom: auto;
-  left: auto;
-  right: 0;
-  width: 150px;
-}
-/* The options are each their own <form> — a submit button cannot live outside
-   one — so the wrapper has to stop being a layout box or every item would sit
-   on its own line with the menu's padding doubled between them. */
-.pbm-menu--snooze form {
-  display: contents;
-}
-
-/* An icon button whose state is ON: snoozed, or archived.
-   Same treatment as a starred thread — an outline alone reads as off at 17px,
-   which on these two buttons would mean the screen showing "not archived"
-   about a ticket that is. */
-.pbm-icon-btn--on {
-  color: var(--accent-text);
-  background: var(--accent-soft);
-}
-
-/* Why this thread is not in the inbox.
-   Deliberately NOT the amber of .pbm-trashed. Amber there means "this is on a
-   countdown to being destroyed"; archived and snoozed are ordinary, reversible
-   filing, and borrowing the warning colour would make routine tidying look
-   like a problem. */
-.pbm-snoozed {
-  margin: 0;
-  padding: 10px 20px;
-  background: var(--surface-2);
-  color: var(--text);
-  border-bottom: 1px solid var(--border);
-  font-size: 0.8125rem;
-  line-height: 1.55;
-}
-
 /*
  * "More" in the folder list.
  *
@@ -3401,82 +2355,9 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
  * count) and its label is muted, so the eye reads the folders as a set and
  * this as the way to see the rest of them.
  */
-.pbm-folder--more {
-  appearance: none;
-  border: none;
-  background: none;
-  font: inherit;
-  cursor: pointer;
-  width: 100%;
-  text-align: left;
-  /*
-    Nav ink, like every other row in this column — it sits on --nav, so the
-    page's --muted and --text are the wrong pair. It was the last of the
-    twenty-five light-theme failures, and the only one left after the sidebar
-    and the top bar were fixed, because it sets its own colour rather than
-    inheriting.
-
-    Hover goes to --nav-fg for the same reason: the resting state must not be
-    the more legible of the two.
-  */
-  color: var(--nav-muted, #a3a3a3);
-}
-.pbm-folder--more:hover {
-  color: var(--nav-fg, #f3f0ff);
-}
-.pbm-folder--more svg {
-  transition: transform 160ms ease;
-}
-.pbm-folder--more[data-open] svg {
-  transform: rotate(180deg);
-}
-@media (prefers-reduced-motion: reduce) {
-  .pbm-folder--more svg {
-    transition: none;
-  }
-}
-
-/*
- * The folders behind "More", and their height animation.
- *
- * grid-template-rows 0fr → 1fr is the way to animate to an unknown height. The
- * number of extra folders depends on the plan and on whether the viewer has an
- * agent row, so there is no value to hard-code; a max-height big enough for the
- * longest case makes every shorter case ease at the wrong speed and then stop
- * early, which reads as a stutter.
- *
- * The inner element carries overflow:hidden and min-height:0 — without the
- * min-height a grid item refuses to shrink below its content and the row never
- * collapses.
- */
-.pbm-folders-extra {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 220ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-.pbm-folders-extra[data-open] {
-  grid-template-rows: 1fr;
-}
-.pbm-folders-extra-inner {
-  overflow: hidden;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  /* Matches .pbm-folders so the rows keep an even rhythm across the seam. */
-  gap: 3px;
-}
 /* The gap belongs between the last primary and the first extra, and only
    while the list is open — otherwise the collapsed list carries 3px of dead
    space under it. */
-.pbm-folders-extra[data-open] .pbm-folders-extra-inner {
-  padding-top: 3px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pbm-folders-extra {
-    transition: none;
-  }
-}
 
 /* Clear, and the way out to workspace-wide search, side by side. */
 .pbm-empty-actions {
@@ -3484,120 +2365,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   gap: 8px;
   flex-wrap: wrap;
   justify-content: center;
-}
-
-/*
- * A label the user picked a colour for.
- *
- * ── THEIR HUE, THE THEME'S LIGHTNESS ──
- * The three preset tokens resolve per palette, which is why the column stores
- * a key. A raw hex cannot do that, and lib/labels.ts recorded the objection:
- * somebody picking dark navy would be unreadable on Ocean, pale yellow
- * unreadable on Light.
- *
- * The answer is relative colour syntax. `oklch(from … h)` keeps ONLY the hue
- * of what they chose and takes lightness from --label-bg-l / --label-fg-l,
- * which every theme sets for itself. So the colour is recognisably theirs and
- * the contrast is not theirs to get wrong.
- *
- * ── THIS WAS MEASURED, AND THE FIRST ATTEMPT FAILED ──
- * It began as color-mix toward --surface and --text, which reads as the same
- * idea. Painting four hostile picks across all five palettes and reading the
- * pixels back gave a worst case of 1.14:1 — pure black on Ocean, invisible —
- * because mixing preserves too much of the pick's own lightness on a dark
- * ground. Fixing the lightness instead put the worst case at 6.65:1, with
- * every combination passing AA.
- *
- * Chroma is clamped too. A fully saturated pick at these lightnesses vibrates
- * against the ground; 0.07 and 0.15 are enough to read as the colour without
- * it.
- */
-.pbm-label[data-custom] {
-  background: oklch(from var(--label-hex) var(--label-bg-l) 0.07 h);
-  color: oklch(from var(--label-hex) var(--label-fg-l) 0.15 h);
-}
-/* Swatches carry the ink alone — no text sits on them. */
-.pbm-label-swatch[data-custom] {
-  background: oklch(from var(--label-hex) var(--label-fg-l) 0.15 h);
-}
-
-/*
- * The picker itself. A native <input type="color"> — it is the platform's own
- * wheel, it works with a keyboard, it is translated, and on a phone it opens
- * the system picker rather than a cramped web imitation of one.
- */
-.pbm-label-pick {
-  inline-size: 28px;
-  block-size: 28px;
-  flex: none;
-  padding: 0;
-  border: 1px solid var(--border-strong);
-  /* The preset swatches' shape (.pbm-label-swatch--pick). */
-  border-radius: 10px;
-  background: none;
-  cursor: pointer;
-  overflow: hidden;
-}
-
-/* The same ring the preset swatches use for "this is the one in force".
-   Without it, choosing a custom colour left NO swatch marked — or worse, left
-   a preset marked, which is the bug this pairs with in LabelManager.tsx. */
-.pbm-label-pick[data-on] {
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent-text);
-  border-color: transparent;
-}
-/* Chrome and Safari draw their own swatch inside; strip it back to the
-   rounded square so it matches the three preset swatches beside it. */
-.pbm-label-pick::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
-.pbm-label-pick::-webkit-color-swatch {
-  border: none;
-  border-radius: 9px;
-}
-.pbm-label-pick::-moz-color-swatch {
-  border: none;
-  border-radius: 9px;
-}
-.pbm-label-pick:focus-visible {
-  outline: 2px solid var(--focus-ring, var(--accent));
-  outline-offset: 2px;
-}
-
-/* ── The empty label screen's starter set ───────────────────────── */
-.pbm-label-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 10px;
-  padding-bottom: 4px;
-}
-.pbm-starter-btn {
-  border: 1px solid var(--accent-line);
-  background: var(--accent-soft);
-  color: var(--accent-text);
-  font: inherit;
-  font-size: 0.78125rem;
-  font-weight: 700;
-  border-radius: 11px;
-  padding: 8px 14px;
-  cursor: pointer;
-}
-.pbm-starter-btn:hover:not(:disabled) {
-  border-color: var(--accent);
-}
-.pbm-starter-btn:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-.pbm-starter-btn:focus-visible {
-  border-radius: 11px;
-}
-.pbm-starter-hint {
-  margin: 0;
-  color: var(--muted-2);
-  font-size: 0.71875rem;
-  line-height: 1.55;
 }
 
 /*
