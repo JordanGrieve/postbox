@@ -71,3 +71,23 @@ export function planForPriceId(priceId: string): PlanId | null {
   }
   return null;
 }
+
+/**
+ * Why a workspace must not open a NEW checkout, or null if it may.
+ *
+ * Checkout always creates a new subscription. For a workspace that already has
+ * one, that is a second, concurrent subscription: billed for both plans, and
+ * cancelling either in the portal sends a `deleted` event that drops the
+ * workspace to trial while the other is still being paid for. A paying client
+ * changes plan in the Stripe portal instead, which updates the one they have.
+ *
+ * `stripeSubscriptionId` is the signal because the webhook clears it the
+ * moment a subscription ends (app/api/webhooks/stripe/route.ts), so non-null
+ * means a subscription that has not ended.
+ */
+export function checkoutRefusal(ws: {
+  stripeSubscriptionId: string | null;
+}): string | null {
+  if (!ws.stripeSubscriptionId) return null;
+  return "You already have a subscription. Change plan from Manage billing below, so you are not charged twice.";
+}

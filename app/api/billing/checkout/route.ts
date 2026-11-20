@@ -2,7 +2,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { workspaces } from "@/db/schema";
 import { resolveViewer } from "@/lib/viewer";
-import { stripeClient, stripePriceId } from "@/lib/stripe";
+import { checkoutRefusal, stripeClient, stripePriceId } from "@/lib/stripe";
 import { PLANS, type PlanId } from "@/lib/pricing";
 import { APP_URL } from "@/lib/config";
 
@@ -67,12 +67,17 @@ export async function POST(req: Request): Promise<Response> {
       id: workspaces.id,
       name: workspaces.name,
       stripeCustomerId: workspaces.stripeCustomerId,
+      stripeSubscriptionId: workspaces.stripeSubscriptionId,
     })
     .from(workspaces)
     .where(eq(workspaces.id, viewer.workspace.id))
     .limit(1);
 
   if (!ws) return Response.json({ error: "No workspace" }, { status: 403 });
+
+  // A second checkout would be a second subscription. See checkoutRefusal.
+  const refusal = checkoutRefusal(ws);
+  if (refusal) return Response.json({ error: refusal }, { status: 409 });
 
   // Reuse the Stripe customer if this workspace has one. Creating a second
   // customer for the same workspace splits their billing history in two and
