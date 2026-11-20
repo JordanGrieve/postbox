@@ -32,7 +32,9 @@ const listed = SETTINGS_SECTIONS.flatMap((s) => s.pages.map((p) => p.href));
 describe("lib/settings-sections", () => {
   it("found the settings routes", () => {
     expect(routes).toContain("/settings");
-    expect(routes.length).toBeGreaterThanOrEqual(10);
+    // Nine since labels left the product; the floor only has to prove the
+    // walker found the tree.
+    expect(routes.length).toBeGreaterThanOrEqual(8);
   });
 
   it("is the five sections of the design, in its order", () => {

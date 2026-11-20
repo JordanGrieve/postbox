@@ -65,8 +65,8 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
       // The full instructions the summary's "Setup steps" links to.
       { href: "/settings/install", label: "Setup steps" },
       { href: "/settings/forms", label: "Forms" },
-      // Both are about the mail that arrives: how it is sorted, and who sent it.
-      { href: "/settings/labels", label: "Labels" },
+      // Who has written in: the people behind the mail that arrives. (Labels
+      // sat here too until labels left the product with the simple inbox.)
       { href: "/settings/contacts", label: "Contacts" },
     ],
   },

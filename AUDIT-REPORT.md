@@ -1,8 +1,16 @@
 # Skills baseline audit — 20 Nov 2026
 
-Branch `audit/skills-baseline`, cut from `main` at `f6f28e4`. Nothing pushed or
-merged. Every fix is its own commit, with a test that was confirmed to go red
-when the fix is reverted.
+Branch `audit/skills-baseline`, cut from `main` at `f6f28e4`. Every fix is its
+own commit, with a test that was confirmed to go red when the fix is reverted.
+
+**Rebased onto `main` at `67d2714` (PR #36) the same evening and merged.** The
+audit was first run against a stale local `main`, 60 commits behind GitHub.
+Every fix still applied, with two changes of shape: the simple inbox had
+removed labels from the sidebar and deleted `lib/labels.ts`, so the trashed-
+tickets fix now covers only the label count in search (which still lists
+labels); and the hover fix covers the folder rows only, the Labels "Manage"
+button having gone. The sign-off bug was still live in production until this
+merge. Test counts below are from the original run.
 
 Where a skill and the project disagreed, the project won: the accessibility bar
 is WCAG 2.2 **AAA** (STYLE-GUIDE.md), not the skills' AA, and the project's own

@@ -90,7 +90,9 @@ describe("inbox review, 17 Nov 2026", () => {
     // not buttons. Every class listed here is a control.
     const controls: [file: string, selector: string][] = [
       ["app/subscribers.css", ".psb-filter"],
-      ["app/settings.css", ".st-chip"],
+      // The auto-reply token chips. .st-chip until the 20 Nov 2026 settings
+      // redesign; .stg-biz-day shares this rule, so the day chips are covered.
+      ["app/settings.css", ".stg-biz-token"],
       ["app/newsletter.css", ".nl-token"],
       // The label picker's swatches were here until labels left the inbox on
       // 19 Nov 2026; the inbox's own controls now are its tabs and icon buttons.
