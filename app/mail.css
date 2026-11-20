@@ -248,9 +248,13 @@
   cursor: pointer;
   transition: background 0.16s ease, color 0.16s ease;
 }
+/* --nav-fg on the hover wash. It was --nav-active-fg, the ink for the FILLED
+   active row: white on the light column and near-black on the dark one, so a
+   hovered row's text measured about 1.1:1 in both themes. Found 20 Nov 2026
+   adding Settings to this column. tests/nav-ink.test.ts guards it. */
 .pbm-folder:hover:not(:disabled) {
   background: var(--pbm-nav-line);
-  color: var(--nav-active-fg);
+  color: var(--nav-fg);
 }
 .pbm-folder[data-active="true"] {
   background: var(--nav-active-bg);
