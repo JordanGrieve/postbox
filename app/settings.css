@@ -1,146 +1,3 @@
-/*
-  Postbox — /settings (General, Auto-reply, Contacts, Install tabs).
-
-  Every colour is a token from globals.css. Nothing here is a literal: both
-  themes ride on those custom properties, and one hardcoded hex is one theme
-  broken. Layout lives in classes rather than inline styles for the same reason
-  the mail client moved: inline styles carry no media query and no :hover.
-*/
-
-.st-wrap {
-  flex: 1;
-  min-width: 0;
-  padding: 30px 32px 56px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  background: var(--surface);
-  color: var(--text);
-}
-
-/* ── header ─────────────────────────────────────────────────── */
-
-.st-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.st-head-text {
-  min-width: 0;
-}
-
-.st-title {
-  margin: 0 0 6px;
-  font-size: 1.3125rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.st-sub {
-  margin: 0;
-  max-width: 62ch;
-  font-size: 0.8125rem;
-  line-height: 1.65;
-  color: var(--muted-2);
-}
-
-.st-head-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex: 0 0 auto;
-}
-
-.st-saved {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--ok-fg);
-}
-
-.st-save {
-  height: 38px;
-  padding: 0 20px;
-  border: none;
-  border-radius: 13px;
-  background: var(--accent-grad);
-  color: var(--on-accent);
-  font-size: 0.8125rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 8px 18px -8px var(--glow);
-}
-
-.st-save:disabled {
-  background: var(--surface-2);
-  border: 1px solid var(--border);
-  color: var(--muted);
-  box-shadow: none;
-  cursor: default;
-}
-
-.st-error {
-  margin: 0;
-  padding: 12px 14px;
-  border: 1px solid var(--pdf-fg);
-  border-radius: 12px;
-  background: var(--pdf-bg);
-  color: var(--pdf-fg);
-  font-size: 0.78125rem;
-  font-weight: 600;
-}
-
-/* ── layout ─────────────────────────────────────────────────── */
-
-.st-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-  gap: 18px;
-  align-items: start;
-}
-
-.st-col {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  min-width: 0;
-}
-
-.st-card {
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  background: var(--surface-2);
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.st-card-title {
-  margin: 0;
-  font-size: 0.875rem;
-  font-weight: 800;
-  color: var(--text);
-}
-
-.st-card-sub {
-  margin: 5px 0 0;
-  font-size: 0.78125rem;
-  line-height: 1.6;
-  color: var(--muted-2);
-}
-
-/* ── switch ─────────────────────────────────────────────────── */
-
-.st-toggle-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-}
-
 .st-switch {
   flex: 0 0 auto;
   position: relative;
@@ -529,94 +386,11 @@
   min-height: 120px;
 }
 
-.st-email-foot {
-  margin: 0;
-  padding: 11px 16px 14px;
-  border-top: 1px solid var(--border-soft);
-  font-size: 0.71875rem;
-  line-height: 1.6;
-  color: var(--muted);
-}
-
-.st-email-foot code,
-.st-list code {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.6875rem;
-  background: var(--surface-3);
-  border-radius: 5px;
-  padding: 1px 5px;
-  color: var(--text-3);
-}
-
-.st-summary {
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.st-summary-row {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  font-size: 0.78125rem;
-}
-
-.st-summary-row dt {
-  color: var(--muted-2);
-  font-weight: 600;
-}
-
-.st-summary-row dd {
-  margin: 0;
-  color: var(--text-2);
-  font-weight: 700;
-  text-align: right;
-  overflow-wrap: anywhere;
-}
-
-.st-guards .st-list {
-  margin: 0;
-  padding-left: 18px;
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-  font-size: 0.78125rem;
-  line-height: 1.6;
-  color: var(--muted-2);
-}
-
 /* ── responsive ─────────────────────────────────────────────── */
-
-@media (max-width: 1080px) {
-  .st-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-  .st-preview-card {
-    position: static;
-  }
-}
-
-@media (max-width: 768px) {
-  .st-wrap {
-    padding: 18px 14px 40px;
-  }
-  .st-head {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .st-head-actions {
-    justify-content: flex-end;
-  }
-  .st-card {
-    padding: 16px;
-  }
-}
 
 @media (prefers-reduced-motion: reduce) {
   .st-switch,
-  .st-switch-knob,
-  .st-seg-btn {
+  .st-switch-knob {
     transition: none;
   }
 }
@@ -954,6 +728,235 @@
   margin: 0;
 }
 
+/* ── groups: "WHEN IT SENDS", "YOUR PLAN" … ── */
+.stg-biz-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 40rem;
+}
+
+.stg-biz-heading {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.stg-biz-mono {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.8125rem;
+}
+
+/* A link inside a sentence: the one exemption 2.5.5 keeps, so no 44px box. */
+.stg-biz-inline {
+  color: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.stg-biz-action--danger {
+  color: var(--pdf-fg);
+}
+
+/* "Preview what customers get", "Use a suggested message": a standalone text
+   action, so it carries a target of its own. */
+.stg-biz-more {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min, 44px);
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+/* ── on / off: the Auto-reply status card ── */
+.stg-biz-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  max-width: 40rem;
+  padding: 16px 18px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  background: var(--surface);
+}
+
+.stg-biz-status-dot {
+  flex: none;
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.stg-biz-status[data-on="true"] .stg-biz-status-dot {
+  background: var(--ok-fg);
+}
+
+.stg-biz-status-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.stg-biz-status-title {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.stg-biz-status-sub {
+  margin: 2px 0 0;
+  font-size: 0.78125rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* ── inside an editor ── */
+.stg-biz-editor .stg-field {
+  margin: 0;
+  max-width: none;
+}
+
+.stg-biz-choices {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Radio, then its label; the hint sits under the label. The LABEL is the
+   target — 44px tall — so the small native radio is not the thing to hit. */
+.stg-biz-choice {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: center;
+}
+
+.stg-biz-choice input {
+  margin: 0;
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--text);
+}
+
+.stg-biz-choice-label {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap-min, 44px);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.stg-biz-choice-hint {
+  grid-column: 2;
+  margin: -8px 0 6px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+/* Day chips and merge-token chips: 44px, pressed state from aria-pressed. */
+.stg-biz-days,
+.stg-biz-tokens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.stg-biz-day,
+.stg-biz-token {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-min, 44px);
+  min-width: var(--tap-min, 44px);
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-3);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.stg-biz-day[aria-pressed="true"],
+.stg-biz-token[aria-pressed="true"] {
+  background: var(--accent-grad);
+  border-color: transparent;
+  color: var(--on-accent);
+}
+
+.stg-biz-times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.stg-biz-guards {
+  margin: 0;
+  padding-left: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--text-2);
+}
+
+.stg-biz-guards code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.75rem;
+}
+
+.stg-biz-confirm {
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+.stg-biz-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 40rem;
+}
+
+/* ── phones ── */
+@media (max-width: 560px) {
+  /* The button drops under the words rather than squeezing them. */
+  .stg-biz-status {
+    flex-wrap: wrap;
+  }
+  .stg-biz-status .stg-button {
+    flex: 1 0 100%;
+  }
+  .stg-biz-times {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* Empty most of the time, and never display:none — a live region that is
    hidden and then shown is announced unreliably. Empty, it takes no space. */
 .stg-biz-saved {
@@ -1056,8 +1059,6 @@
   display: inline-flex;
   flex: none;
 }
-
-
 
 /* â”€â”€ responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
 

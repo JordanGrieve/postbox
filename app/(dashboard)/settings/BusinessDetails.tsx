@@ -1,7 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useId, useState } from "react";
 import {
   DEFAULT_EMAIL_ACCENT,
   SIGN_OFF_MAX,
@@ -9,6 +8,7 @@ import {
 } from "@/lib/newsletter";
 import { THEMES } from "@/lib/theme";
 import ThemePicker from "./ThemePicker";
+import { EditorActions, SettingRow, escapeCloses, useSave, type Done } from "./SettingRow";
 
 /**
  * Settings → Your business: what the workspace is called and how it appears in
@@ -63,7 +63,7 @@ export default function BusinessDetails(props: BusinessDetailsProps) {
 
   return (
     <dl className="stg-biz">
-      <Row
+      <SettingRow
         label="Business name"
         read={<span className="stg-biz-value">{name}</span>}
         editor={(done, labelId) => (
@@ -78,7 +78,7 @@ export default function BusinessDetails(props: BusinessDetailsProps) {
         )}
       />
 
-      <Row
+      <SettingRow
         label="Postal address"
         empty={!postalAddress}
         read={
@@ -107,7 +107,7 @@ export default function BusinessDetails(props: BusinessDetailsProps) {
         )}
       />
 
-      <Row
+      <SettingRow
         label="Name in newsletter footers"
         empty={!legalName}
         read={
@@ -132,7 +132,7 @@ export default function BusinessDetails(props: BusinessDetailsProps) {
         )}
       />
 
-      <Row
+      <SettingRow
         label="Sign-off on newsletters"
         empty={!brandSignOff}
         read={
@@ -154,7 +154,7 @@ export default function BusinessDetails(props: BusinessDetailsProps) {
         )}
       />
 
-      <Row
+      <SettingRow
         label="Brand colour"
         read={
           <span className="stg-biz-value">
@@ -175,7 +175,7 @@ export default function BusinessDetails(props: BusinessDetailsProps) {
         )}
       />
 
-      <Row
+      <SettingRow
         label="Postbox appearance"
         read={<span className="stg-biz-value">{themeLabel}</span>}
         editor={(done) => (
@@ -192,155 +192,6 @@ export default function BusinessDetails(props: BusinessDetailsProps) {
         )}
       />
     </dl>
-  );
-}
-
-/* ── One line: read, then Change ──────────────────────────────────── */
-
-function Row({
-  label,
-  read,
-  note,
-  empty = false,
-  editor,
-}: {
-  label: string;
-  read: React.ReactNode;
-  /** A consequence worth saying while reading, e.g. what an empty field stops. */
-  note?: string;
-  empty?: boolean;
-  editor: (done: (saved: boolean) => void, labelId: string) => React.ReactNode;
-}) {
-  const labelId = useId();
-  const [editing, setEditing] = useState(false);
-  const [saved, setSaved] = useState(false);
-  const actionRef = useRef<HTMLButtonElement>(null);
-  // Bumped each time the editor closes. A counter rather than a flag so the
-  // effect fires on every close, and state rather than a ref so the close
-  // callback handed to the editor never touches a ref during render.
-  const [closes, setCloses] = useState(0);
-
-  // Focus goes back to the Change button when the editor closes, so a
-  // keyboard user is left where they started rather than at the top of the
-  // page (2.4.3). Runs after commit, when the button has re-mounted.
-  useEffect(() => {
-    if (closes > 0) actionRef.current?.focus();
-  }, [closes]);
-
-  const action = empty ? "Add" : "Change";
-
-  return (
-    <div className="stg-biz-row" data-editing={editing || undefined}>
-      <dt className="stg-biz-label" id={labelId}>
-        {label}
-      </dt>
-      <dd className="stg-biz-body">
-        {editing ? (
-          editor((didSave) => {
-            setSaved(didSave);
-            setEditing(false);
-            setCloses((n) => n + 1);
-          }, labelId)
-        ) : (
-          <>
-            {read}
-            {note && <span className="stg-biz-note">{note}</span>}
-          </>
-        )}
-        {/* Always mounted, so the announcement is heard (4.1.3). */}
-        <span className="stg-biz-saved" role="status">
-          {saved && !editing ? "Saved." : ""}
-        </span>
-      </dd>
-      {!editing && (
-        <dd className="stg-biz-side">
-          <button
-            ref={actionRef}
-            type="button"
-            className="stg-biz-action"
-            // Visible text first, then what it acts on (2.5.3, 2.4.9).
-            aria-label={`${action} ${label.toLowerCase()}`}
-            onClick={() => {
-              setSaved(false);
-              setEditing(true);
-            }}
-          >
-            {action}
-          </button>
-        </dd>
-      )}
-    </div>
-  );
-}
-
-/* ── Saving ───────────────────────────────────────────────────────── */
-
-function useSave() {
-  const router = useRouter();
-  const [pending, startTransition] = useTransition();
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  async function save(patch: Patch): Promise<boolean> {
-    setBusy(true);
-    setError(null);
-    try {
-      const res = await fetch("/api/workspace", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(patch),
-      });
-      if (!res.ok) {
-        const data = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(data.error ?? "save failed");
-      }
-      startTransition(() => router.refresh());
-      return true;
-    } catch (err) {
-      const msg = err instanceof Error && err.message !== "save failed" ? err.message : null;
-      setError(msg ?? "Couldn’t save that — please try again.");
-      return false;
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  return { save, saving: busy || pending, error };
-}
-
-/** Save and Cancel, shared by every editor. */
-function Actions({
-  saving,
-  canSave,
-  onCancel,
-  error,
-}: {
-  saving: boolean;
-  canSave: boolean;
-  onCancel: () => void;
-  error: string | null;
-}) {
-  return (
-    <>
-      <div className="stg-biz-actions">
-        <button type="submit" className="stg-button" disabled={saving || !canSave}>
-          {saving ? "Saving…" : "Save"}
-        </button>
-        <button
-          type="button"
-          className="stg-button stg-button--secondary"
-          onClick={onCancel}
-          disabled={saving}
-        >
-          Cancel
-        </button>
-      </div>
-      {error && (
-        <p className="stg-identity-warn stg-biz-error" role="alert">
-          {error}
-        </p>
-      )}
-    </>
   );
 }
 
@@ -366,10 +217,10 @@ function TextEditor({
   /** If set, an empty value cannot be saved and this says why. */
   required?: string;
   toPatch: (value: string) => Patch;
-  done: (saved: boolean) => void;
+  done: Done;
 }) {
   const [value, setValue] = useState(initial);
-  const { save, saving, error } = useSave();
+  const { save, saving, error } = useSave("/api/workspace");
   const hintId = useId();
   const blank = value.trim() === "";
   const unchanged = value.trim() === initial.trim();
@@ -391,12 +242,7 @@ function TextEditor({
     "aria-labelledby": labelId,
     "aria-describedby": hint || (required && blank) ? hintId : undefined,
     "aria-invalid": required && blank ? true : undefined,
-    onKeyDown: (e: React.KeyboardEvent) => {
-      if (e.key === "Escape") {
-        e.preventDefault();
-        done(false);
-      }
-    },
+    onKeyDown: escapeCloses(done),
   };
 
   return (
@@ -419,7 +265,7 @@ function TextEditor({
           {required && blank ? required : hint}
         </span>
       )}
-      <Actions
+      <EditorActions
         saving={saving}
         canSave={!(required && blank)}
         onCancel={() => done(false)}
@@ -436,10 +282,10 @@ function ColourEditor({
 }: {
   labelId: string;
   stored: string | null;
-  done: (saved: boolean) => void;
+  done: Done;
 }) {
   const [colour, setColour] = useState(stored ?? DEFAULT_EMAIL_ACCENT);
-  const { save, saving, error } = useSave();
+  const { save, saving, error } = useSave("/api/workspace");
   const hintId = useId();
 
   // The renderer's own function, not a copy of its rules: if the contrast floor
@@ -466,12 +312,7 @@ function ColourEditor({
           aria-labelledby={labelId}
           aria-describedby={hintId}
           onChange={(e) => setColour(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") {
-              e.preventDefault();
-              done(false);
-            }
-          }}
+          onKeyDown={escapeCloses(done)}
         />
         {/* The swatch and the sentence say the same thing; the sentence is
             what a screen reader gets. */}
@@ -503,7 +344,7 @@ function ColourEditor({
           </>
         )}
       </span>
-      <Actions
+      <EditorActions
         saving={saving}
         canSave
         onCancel={() => done(false)}

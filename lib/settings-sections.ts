@@ -4,11 +4,13 @@
  *
  * ── WHY SECTIONS AND NOT A FLAT LIST ──
  * Settings was nine peer tabs in a strip across the top of every page. The
- * design of 20 Nov 2026 moves it into the sidebar as five sub-items — Your
- * business, Auto-reply, Notifications, Team, Email & forms — which is how a
- * client thinks about it. Nine pages still exist, so each section owns the
- * pages that belong with it; a section with more than one shows them as a small
- * row of tabs inside the page (SettingsTabs).
+ * designs of 20 Nov 2026 move it into the sidebar as five sub-items — Your
+ * business, Auto-reply, Team, Website & email, Billing — which is how a client
+ * thinks about it. (An earlier draft that day had Notifications and Email &
+ * forms; the later designs replaced them.) More pages exist than the designs
+ * show, so each section owns the pages that belong with it, and a section with
+ * more than one shows them as a small row of tabs inside the page
+ * (SettingsTabs) — Jordan's call, 20 Nov 2026.
  *
  * One definition, read by both the sidebar (components/mail/MailNavShell.tsx)
  * and the in-page tabs, so the two cannot disagree about where a page lives.
@@ -21,7 +23,7 @@
 export type SettingsPage = { href: string; label: string };
 
 export type SettingsSection = {
-  key: "business" | "auto-reply" | "notifications" | "team" | "email";
+  key: "business" | "auto-reply" | "team" | "email" | "billing";
   label: string;
   /** Where the sidebar item goes: the section's first page. */
   href: string;
@@ -33,24 +35,13 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     key: "business",
     label: "Your business",
     href: "/settings",
-    pages: [
-      // Not "Details": a link has to say what it opens from its own words
-      // (2.4.9), and __links() flags a bare "Details" as generic.
-      { href: "/settings", label: "Business details" },
-      { href: "/settings/billing", label: "Plan & billing" },
-    ],
+    pages: [{ href: "/settings", label: "Your business" }],
   },
   {
     key: "auto-reply",
     label: "Auto-reply",
     href: "/settings/auto-reply",
     pages: [{ href: "/settings/auto-reply", label: "Auto-reply" }],
-  },
-  {
-    key: "notifications",
-    label: "Notifications",
-    href: "/settings/notifications",
-    pages: [{ href: "/settings/notifications", label: "Notifications" }],
   },
   {
     key: "team",
@@ -65,16 +56,25 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
   },
   {
     key: "email",
-    label: "Email & forms",
-    href: "/settings/install",
+    label: "Website & email",
+    href: "/settings/website",
     pages: [
-      // Forwarding your inbox and putting the form on your site.
-      { href: "/settings/install", label: "Connect" },
+      // The read-then-Change summary from the 20 Nov 2026 design. Not
+      // "Overview": a tab has to say what it opens from its own words (2.4.9).
+      { href: "/settings/website", label: "Website & email" },
+      // The full instructions the summary's "Setup steps" links to.
+      { href: "/settings/install", label: "Setup steps" },
       { href: "/settings/forms", label: "Forms" },
       // Both are about the mail that arrives: how it is sorted, and who sent it.
       { href: "/settings/labels", label: "Labels" },
       { href: "/settings/contacts", label: "Contacts" },
     ],
+  },
+  {
+    key: "billing",
+    label: "Billing",
+    href: "/settings/billing",
+    pages: [{ href: "/settings/billing", label: "Billing" }],
   },
 ];
 

@@ -57,6 +57,26 @@ export function relativeTime(from: Date | string, now: Date = new Date()): strin
   return `${weeks}w`;
 }
 
+/**
+ * The sentence form of relativeTime: "just now", "5 minutes ago", "1 day ago",
+ * "3 weeks ago". For prose ("Last one: 1 day ago"), where "1d" reads as code.
+ */
+export function timeAgo(from: Date | string, now: Date = new Date()): string {
+  const then = typeof from === "string" ? new Date(from) : from;
+  const secs = Math.max(0, Math.floor((now.getTime() - then.getTime()) / 1000));
+  const unit = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"} ago`;
+  if (secs < 60) return "just now";
+  const mins = Math.floor(secs / 60);
+  if (mins < 60) return unit(mins, "minute");
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return unit(hours, "hour");
+  const days = Math.floor(hours / 24);
+  if (days < 7) return unit(days, "day");
+  const weeks = Math.floor(days / 7);
+  if (days < 60) return unit(weeks, "week");
+  return unit(Math.floor(days / 30), "month");
+}
+
 /** A tidy first-line preview for the inbox list. */
 export function previewText(text: string, max = 120): string {
   const oneLine = text.replace(/\s+/g, " ").trim();

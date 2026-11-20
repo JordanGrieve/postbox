@@ -2,10 +2,11 @@ import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // Same stand-in as tests/mail-views-render.test.tsx — see the note there.
-// /settings is the route these views are written for, and SettingsTabs uses
-// the pathname to decide which tab is current.
+// SettingsTabs reads the pathname to pick its section's pages, and draws
+// nothing for a one-page section. /settings/website is in Website & email,
+// which has five, so the "tabs" view has a strip to show.
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/settings",
+  usePathname: () => "/settings/website",
   useSearchParams: () => new URLSearchParams(""),
   useRouter: () => ({
     push: () => {},
@@ -24,7 +25,7 @@ import SettingsTabs from "../app/(dashboard)/settings/SettingsTabs";
 import BusinessDetails from "../app/(dashboard)/settings/BusinessDetails";
 import WelcomeEmailForm from "../app/(dashboard)/newsletters/welcome/WelcomeEmailForm";
 import { DEFAULT_WELCOME } from "../lib/welcome-store";
-import AutoReplySettings from "../app/(dashboard)/settings/auto-reply/AutoReplySettings";
+import AutoReplyDetails from "../app/(dashboard)/settings/auto-reply/AutoReplyDetails";
 import InstallView from "../components/InstallView";
 import InstallLoading from "../app/(dashboard)/settings/install/loading";
 import { DEFAULT_CONFIG } from "../lib/auto-reply";
@@ -153,11 +154,18 @@ const views: Record<string, React.ReactElement> = {
     />
   ),
   "auto-reply-off": (
-    <AutoReplySettings initialConfig={DEFAULT_CONFIG} workspaceName="Open Door Bakery" />
+    <AutoReplyDetails initialConfig={DEFAULT_CONFIG} workspaceName="Open Door Bakery" />
   ),
+  // On, held until opening, with a closed-hours message written. The old
+  // fixture had delay "5min", which the route refuses — an impossible state.
   "auto-reply-on": (
-    <AutoReplySettings
-      initialConfig={{ ...DEFAULT_CONFIG, enabled: true, scheduleMode: "business_hours", delay: "5min" }}
+    <AutoReplyDetails
+      initialConfig={{
+        ...DEFAULT_CONFIG,
+        enabled: true,
+        scheduleMode: "business_hours",
+        skipIfTeammateReplied: false,
+      }}
       workspaceName="Open Door Bakery"
     />
   ),

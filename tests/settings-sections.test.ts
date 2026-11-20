@@ -39,9 +39,9 @@ describe("lib/settings-sections", () => {
     expect(SETTINGS_SECTIONS.map((s) => s.label)).toEqual([
       "Your business",
       "Auto-reply",
-      "Notifications",
       "Team",
-      "Email & forms",
+      "Website & email",
+      "Billing",
     ]);
   });
 

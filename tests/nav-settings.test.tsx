@@ -66,26 +66,33 @@ describe("Settings in the sidebar", () => {
   });
 
   it("shows the five sections inside Settings, marking the current one", () => {
-    show("/settings/notifications");
+    show("/settings/billing");
     const list = screen.getByRole("list", { name: "Settings sections" });
     const links = within(list).getAllByRole("link");
     expect(links.map((l) => l.textContent)).toEqual([
       "Your business",
       "Auto-reply",
-      "Notifications",
       "Team",
-      "Email & forms",
+      "Website & email",
+      "Billing",
     ]);
     const current = links.filter((l) => l.getAttribute("aria-current") === "page");
-    expect(current.map((l) => l.textContent)).toEqual(["Notifications"]);
+    expect(current.map((l) => l.textContent)).toEqual(["Billing"]);
   });
 
   it("marks a section's other pages as that section", () => {
-    show("/settings/access-log");
-    const list = screen.getByRole("list", { name: "Settings sections" });
-    const current = within(list)
-      .getAllByRole("link")
-      .filter((l) => l.getAttribute("aria-current") === "page");
-    expect(current.map((l) => l.textContent)).toEqual(["Team"]);
+    for (const [path, section] of [
+      ["/settings/access-log", "Team"],
+      ["/settings/install", "Website & email"],
+      ["/settings/labels", "Website & email"],
+    ] as const) {
+      cleanup();
+      show(path);
+      const list = screen.getByRole("list", { name: "Settings sections" });
+      const current = within(list)
+        .getAllByRole("link")
+        .filter((l) => l.getAttribute("aria-current") === "page");
+      expect(current.map((l) => l.textContent), path).toEqual([section]);
+    }
   });
 });

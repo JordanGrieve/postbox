@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import {
   describeBusinessHours,
+  describeOpeningHours,
+  friendlyZone,
   evaluateSchedule,
   isValidBusinessHours,
   isValidTimeZone,
@@ -264,5 +266,42 @@ describe("validation and description helpers", () => {
       "Mon, Tue, Wed, Thu, Fri · 09:00–17:30 (Europe/London)",
     );
     expect(describeBusinessHours(null, "UTC")).toBe("No hours set");
+  });
+});
+
+describe("describeOpeningHours — the sentence form for the Auto-reply row", () => {
+  const h = (days: number[], start = "09:00", end = "17:00"): BusinessHours => ({ days, start, end });
+
+  it("joins a run of days, as the design reads", () => {
+    expect(describeOpeningHours(h([1, 2, 3, 4, 5]), "Europe/London")).toBe(
+      "Monday to Friday, 09:00–17:00 (UK time)",
+    );
+  });
+
+  it("reads Monday-first, so a weekend is one pair, not split across the week", () => {
+    expect(describeOpeningHours(h([0, 6], "10:00", "16:00"), "Europe/London")).toBe(
+      "Saturday and Sunday, 10:00–16:00 (UK time)",
+    );
+  });
+
+  it("lists separate days and runs, ending with and", () => {
+    expect(describeOpeningHours(h([1, 3, 5]), "UTC")).toBe(
+      "Monday, Wednesday and Friday, 09:00–17:00 (UTC)",
+    );
+    expect(describeOpeningHours(h([1, 2, 3, 6]), "UTC")).toBe(
+      "Monday to Wednesday and Saturday, 09:00–17:00 (UTC)",
+    );
+  });
+
+  it("says every day, and says when there are none", () => {
+    expect(describeOpeningHours(h([0, 1, 2, 3, 4, 5, 6]), "UTC")).toBe("Every day, 09:00–17:00 (UTC)");
+    expect(describeOpeningHours(h([]), "UTC")).toBe("No opening hours set");
+    expect(describeOpeningHours(null, "UTC")).toBe("No opening hours set");
+  });
+
+  it("names zones the way people say them", () => {
+    expect(friendlyZone("Europe/London")).toBe("UK time");
+    expect(friendlyZone("America/New_York")).toBe("New York time");
+    expect(friendlyZone("UTC")).toBe("UTC");
   });
 });

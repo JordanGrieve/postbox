@@ -40,7 +40,8 @@ const h = vi.hoisted(() => ({
   readsForSessions: vi.fn(),
   exportsForWorkspace: vi.fn(),
   activeWorkspace: vi.fn(),
-  listAgentEmails: vi.fn(),
+  lastArrivals: vi.fn(),
+  getAutoReplyConfig: vi.fn(),
 }));
 
 const WORKSPACE = {
@@ -53,6 +54,7 @@ const WORKSPACE = {
   postalAddress: null,
   brandAccentHex: null,
   brandSignOff: null,
+  inboundEmail: "open-door-bakery-k3f9@inbound.postbox.help",
 };
 
 vi.mock("@/lib/viewer", () => ({
@@ -104,7 +106,15 @@ vi.mock("../app/(dashboard)/queries", async () => ({
 vi.mock("@/lib/data", async () => ({
   ...(await vi.importActual<typeof import("@/lib/data")>("@/lib/data")),
   listContactsWithCounts: h.listContactsWithCounts,
-  listAgentEmails: h.listAgentEmails,
+}));
+
+vi.mock("../app/(dashboard)/settings/website/queries", () => ({
+  lastArrivals: h.lastArrivals,
+}));
+
+vi.mock("@/lib/auto-reply-send", async () => ({
+  ...(await vi.importActual<typeof import("@/lib/auto-reply-send")>("@/lib/auto-reply-send")),
+  getAutoReplyConfig: h.getAutoReplyConfig,
 }));
 
 vi.mock("@/lib/forms", async () => ({
@@ -161,7 +171,9 @@ import TeamPage from "../app/(dashboard)/settings/team/page";
 import SubscriberDetailPage from "../app/(dashboard)/subscribers/[id]/page";
 import AccessLogPage from "../app/(dashboard)/settings/access-log/page";
 import YourBusinessPage from "../app/(dashboard)/settings/page";
-import NotificationsPage from "../app/(dashboard)/settings/notifications/page";
+import WebsitePage from "../app/(dashboard)/settings/website/page";
+import AutoReplyPage from "../app/(dashboard)/settings/auto-reply/page";
+import type { lastArrivals } from "../app/(dashboard)/settings/website/queries";
 import type { ImpersonationSession } from "../db/schema";
 import type { TeamMember } from "../lib/team";
 import type { SubscriberDetail } from "../app/(dashboard)/subscribers/queries";
@@ -573,14 +585,59 @@ describe("the signed-in screens that had no harness", () => {
     expect(html).toContain("You’ll need this before you send a newsletter.");
   });
 
-  it("/settings/notifications — two people on the team", async () => {
-    h.listAgentEmails.mockResolvedValue([
-      "emma@opendoorbakery.co.uk",
-      "sam@opendoorbakery.co.uk",
-    ]);
-    const html = record("notifications", renderToStaticMarkup(await NotificationsPage()));
-    expect(html).toContain("sam@opendoorbakery.co.uk");
-    expect(html).toContain('href="/settings/team"');
+  it("/settings/website — a form that has delivered, a sign-up that has not", async () => {
+    h.lastArrivals.mockResolvedValue({
+      contactForm: new Date(Date.now() - 26 * 3600_000),
+      signup: null,
+    } satisfies Awaited<ReturnType<typeof lastArrivals>>);
+    const html = record("website", renderToStaticMarkup(await WebsitePage()));
+    expect(html).toContain("Connected");
+    expect(html).toContain("Last one: 1 day ago.");
+    expect(html).toContain("Ready to add");
+    expect(html).toContain(WORKSPACE.inboundEmail);
+    expect(html).toContain('href="/api/workspace/export"');
+  });
+
+  it("/settings/auto-reply — never set up, so the defaults", async () => {
+    h.getAutoReplyConfig.mockResolvedValue(null);
+    const html = record("auto-reply", renderToStaticMarkup(await AutoReplyPage()));
+    expect(html).toContain("Auto-reply is off");
+    expect(html).toContain("Turn on");
+    expect(html).toContain("Every new message, any time");
+  });
+
+  it("/settings/billing — comped, no card payments: the state the design draws", async () => {
+    h.stripeConfigured.mockReturnValue(false);
+    h.getWorkspaceEntitlement.mockResolvedValue({
+      plan: "trial",
+      onTrial: false,
+      comped: true,
+      mayReceive: true,
+      maySendCampaigns: true,
+      daysLeft: null,
+      blockedReason: null,
+    } satisfies Entitlement);
+    const html = record("billing-comped", renderToStaticMarkup(await BillingPage()));
+    expect(html).toContain(">Free<");
+    expect(html).toContain("Not set up yet");
+    expect(html).toContain('href="/contact"');
+    expect(html).toContain("Close workspace");
+  });
+
+  it("/settings/billing — paying by card, Stripe configured", async () => {
+    h.stripeConfigured.mockReturnValue(true);
+    h.getWorkspaceEntitlement.mockResolvedValue({
+      plan: "growth",
+      onTrial: false,
+      comped: false,
+      mayReceive: true,
+      maySendCampaigns: true,
+      daysLeft: null,
+      blockedReason: null,
+    } satisfies Entitlement);
+    const html = record("billing-paying", renderToStaticMarkup(await BillingPage()));
+    expect(html).toContain("Paid monthly by card");
+    expect(html).toContain("Manage");
   });
 
   it("writes the browser harness when asked", () => {

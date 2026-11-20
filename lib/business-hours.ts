@@ -225,3 +225,66 @@ export function describeBusinessHours(
   const labels = days.map((d) => DAY_SHORT[d]).join(", ");
   return `${labels} · ${hours.start}–${hours.end} (${timeZone})`;
 }
+
+const DAY_LONG = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+] as const;
+
+/** The week as people say it: Monday first, Sunday last. */
+const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0] as const;
+
+/**
+ * "Monday to Friday, 09:00–17:00 (UK time)" — the sentence form, for the
+ * Auto-reply settings row (20 Nov 2026 design). describeBusinessHours above
+ * stays as the compact form.
+ *
+ * Runs of consecutive days are joined ("Monday to Wednesday"), a pair is
+ * "Saturday and Sunday", and the list ends with "and". Europe/London reads as
+ * "UK time"; other zones by their city ("New York time").
+ */
+export function describeOpeningHours(
+  hours: BusinessHours | null | undefined,
+  timeZone: string,
+): string {
+  if (!isWithinWindowConfigured(hours) || !hours) return "No opening hours set";
+  const zone = friendlyZone(timeZone);
+  const span = `${hours.start}–${hours.end} (${zone})`;
+  const open = new Set(hours.days);
+  if (open.size === 7) return `Every day, ${span}`;
+
+  // Walk the week Monday-first; a day continues the current run when the day
+  // before it (in that order) was open too.
+  const runs: number[][] = [];
+  WEEK_ORDER.forEach((d, i) => {
+    if (!open.has(d)) return;
+    if (i > 0 && open.has(WEEK_ORDER[i - 1]!) && runs.length > 0) runs[runs.length - 1]!.push(d);
+    else runs.push([d]);
+  });
+
+  const phrases = runs.map((run) => {
+    const first = DAY_LONG[run[0]!];
+    const end = DAY_LONG[run[run.length - 1]!];
+    if (run.length === 1) return first;
+    if (run.length === 2) return `${first} and ${end}`;
+    return `${first} to ${end}`;
+  });
+  const days =
+    phrases.length === 1
+      ? phrases[0]
+      : `${phrases.slice(0, -1).join(", ")} and ${phrases[phrases.length - 1]}`;
+  return `${days}, ${span}`;
+}
+
+/** "Europe/London" → "UK time"; "America/New_York" → "New York time". */
+export function friendlyZone(timeZone: string): string {
+  if (timeZone === "Europe/London") return "UK time";
+  if (timeZone === "UTC" || timeZone === "Etc/UTC") return "UTC";
+  const city = timeZone.split("/").pop() ?? timeZone;
+  return `${city.split("_").join(" ")} time`;
+}

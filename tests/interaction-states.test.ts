@@ -25,7 +25,9 @@ const mail = read("app", "mail.css");
 
 describe("the copy button's hover state", () => {
   it("is styled by a class, not a style attribute", () => {
-    expect(copyButton).toContain('className={`pb-copy');
+    // A caller may pass its own class (the settings rows do); the default is
+    // still the .pb-copy class, never a style attribute.
+    expect(copyButton).toMatch(/className=\{className \?\? `pb-copy/);
     expect(
       copyButton,
       "CopyButton is back on inline styles. A style attribute cannot express " +

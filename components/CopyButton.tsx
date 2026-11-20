@@ -21,6 +21,7 @@ export default function CopyButton({
   label = "Copy",
   ariaLabel,
   compact = false,
+  className,
 }: {
   value: string;
   label?: string;
@@ -36,6 +37,8 @@ export default function CopyButton({
    */
   ariaLabel?: string;
   compact?: boolean;
+  /** Replaces the pill look, e.g. the settings rows' text action. */
+  className?: string;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -59,7 +62,7 @@ export default function CopyButton({
     <button
       onClick={copy}
       aria-label={ariaLabel}
-      className={`pb-copy${compact ? " pb-copy--compact" : ""}`}
+      className={className ?? `pb-copy${compact ? " pb-copy--compact" : ""}`}
       data-copied={copied || undefined}
     >
       {copied ? "Copied ✓" : label}

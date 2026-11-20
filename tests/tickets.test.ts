@@ -10,6 +10,7 @@ import {
   relativeTime,
   previewText,
 } from "../lib/tickets";
+import { timeAgo } from "../lib/ticket-format";
 
 describe("ticket refs & reply addresses", () => {
   it("formats refs", () => {
@@ -140,5 +141,25 @@ describe("display helpers", () => {
     const preview = previewText(long, 50);
     expect(preview.length).toBe(50);
     expect(preview.endsWith("…")).toBe(true);
+  });
+});
+
+describe("timeAgo — the sentence form, for prose like “Last one: 1 day ago”", () => {
+  const now = new Date("2026-11-20T12:00:00Z");
+  const ago = (ms: number) => timeAgo(new Date(now.getTime() - ms), now);
+
+  it("counts in the largest whole unit, singular and plural", () => {
+    expect(ago(20_000)).toBe("just now");
+    expect(ago(60_000)).toBe("1 minute ago");
+    expect(ago(5 * 60_000)).toBe("5 minutes ago");
+    expect(ago(3600_000)).toBe("1 hour ago");
+    expect(ago(26 * 3600_000)).toBe("1 day ago");
+    expect(ago(3 * 86400_000)).toBe("3 days ago");
+    expect(ago(14 * 86400_000)).toBe("2 weeks ago");
+    expect(ago(90 * 86400_000)).toBe("3 months ago");
+  });
+
+  it("never says a time in the future", () => {
+    expect(ago(-60_000)).toBe("just now");
   });
 });

@@ -2,17 +2,16 @@ import { redirect } from "next/navigation";
 import { resolveViewer } from "@/lib/viewer";
 import { DEFAULT_CONFIG } from "@/lib/auto-reply";
 import { getAutoReplyConfig } from "@/lib/auto-reply-send";
-import AutoReplySettings from "./AutoReplySettings";
+import { SettingsHeader } from "../rows";
+import AutoReplyDetails from "./AutoReplyDetails";
 
 export const metadata = { title: "Auto-reply · Settings" };
 
 /**
- * /settings/auto-reply — auto-acknowledgement configuration.
+ * /settings/auto-reply — the automatic "we got your message".
  *
- * This used to be the default settings tab at /settings; General took that slot
- * when the theme picker landed, and auto-reply moved down a segment. The pane
- * wrapper and the stylesheet live in the settings layout, shared with the other
- * tabs.
+ * Built to the 20 Nov 2026 design (read, then Change). See AutoReplyDetails
+ * for why each line saves on its own.
  */
 export default async function AutoReplyPage() {
   const viewer = await resolveViewer();
@@ -22,9 +21,15 @@ export default async function AutoReplyPage() {
   const stored = await getAutoReplyConfig(workspace.id);
 
   return (
-    <AutoReplySettings
-      initialConfig={stored ?? DEFAULT_CONFIG}
-      workspaceName={workspace.name}
-    />
+    <div className="stg-wrap">
+      <SettingsHeader
+        title="Auto-reply"
+        sub="An instant “we got your message” for anyone who gets in touch."
+      />
+      <AutoReplyDetails
+        initialConfig={stored ?? DEFAULT_CONFIG}
+        workspaceName={workspace.name}
+      />
+    </div>
   );
 }
