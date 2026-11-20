@@ -8,6 +8,7 @@ import { upsertContact, createTicket } from "@/lib/data";
 import { resolveIngestKey } from "@/lib/forms";
 import { notifyWorkspace } from "@/lib/notify";
 import { maybeSendAutoReply } from "@/lib/auto-reply-send";
+import { formErrorPage, formSuccessPage } from "@/lib/form-response-pages";
 
 /**
  * POST /api/tickets/:apiKey — PUBLIC contact-form ingestion. The dashboard
@@ -252,7 +253,7 @@ function badRequest(req: Request, error: string): Response {
   const wantsHtml =
     !isJsonRequest(req) && (req.headers.get("accept") ?? "").includes("text/html");
   if (wantsHtml) {
-    return new Response(errorPage(error), {
+    return new Response(formErrorPage(error), {
       status: 400,
       headers: { "Content-Type": "text/html; charset=utf-8", ...CORS_HEADERS },
     });
@@ -261,29 +262,8 @@ function badRequest(req: Request, error: string): Response {
 }
 
 function htmlSuccess(workspaceName: string): Response {
-  const body = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Message sent</title>
-<style>body{margin:0;font-family:system-ui,-apple-system,sans-serif;background:#faf8f4;color:#26221d;display:flex;align-items:center;justify-content:center;min-height:100vh}
-.card{background:#fff;border:1px solid #e7e1d7;border-radius:16px;padding:40px;max-width:420px;text-align:center;box-shadow:0 30px 60px -30px rgba(60,50,35,.28)}
-.dot{width:56px;height:56px;border-radius:50%;background:#f9e7de;color:#d6552f;display:flex;align-items:center;justify-content:center;font-size:28px;margin:0 auto 18px}
-h1{font-size:20px;margin:0 0 8px}p{color:#7a7264;line-height:1.6;margin:0}</style></head>
-<body><div class="card"><div class="dot">✓</div><h1>Thanks — we got your message</h1>
-<p>${escapeHtml(workspaceName)} has received your enquiry and will reply by email soon.</p></div></body></html>`;
-  return new Response(body, {
+  return new Response(formSuccessPage(workspaceName), {
     status: 201,
     headers: { "Content-Type": "text/html; charset=utf-8", ...CORS_HEADERS },
   });
-}
-
-function errorPage(error: string): string {
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Couldn't send</title>
-<style>body{margin:0;font-family:system-ui,sans-serif;background:#faf8f4;color:#26221d;display:flex;align-items:center;justify-content:center;min-height:100vh}
-.card{background:#fff;border:1px solid #e7e1d7;border-radius:16px;padding:40px;max-width:420px;text-align:center}
-h1{font-size:20px;margin:0 0 8px}p{color:#7a7264;margin:0}</style></head>
-<body><div class="card"><h1>We couldn't send that</h1><p>${escapeHtml(error)}</p></div></body></html>`;
-}
-
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
-  );
 }
