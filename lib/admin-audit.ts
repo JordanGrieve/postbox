@@ -11,6 +11,7 @@ import {
   type AdminActionChainContent,
 } from "./admin-actions-chain";
 import type { ChainVerification } from "./hash-chain";
+import { isUniqueViolation } from "./pg-errors";
 
 /**
  * The operator action log.
@@ -139,12 +140,6 @@ function chainSecret(): string | null {
  * unique index a correctness mechanism rather than an outage.
  */
 const CHAIN_APPEND_ATTEMPTS = 5;
-
-/** Postgres unique_violation. */
-function isUniqueViolation(err: unknown): boolean {
-  const code = (err as { code?: unknown } | null)?.code;
-  return code === "23505";
-}
 
 /**
  * Walk the action chain and report whether it still holds.

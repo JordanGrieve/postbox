@@ -1,5 +1,6 @@
 import { and, asc, desc, eq, gt, isNull, lt, sql } from "drizzle-orm";
 import { db } from "@/db";
+import { isUniqueViolation } from "./pg-errors";
 import {
   admins,
   impersonationSessions,
@@ -125,11 +126,6 @@ function chainSecret(): string | null {
  */
 const CHAIN_APPEND_ATTEMPTS = 5;
 
-/** Postgres unique_violation. */
-function isUniqueViolation(err: unknown): boolean {
-  const code = (err as { code?: unknown } | null)?.code;
-  return code === "23505";
-}
 
 /**
  * Append one row to the hash chain.
