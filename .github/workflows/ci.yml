@@ -5,6 +5,13 @@ on:
     branches: [main]
   pull_request:
 
+# Read-only token. CI checks out and runs the suite; it never writes to the
+# repository. Without this the job gets whatever the repository's default
+# token scope is, which may be write. The three sweep workflows already say
+# the same.
+permissions:
+  contents: read
+
 jobs:
   test-and-build:
     runs-on: ubuntu-latest
