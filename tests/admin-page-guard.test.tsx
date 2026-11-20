@@ -28,12 +28,14 @@ vi.mock("@/lib/viewer", () => ({
   })),
 }));
 
+// A static import (vi.mock above is hoisted, so it still applies). It was a
+// dynamic import inside the test, which put loading the whole console — a
+// second and a half alone — inside the 5s test timeout, and the full suite
+// running 135 files in parallel pushed it over.
+import AdminHomePage from "../app/(admin)/admin/page";
+
 describe("app/(admin)/admin/page.tsx", () => {
   it("refuses a non-admin before it reads any tenant's data", async () => {
-    const { default: AdminHomePage } = await import(
-      "../app/(admin)/admin/page"
-    );
-
     await expect(
       AdminHomePage({ searchParams: Promise.resolve({}) }),
     ).rejects.toBe(NOT_AN_ADMIN);
