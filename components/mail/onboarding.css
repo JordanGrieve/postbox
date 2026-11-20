@@ -171,9 +171,11 @@
     flex-wrap: wrap;
   }
 
-  /* Full width under the text rather than squeezed beside it. */
+  /* Full width under the text rather than squeezed beside it — the width
+     less the 32px indent that lines it up with the text, or the button runs
+     that far past the card and its right edge is cut off on a phone. */
   .pbo-go {
-    width: 100%;
+    width: calc(100% - 32px);
     text-align: center;
     margin-left: 32px;
   }
