@@ -4,6 +4,8 @@ import {
   emailAccent,
   DEFAULT_EMAIL_ACCENT,
   NO_BRAND,
+  SIGN_OFF_MAX,
+  normalizeSignOff,
   type Brand,
 } from "../lib/newsletter";
 import { contrastRatio, parseHex, MIN_CONTRAST } from "../lib/email-colour";
@@ -177,5 +179,37 @@ describe("branding cannot break the things that are not optional", () => {
         brand: { accentHex: "#1a5c9e", signOff: "— Emma" },
       }),
     ).toThrow(/postal address/i);
+  });
+});
+
+/**
+ * The sign-off as stored by PATCH /api/workspace.
+ *
+ * Every sample has a letter "s" in it on purpose. The inline version of this
+ * lost its backslash and became a regex that deleted every "s", which a sample
+ * like "— Emma" could never have noticed.
+ */
+describe("normalizeSignOff", () => {
+  it("keeps every letter, including s", () => {
+    expect(normalizeSignOff("Best wishes, Bramble Bakery")).toBe(
+      "Best wishes, Bramble Bakery",
+    );
+  });
+
+  it("folds newlines and runs of whitespace into one space", () => {
+    expect(normalizeSignOff("  Thanks,\n\n  Sam\tand the team  ")).toBe(
+      "Thanks, Sam and the team",
+    );
+  });
+
+  it("caps the length", () => {
+    expect(normalizeSignOff("s".repeat(SIGN_OFF_MAX + 50))).toHaveLength(
+      SIGN_OFF_MAX,
+    );
+  });
+
+  it("stores empty and whitespace-only as null", () => {
+    expect(normalizeSignOff("")).toBeNull();
+    expect(normalizeSignOff(" \n\t ")).toBeNull();
   });
 });

@@ -3,7 +3,7 @@ import { json } from "@/lib/http";
 import { activeWorkspace } from "@/lib/viewer";
 import { updateWorkspace } from "@/lib/data";
 import { THEMES } from "@/lib/theme";
-import { SIGN_OFF_MAX } from "@/lib/newsletter";
+import { normalizeSignOff } from "@/lib/newsletter";
 import { parseHex, toHex } from "@/lib/email-colour";
 
 /**
@@ -83,13 +83,7 @@ export async function PATCH(req: Request) {
     }
   }
   if (typeof body.brandSignOff === "string") {
-    // Single line: newlines here would become <br /> in every campaign footer,
-    // and a sign-off is a sign-off, not a second body.
-    const trimmed = body.brandSignOff
-      .replace(/s+/g, " ")
-      .trim()
-      .slice(0, SIGN_OFF_MAX);
-    patch.brandSignOff = trimmed || null;
+    patch.brandSignOff = normalizeSignOff(body.brandSignOff);
   }
 
   if (typeof body.accent === "string") {

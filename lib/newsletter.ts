@@ -887,6 +887,22 @@ export const DEFAULT_EMAIL_ACCENT = "#c14a22";
 export const SIGN_OFF_MAX = 120;
 
 /**
+ * A sign-off as it is stored: one line, trimmed, capped. Null for empty.
+ *
+ * Single line because a newline here would become a line break in every
+ * campaign footer, and a sign-off is a sign-off, not a second body.
+ *
+ * Lives here, beside SIGN_OFF_MAX, rather than inline in the route so it can be
+ * tested: the inline version lost its backslash and became a regex that
+ * deleted every letter "s", so "Best wishes" was saved as "Be t wi he " and
+ * sent that way in every campaign. See AGENTS.md on backslashes.
+ */
+export function normalizeSignOff(raw: string): string | null {
+  const line = raw.replace(/\s+/g, " ").trim().slice(0, SIGN_OFF_MAX);
+  return line || null;
+}
+
+/**
  * The hex actually written into the message.
  *
  * ── NOTHING TRUSTS THE STORED VALUE ──
