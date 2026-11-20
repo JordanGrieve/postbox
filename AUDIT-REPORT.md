@@ -24,8 +24,8 @@ probes (`tests/audit-probes.js`) were run alongside axe.
 | `npm run lint` | ✅ 0 errors, 2 warnings | ✅ 0 errors, the same 2 warnings |
 | `npm test` | ✅ 122 files, 1734 passed, 1 expected fail | ✅ 131 files, 1774 passed, 1 expected fail |
 | `npm run build` | ✅ pass | ✅ pass |
-| `npm audit --omit=dev` | ❌ 7 moderate | ❌ 5 moderate (see Not fixed) |
-| `npm audit` (incl. dev) | ❌ 15 moderate, 2 high | ❌ 5 moderate, 1 high (see Not fixed) |
+| `npm audit --omit=dev` | ❌ 7 moderate | ❌ unchanged — the audit fix was reverted (see Fixed) |
+| `npm audit` (incl. dev) | ❌ 15 moderate, 2 high | ❌ unchanged — the audit fix was reverted (see Fixed) |
 
 The two lint warnings are `window.location.assign()` in
 `app/(dashboard)/newsletters/Composer.tsx:1060,1067` (nit, below).
@@ -44,7 +44,7 @@ The two lint warnings are `window.location.assign()` in
 | Important | Onboarding "Do it" button ran 20px past its card on phones (`width:100%` + `margin-left:32px`). New guard scans every stylesheet for the pattern. | `69d695b` |
 | Important | Contact form's no-JS success/error pages failed AAA: no `lang`, ~4.8:1 body text, px sizes, old terracotta. Moved to `lib/form-response-pages.ts`; checked in the browser. | `fb1360e` |
 | Important | `ci.yml` had no `permissions:`, so it ran with the default token scope. Now `contents: read`, guarded for every workflow. | `191c88d` |
-| Important | `npm audit fix` (non-breaking, lockfile only): 17 → 6 overall, 7 → 5 production. | `b67ed77` |
+| ~~Important~~ | ~~`npm audit fix` (non-breaking, lockfile only): 17 → 6 overall, 7 → 5 production.~~ **Reverted after the merge.** Run with npm 11 on the stale base, it produced a lockfile CI's npm 10 rejects (`npm ci`: esbuild 0.28.2's platform packages missing), and CI on main went red. The lockfile is main's last green one again, and npm 10's own `audit fix` crashes on it (`Cannot read properties of null (reading 'edgesOut')`). The advisories are all build- and test-time; redo it as a deliberate dependency bump, verified with `npm ci` on npm 10. | reverted |
 
 ## Not fixed
 
