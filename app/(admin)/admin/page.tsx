@@ -4,7 +4,7 @@ import { recentFeedbackDrops } from "@/lib/feedback-log";
 // Not Clerk's <SignOutButton>: it runs only in the browser, so an operator
 // signing out from here left their impersonation row open forever.
 import AuditedSignOutButton from "@/components/AuditedSignOutButton";
-import { resolveViewer } from "@/lib/viewer";
+import { requireAdmin, resolveViewer } from "@/lib/viewer";
 import { listWorkspaceSummaries } from "@/lib/data";
 import { recentAccessByWorkspace } from "@/lib/impersonation";
 import { readsForSessions } from "@/lib/impersonation-reads";
@@ -111,6 +111,11 @@ export default async function AdminHomePage({
     key?: string;
   }>;
 }) {
+  // The layout's requireAdmin() is not enough on its own. Layouts are skipped
+  // on client-side navigation (partial rendering), so a page that reads every
+  // tenant's data must check for itself before the first read. Next's own
+  // authentication guide says the same: check close to the data.
+  await requireAdmin();
   const params = await searchParams;
   // Still resolved, though its email is no longer shown: it is the same call
   // every console render makes, and dropping it here would change more than
