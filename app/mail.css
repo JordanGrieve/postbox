@@ -283,6 +283,52 @@
   color: var(--nav-badge-fg);
 }
 
+/* ── Settings and its sections ──────────────────────────────────────
+   The Settings row reads as OPEN, not selected, while you are in Settings:
+   the selected thing is the section under it, so filling both would mark two
+   rows as "here". The sections hang off a rule on the left, as in the
+   20 Nov 2026 design, and only render inside Settings (MailNavShell). */
+/* --nav-fg, not --nav-active-fg: the latter is the ink for the FILLED active
+   row, and on the light sidebar it is white on near-white. */
+.pbm-folder[data-open="true"] {
+  color: var(--nav-fg);
+  font-weight: 800;
+}
+
+.pbm-subnav {
+  list-style: none;
+  margin: 0 0 4px 23px;
+  padding: 0 0 0 10px;
+  border-left: 1px solid var(--pbm-nav-line);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.pbm-subnav-item {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap-min, 44px);
+  padding: 0 12px;
+  border-radius: 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--nav-muted);
+  text-decoration: none;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+
+.pbm-subnav-item:hover {
+  background: var(--pbm-nav-line);
+  color: var(--nav-fg);
+}
+
+.pbm-subnav-item[data-active="true"] {
+  background: var(--nav-active-bg);
+  color: var(--nav-active-fg);
+  font-weight: 800;
+}
+
 /* A folder the schema cannot answer. Genuinely disabled, never a dead link,
    and carrying no count — a "0" would read as a fact we do not have. */
 .pbm-nav-spacer {

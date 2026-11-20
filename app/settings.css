@@ -792,6 +792,176 @@
   font-weight: 600;
 }
 
+/* ── read, then Change ─────────────────────────────────────────────
+   Your business and Notifications (20 Nov 2026 design, "Settings idea 3").
+   A list you read: a small label, the value under it, and a Change (or Add)
+   on the right. Change swaps that one line for its editor in place.
+
+   One column capped at 40rem: the values are short (a name, an address), and
+   on a wide screen a Change link 1200px from the thing it changes is a link
+   nobody connects to its row. */
+
+.stg-eyebrow {
+  margin: 0 0 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.stg-biz {
+  margin: 0;
+  max-width: 40rem;
+  border-top: 1px solid var(--border-soft);
+}
+
+.stg-biz-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "label side"
+    "body  side";
+  column-gap: 18px;
+  row-gap: 4px;
+  align-items: center;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+/* Editing takes the whole width; there is no Change column to keep. */
+.stg-biz-row[data-editing="true"] {
+  grid-template-areas:
+    "label label"
+    "body  body";
+}
+
+.stg-biz-label {
+  grid-area: label;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.stg-biz-body {
+  grid-area: body;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.stg-biz-side {
+  grid-area: side;
+  margin: 0;
+}
+
+.stg-biz-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  font-size: 0.875rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.stg-biz-value--empty {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* An address is authored as lines and read as lines. */
+.stg-biz-lines {
+  display: block;
+  white-space: pre-line;
+}
+
+.stg-biz-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stg-biz-note {
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  color: var(--warn-fg);
+}
+
+.stg-biz-note--quiet {
+  font-weight: 500;
+  color: var(--muted);
+}
+
+/* The colour as a dot beside its hex. Decorative: the hex is the value. */
+.stg-biz-swatch {
+  flex: none;
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+
+/* Change / Add: a link-looking button, with the 44px target the bar asks for
+   (2.5.5) carried by its own box rather than drawn bigger. */
+.stg-biz-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--tap-min, 44px);
+  min-width: var(--tap-min, 44px);
+  padding: 0 6px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.stg-biz-action:hover {
+  text-decoration-thickness: 2px;
+}
+
+.stg-biz-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 32rem;
+  padding-top: 4px;
+}
+
+.stg-biz-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.stg-biz-error {
+  margin: 0;
+}
+
+/* Empty most of the time, and never display:none — a live region that is
+   hidden and then shown is announced unreliably. Empty, it takes no space. */
+.stg-biz-saved {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ok-fg);
+}
+
 /* ── appearance: light or dark ─────────────────────────────────── */
 
 .stg-themes {
@@ -888,246 +1058,12 @@
 }
 
 
-/* â”€â”€ inbox: label / value rows â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-
-.stg-rows {
-  margin: 0;
-  padding: 4px 18px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-}
-
-.stg-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--border-soft);
-  min-width: 0;
-}
-
-.stg-row:last-child {
-  border-bottom: 0;
-}
-
-.stg-row-label {
-  flex: 0 0 auto;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--text-2);
-}
-
-.stg-row-body {
-  margin: 0;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  text-align: right;
-}
-
-.stg-row-value {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  font-size: 0.78125rem;
-  font-weight: 600;
-  color: var(--text-3);
-  overflow-wrap: anywhere;
-}
-
-.stg-row-value--muted {
-  color: var(--muted);
-}
-
-.stg-row-mono {
-  font-family: var(--font-mono, ui-monospace, monospace);
-  font-size: 0.75rem;
-}
-
-.stg-row-link {
-  flex: 0 0 auto;
-  padding: 7px 13px;
-  border-radius: 11px;
-  background: var(--surface-3);
-  border: 1px solid var(--border);
-  font-size: 0.71875rem;
-  font-weight: 700;
-  color: var(--text-2);
-  text-decoration: none;
-}
-
-.stg-row-link:hover {
-  border-color: var(--border-strong);
-  color: var(--text);
-}
-
-.stg-row-link:focus-visible {
-  border-radius: 11px;
-}
-
-.stg-dot {
-  flex: 0 0 auto;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--muted);
-}
-
-.stg-dot[data-on="true"] {
-  background: var(--ok-fg);
-}
-
-.stg-unbuilt-note {
-  min-width: 0;
-  max-width: 46ch;
-  font-size: 0.71875rem;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--muted);
-}
-
-/* â”€â”€ integrations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-
-.stg-int-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.stg-int {
-  display: flex;
-  align-items: center;
-  gap: 13px;
-  min-width: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 18px;
-  padding: 14px 16px;
-}
-
-/* Not-built cards sit back a step so the row does not read as a row of
-   working connections. */
-.stg-int[data-unbuilt="true"] {
-  background: var(--surface-3);
-  border-style: dashed;
-}
-
-.stg-int-mark {
-  flex: none;
-  width: 38px;
-  height: 38px;
-  border-radius: 13px;
-  background: var(--accent-soft);
-  color: var(--accent-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.6875rem;
-  font-weight: 800;
-}
-
-.stg-int[data-unbuilt="true"] .stg-int-mark {
-  background: var(--surface-2);
-  color: var(--muted);
-}
-
-.stg-int-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.stg-int-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.stg-int-name {
-  font-size: 0.8125rem;
-  font-weight: 800;
-  color: var(--text);
-}
-
-.stg-int-note {
-  font-size: 0.71875rem;
-  font-weight: 600;
-  line-height: 1.5;
-  color: var(--muted-2);
-}
-
-.stg-int-btn {
-  flex: none;
-  padding: 8px 14px;
-  border-radius: 12px;
-  background: var(--surface-3);
-  border: 1px solid var(--border);
-  font-size: 0.71875rem;
-  font-weight: 700;
-  color: var(--text-3);
-  text-decoration: none;
-}
-
-.stg-int-btn:hover {
-  border-color: var(--border-strong);
-  color: var(--text);
-}
-
-.stg-int-btn:focus-visible {
-  border-radius: 12px;
-}
-
-.stg-state {
-  flex: 0 0 auto;
-  font-size: 0.6875rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 7px;
-  background: var(--surface-3);
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.stg-state[data-on="true"] {
-  background: var(--accent-chip);
-  color: var(--accent-text);
-}
 
 /* â”€â”€ responsive â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ */
-
-@media (max-width: 1080px) {
-  .stg-int-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 
 @media (max-width: 768px) {
   .stg-wrap {
     padding: 18px 14px 40px;
-  }
-  .stg-rows {
-    padding: 4px 14px;
-  }
-  .stg-row {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-  .stg-row-body {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    text-align: left;
   }
 }
 

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { SETTINGS_SECTIONS } from "../lib/settings-sections";
 
 /**
  * Settings → Access log: the client's own view of impersonation_sessions.
@@ -119,14 +120,14 @@ describe("access log — says what was observed, not what was inferred", () => {
 });
 
 describe("access log — reachable, and the same data as the operator console", () => {
-  it("is listed in the settings tab strip", () => {
-    const tabs = readFileSync(
-      join(process.cwd(), "app", "(dashboard)", "settings", "SettingsTabs.tsx"),
-      "utf8",
-    );
+  it("is listed in a settings section, beside the team", () => {
     // A settings surface nobody can navigate to is the newsletter-signup
-    // failure again: shipped, tested, and unreachable.
-    expect(tabs).toContain('href: "/settings/access-log"');
+    // failure again: shipped, tested, and unreachable. Since the 20 Nov 2026
+    // redesign the sidebar and the in-page tabs both read
+    // lib/settings-sections.ts; tests/settings-sections.test.ts checks every
+    // settings route against it, and this pins where the access log sits.
+    const team = SETTINGS_SECTIONS.find((s) => s.key === "team");
+    expect(team?.pages.map((p) => p.href)).toContain("/settings/access-log");
   });
 
   it("shares the operator console's formatters rather than copying them", () => {

@@ -40,9 +40,20 @@ const h = vi.hoisted(() => ({
   readsForSessions: vi.fn(),
   exportsForWorkspace: vi.fn(),
   activeWorkspace: vi.fn(),
+  listAgentEmails: vi.fn(),
 }));
 
-const WORKSPACE = { id: 3, name: "Open Door Bakery", accent: "terracotta" };
+const WORKSPACE = {
+  id: 3,
+  name: "Open Door Bakery",
+  accent: "light",
+  // The fields /settings reads, in the state of a new workspace: none of the
+  // optional business details filled in, which is the one with the warning.
+  legalName: null,
+  postalAddress: null,
+  brandAccentHex: null,
+  brandSignOff: null,
+};
 
 vi.mock("@/lib/viewer", () => ({
   resolveViewer: async () => ({
@@ -93,6 +104,7 @@ vi.mock("../app/(dashboard)/queries", async () => ({
 vi.mock("@/lib/data", async () => ({
   ...(await vi.importActual<typeof import("@/lib/data")>("@/lib/data")),
   listContactsWithCounts: h.listContactsWithCounts,
+  listAgentEmails: h.listAgentEmails,
 }));
 
 vi.mock("@/lib/forms", async () => ({
@@ -148,6 +160,8 @@ import FormsPage from "../app/(dashboard)/settings/forms/page";
 import TeamPage from "../app/(dashboard)/settings/team/page";
 import SubscriberDetailPage from "../app/(dashboard)/subscribers/[id]/page";
 import AccessLogPage from "../app/(dashboard)/settings/access-log/page";
+import YourBusinessPage from "../app/(dashboard)/settings/page";
+import NotificationsPage from "../app/(dashboard)/settings/notifications/page";
 import type { ImpersonationSession } from "../db/schema";
 import type { TeamMember } from "../lib/team";
 import type { SubscriberDetail } from "../app/(dashboard)/subscribers/queries";
@@ -552,8 +566,25 @@ describe("the signed-in screens that had no harness", () => {
     expect(html).toContain("jordan@postbox.help");
   });
 
+  it("/settings — Your business, a new workspace with nothing optional filled in", async () => {
+    const html = record("your-business", renderToStaticMarkup(await YourBusinessPage()));
+    expect(html).toContain("Your business");
+    expect(html).toContain("Not added yet");
+    expect(html).toContain("You’ll need this before you send a newsletter.");
+  });
+
+  it("/settings/notifications — two people on the team", async () => {
+    h.listAgentEmails.mockResolvedValue([
+      "emma@opendoorbakery.co.uk",
+      "sam@opendoorbakery.co.uk",
+    ]);
+    const html = record("notifications", renderToStaticMarkup(await NotificationsPage()));
+    expect(html).toContain("sam@opendoorbakery.co.uk");
+    expect(html).toContain('href="/settings/team"');
+  });
+
   it("writes the browser harness when asked", () => {
-    expect(rendered.length).toBeGreaterThanOrEqual(8);
+    expect(rendered.length).toBeGreaterThanOrEqual(10);
     if (!OUT) return;
     mkdirSync(OUT, { recursive: true });
     const sheets = [

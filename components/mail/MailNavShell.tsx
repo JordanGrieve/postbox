@@ -13,6 +13,7 @@ import AuditedSignOutButton from "@/components/AuditedSignOutButton";
 import { initials } from "@/lib/ticket-format";
 import { Icon, BrandMark, OverflowIcon } from "./icons";
 import type { MailCountsDTO } from "./types";
+import { SETTINGS_SECTIONS, settingsSectionFor } from "@/lib/settings-sections";
 
 /**
  * The 262px navigation column, and — below 768px — the off-canvas drawer.
@@ -54,6 +55,7 @@ export default function MailNavShell({
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
+  const settingsSection = settingsSectionFor(pathname);
 
   /*
    * ── THE DRAWER IS A DRAWER ONLY ON A PHONE ──
@@ -235,16 +237,44 @@ export default function MailNavShell({
             Settings is a row again (it was only in the account menu from
             26 Sep 2026, when the column was long). The mockup has it here,
             and the account menu no longer repeats it.
+
+            Inside Settings its sections hang under it — the 20 Nov 2026
+            settings designs ("Settings idea 3"), on Jordan's call — so a
+            section is chosen here rather than from a strip of tabs at the top
+            of every settings page. They appear only while you are IN Settings;
+            everywhere else this is one row. The row then reads as open rather
+            than selected: the selected thing is the section under it.
+
+            Sections come from lib/settings-sections.ts, the same list the
+            in-page tabs read, so the two cannot disagree.
           */}
           <Link
             href="/settings"
             className="pbm-folder"
-            data-active={pathname.startsWith("/settings")}
-            aria-current={pathname.startsWith("/settings") ? "page" : undefined}
+            data-open={settingsSection ? "true" : undefined}
           >
             <Icon name="settings" size={18} />
             <span className="pbm-folder-label">Settings</span>
           </Link>
+          {settingsSection && (
+            <ul className="pbm-subnav" aria-label="Settings sections">
+              {SETTINGS_SECTIONS.map((s) => {
+                const active = s.key === settingsSection.key;
+                return (
+                  <li key={s.key}>
+                    <Link
+                      href={s.href}
+                      className="pbm-subnav-item"
+                      data-active={active}
+                      aria-current={active ? "page" : undefined}
+                    >
+                      {s.label}
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
         </div>
 
         <div className="pbm-nav-spacer" />

@@ -3,59 +3,37 @@
 import Link from "next/link";
 import DragScroller from "@/components/DragScroller";
 import { usePathname } from "next/navigation";
+import { settingsSectionFor } from "@/lib/settings-sections";
 
 /**
- * Segmented tab strip for the settings surfaces.
+ * The pages inside the current Settings section, as a small row of tabs.
  *
- * A client component only because it needs the current pathname to mark the
- * active tab; everything inside each tab stays a server component.
+ * Choosing a SECTION is the sidebar's job now (components/mail/MailNavShell.tsx,
+ * from the 20 Nov 2026 design). This strip used to carry all nine pages; it now
+ * carries only the pages of the section you are in, and renders nothing for a
+ * section that has one page — a single tab is a heading pretending to be a
+ * control. Sections and their pages come from lib/settings-sections.ts.
  *
- * Rendered as a real <nav> with aria-current rather than a row of buttons, so
- * these stay ordinary links — middle-clickable, and each tab has its own URL.
+ * A client component only because it needs the pathname. Real links with
+ * aria-current, so each page keeps its own URL and is middle-clickable.
  */
-const TABS = [
-  { href: "/settings", label: "General" },
-  { href: "/settings/auto-reply", label: "Auto-reply" },
-  { href: "/settings/contacts", label: "Contacts" },
-  // No Labels tab since 18 Nov 2026: labels left the inbox with the simple
-  // design, so there is nothing to manage them for.
-  { href: "/settings/forms", label: "Forms" },
-  { href: "/settings/team", label: "Team" },
-  { href: "/settings/billing", label: "Billing" },
-  { href: "/settings/install", label: "Install" },
-  /*
-   * BACK, 30 August, on Jordan's call — off on the 28th, on again now.
-   *
-   * The two days it was gone changed what it can say. When it came off, the
-   * page could only tell a client that somebody entered; it now also names the
-   * tickets they opened, because impersonation_reads exists. That is the
-   * difference between "someone was in your inbox for 40 minutes" and "someone
-   * opened these three conversations", and it is the version of the page worth
-   * having.
-   *
-   * The recording never stopped while the page was away, which is why there is
-   * a log to show rather than two days of silence.
-   */
-  { href: "/settings/access-log", label: "Access log" },
-] as const;
-
 export default function SettingsTabs() {
   const pathname = usePathname();
+  const section = settingsSectionFor(pathname);
+  if (!section || section.pages.length < 2) return null;
 
   return (
     /*
-      Wrapped so a mouse can drag the strip sideways. Touch already worked once
-      the stale `overflow: visible !important` came off .pbm-page, but a pointing
-      device gets nothing from overflow-x alone — which is what "it does not
-      scroll on desktop in mobile view" was.
+      Wrapped so a mouse can drag the strip sideways on a narrow screen; touch
+      already scrolls it. See components/DragScroller.tsx.
     */
     <DragScroller
       className="pbs-tabs"
       role="navigation"
-      aria-label="Settings sections"
+      aria-label={`${section.label} pages`}
     >
-      {TABS.map((t) => {
-        // Exact match: /settings must not light up while on /settings/contacts.
+      {section.pages.map((t) => {
+        // Exact match: /settings must not light up while on /settings/billing.
         const active = pathname === t.href;
         return (
           <Link

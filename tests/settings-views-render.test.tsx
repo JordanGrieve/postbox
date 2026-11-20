@@ -21,8 +21,7 @@ import { writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
 import ThemePicker from "../app/(dashboard)/settings/ThemePicker";
 import SettingsTabs from "../app/(dashboard)/settings/SettingsTabs";
-import SenderIdentityForm from "../app/(dashboard)/settings/SenderIdentityForm";
-import NewsletterBrandForm from "../app/(dashboard)/settings/NewsletterBrandForm";
+import BusinessDetails from "../app/(dashboard)/settings/BusinessDetails";
 import WelcomeEmailForm from "../app/(dashboard)/newsletters/welcome/WelcomeEmailForm";
 import { DEFAULT_WELCOME } from "../lib/welcome-store";
 import AutoReplySettings from "../app/(dashboard)/settings/auto-reply/AutoReplySettings";
@@ -58,19 +57,27 @@ const OUT = process.env.SETTINGS_HARNESS_OUT;
 const views: Record<string, React.ReactElement> = {
   tabs: <SettingsTabs />,
   themes: <ThemePicker value="dark" />,
-  // Nothing filled in — the CAN-SPAM fields a send is gated on.
-  "sender-empty": (
-    <SenderIdentityForm legalName={null} postalAddress={null} workspaceName="Open Door Bakery" />
-  ),
-  "sender-filled": (
-    <SenderIdentityForm
-      legalName="Open Door Bakery Ltd"
-      postalAddress={"12 Mill Lane\nStroud\nGloucestershire\nGL5 1AB"}
-      workspaceName="Open Door Bakery"
+  // Your business, read mode. Nothing optional filled in — the state every new
+  // workspace is in, and the one that shows the postal-address warning.
+  "business-empty": (
+    <BusinessDetails
+      name="Open Door Bakery"
+      legalName={null}
+      postalAddress={null}
+      brandAccentHex={null}
+      brandSignOff={null}
+      theme="light"
     />
   ),
-  brand: (
-    <NewsletterBrandForm brandAccentHex={null} brandSignOff={null} workspaceName="Open Door Bakery" />
+  "business-filled": (
+    <BusinessDetails
+      name="Open Door Bakery"
+      legalName="Open Door Bakery Ltd"
+      postalAddress={"12 Mill Lane\nStroud\nGloucestershire\nGL5 1AB"}
+      brandAccentHex="#1f5c3d"
+      brandSignOff="— Emma, Open Door Bakery"
+      theme="dark"
+    />
   ),
   // Both states. Without a postal address the toggle is disabled and the
   // screen says why — that is the state every new workspace is in, and the
@@ -211,9 +218,10 @@ describe("every settings view renders", () => {
     // The canary: a form that dropped its warning would satisfy every length
     // assertion above, and the warning is the whole reason this fixture is
     // the empty one.
-    const html = renderToStaticMarkup(views["sender-empty"]!);
+    const html = renderToStaticMarkup(views["business-empty"]!);
     expect(html).toContain("Open Door Bakery");
-    expect(html.toLowerCase()).toMatch(/postal|address/);
+    expect(html).toContain("Not added yet");
+    expect(html).toContain("You’ll need this before you send a newsletter.");
   });
 
   it("writes the browser harness when asked", () => {
