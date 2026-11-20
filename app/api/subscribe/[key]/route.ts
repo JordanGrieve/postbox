@@ -1,7 +1,7 @@
 import { CORS_HEADERS, json, clientIp } from "@/lib/http";
 import { rateLimitDurable } from "@/lib/rate-limit-store";
 import { getWorkspaceByApiKey } from "@/lib/data";
-import { recordIngestionFailure } from "@/lib/ingestion-log";
+import { recordIngestionFailure, recordInvalidKey } from "@/lib/ingestion-log";
 import { readSignupSubmission } from "@/lib/submission-fields";
 import { APP_URL } from "@/lib/config";
 import {
@@ -70,7 +70,7 @@ export async function POST(
 
   const workspace = await getWorkspaceByApiKey(key);
   if (!workspace) {
-    await recordIngestionFailure({ reason: "invalid_key", key });
+    await recordInvalidKey(key, clientIp(req));
     return json(
       { ok: false, error: "Invalid API key." },
       { status: 401, headers: CORS_HEADERS },

@@ -102,9 +102,11 @@ describe("ingest records which form a ticket came through", () => {
   it("still records an unknown key as an ingestion failure", () => {
     // The bakery's form failed silently for six weeks because this branch
     // discarded the fact. Resolving two kinds of key must not lose it.
+    // Recorded through recordInvalidKey, which throttles per IP and then calls
+    // recordIngestionFailure (tests/invalid-key-log.test.ts covers that half).
     const start = INGEST.indexOf("if (!target || !workspace)");
     expect(start).toBeGreaterThan(-1);
-    expect(INGEST.slice(start, start + 400)).toMatch(/recordIngestionFailure/);
+    expect(INGEST.slice(start, start + 400)).toMatch(/recordInvalidKey\(/);
   });
 });
 

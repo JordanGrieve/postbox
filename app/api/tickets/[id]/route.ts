@@ -2,7 +2,7 @@ import { CORS_HEADERS, json, isValidEmail, clientIp } from "@/lib/http";
 import { rateLimitDurable } from "@/lib/rate-limit-store";
 import { isContactHoneypotTripped } from "@/lib/subscribe";
 import { readContactSubmission } from "@/lib/submission-fields";
-import { recordIngestionFailure } from "@/lib/ingestion-log";
+import { recordIngestionFailure, recordInvalidKey } from "@/lib/ingestion-log";
 import { previewText } from "@/lib/tickets";
 import { upsertContact, createTicket } from "@/lib/data";
 import { resolveIngestKey } from "@/lib/forms";
@@ -38,7 +38,7 @@ export async function POST(
     // THE bakery case. Their site posted a key that no longer existed, every
     // day for six weeks, and this branch discarded the fact every time — so
     // the only way it could ever have been found was the client complaining.
-    await recordIngestionFailure({ reason: "invalid_key", key: apiKey });
+    await recordInvalidKey(apiKey, clientIp(req));
     return json(
       { ok: false, error: "Invalid API key." },
       { status: 401, headers: CORS_HEADERS },

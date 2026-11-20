@@ -2,6 +2,7 @@ import "server-only";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import type { IngestionFailureReason } from "@/db/schema";
+import { rateLimitDurable } from "./rate-limit-store";
 
 /**
  * Record that a public ingestion request was rejected.
@@ -87,6 +88,54 @@ export async function recordIngestionFailure(input: {
     // Never fail the request over telemetry. See the header.
     console.error("[ingestion-log] could not record failure:", err);
   }
+}
+
+/** Unknown-key rejections recorded per IP per minute; the rest are dropped. */
+export const INVALID_KEY_RECORDS_PER_MINUTE = 10;
+
+type InvalidKeyDeps = {
+  limit: (bucket: string, opts: { max: number; windowMs: number }) => Promise<{ ok: boolean }>;
+  record: typeof recordIngestionFailure;
+};
+
+/**
+ * Record an unknown key — at most INVALID_KEY_RECORDS_PER_MINUTE per IP.
+ *
+ * The public ingest routes look the key up BEFORE their own rate limits run
+ * (the buckets are per workspace, which an unknown key does not have), so this
+ * branch had no throttle at all. KEY_SHAPE stops random junk, but not
+ * `cli_<random12>`: every distinct 16-character prefix is a new row, one per
+ * request, from anyone. On a database with a storage cap that is a slow way to
+ * take the product down.
+ *
+ * Throttling the RECORDING, not the response: the caller still gets its 401
+ * every time. A real broken integration posts the same stale key over and
+ * over, so ten a minute is plenty to make it visible in the console.
+ *
+ * No IP (only possible off Vercel) shares one bucket, which errs towards
+ * recording less rather than towards an unthrottled table.
+ */
+export async function recordInvalidKey(
+  key: string,
+  ip: string | null,
+  deps?: InvalidKeyDeps,
+): Promise<void> {
+  const { limit, record } = deps ?? {
+    limit: rateLimitDurable,
+    record: recordIngestionFailure,
+  };
+  try {
+    const allowed = await limit(`badkey:ip:${ip ?? "unknown"}`, {
+      max: INVALID_KEY_RECORDS_PER_MINUTE,
+      windowMs: 60_000,
+    });
+    if (!allowed.ok) return;
+  } catch (err) {
+    // Same rule as the header: telemetry never fails the request.
+    console.error("[ingestion-log] could not check the invalid-key limit:", err);
+    return;
+  }
+  await record({ reason: "invalid_key", key });
 }
 
 export type IngestionFailureRow = {
