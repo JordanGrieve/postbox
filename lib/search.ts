@@ -401,13 +401,15 @@ export function searchQueries(
         name: labels.name,
         color: labels.color,
         // ticket_labels has no workspace_id either: the count joins up to
-        // `tickets` and filters there, as listLabelsWithCounts does.
+        // `tickets` and filters there, as listLabelsWithCounts does — including
+        // leaving out trashed tickets, so this number matches the nav badge.
         ticketCount: sql<number>`(
           SELECT count(*)::int
           FROM ticket_labels tl
           JOIN tickets t ON t.id = tl.ticket_id
           WHERE tl.label_id = ${L_ID}
             AND t.workspace_id = ${workspaceId}
+            AND t.deleted_at IS NULL
         )`,
         total: MATCH_TOTAL,
       })
