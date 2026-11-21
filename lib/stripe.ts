@@ -11,7 +11,7 @@ import type { PlanId } from "./pricing";
  * without a Stripe account — which is how a missing env var takes down the
  * inbox rather than just the checkout button. `stripeClient()` returns null
  * when unconfigured and every caller is expected to handle that, exactly like
- * the campaign deliverer treats absent AWS credentials as "log only" rather
+ * the campaign deliverer treats an unset delivery mode as "log only" rather
  * than as consent to send.
  */
 

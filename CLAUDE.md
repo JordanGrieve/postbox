@@ -1,6 +1,9 @@
 @AGENTS.md
-@AWS-RULES.md
 @STYLE-GUIDE.md
+
+# How much to ask
+
+Jordan's setting since 22 Aug 2026: medium. Do what is asked; ask at most two clarifying questions when something is ambiguous or looks wrong; don't repeat a suggestion that was dismissed; don't explain trade-offs or alternatives unless asked.
 
 # Project skills
 

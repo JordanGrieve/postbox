@@ -204,7 +204,7 @@ export default async function LandingPage() {
             calls, so the unsubscribe link and the postal address in it are the
             real ones. "We handle compliance" is a promise; a visible footer is
             evidence — and it is the specific evidence both a cautious owner
-            and an AWS reviewer are looking for.
+            and a mail provider's reviewer are looking for.
           */}
           <div className="home-show">
             <div className="home-show-copy">
