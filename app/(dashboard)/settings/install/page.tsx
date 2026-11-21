@@ -4,7 +4,7 @@ import { resolveViewer } from "@/lib/viewer";
 import { APP_URL, EMAIL_FROM_ADDRESS } from "@/lib/config";
 import { HONEYPOT_FIELDS, hostedSignupUrl } from "@/lib/subscribe";
 
-export const metadata = { title: "Install · Settings" };
+export const metadata = { title: "Setup steps · Settings" };
 
 export default async function InstallPage() {
   const viewer = await resolveViewer();

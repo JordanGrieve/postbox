@@ -182,7 +182,10 @@ integration, however well the submission works.
     // The pane wrapper lives in the settings layout, shared with the other tabs.
     <div className="sti-wrap">
       <div className="sti-col">
-        <h1 className="sti-title">Install &amp; settings</h1>
+        {/* "Setup steps", the name the Website & email page and the back
+            link use for this page (it said "Install & settings" until
+            21 Nov 2026). */}
+        <h1 className="sti-title">Setup steps</h1>
         <p className="sti-sub">
           Connect <b>{workspaceName}</b> to your website. Form submissions and
           forwarded email flow straight into this inbox.

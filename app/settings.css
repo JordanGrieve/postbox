@@ -92,87 +92,6 @@
   }
 }
 
-/* ── settings tab strip ─────────────────────────────────────────
-   Contacts, Auto-reply and Install are one nav entry and three tabs.
-   Sticky so the tabs stay reachable while a long tab (Install, Contacts)
-   scrolls underneath — .pbm-page is the scroll container, not the body.
-   Colours are tokens; both themes ride on them.                         */
-
-.pbs-tabs {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 14px 32px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--border-soft);
-}
-
-.pbs-tab {
-  /* Inline-flex, centred: globals.css gives the tab a 44px floor, and a
-     block link with 8px padding hung its text at the top of that box. */
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 8px 14px;
-  border-radius: 11px;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  color: var(--text-4);
-  text-decoration: none;
-  border: 1px solid transparent;
-  transition: background 0.16s ease, color 0.16s ease;
-}
-
-.pbs-tab:hover {
-  color: var(--text);
-  background: var(--surface-3);
-}
-
-.pbs-tab[data-active="true"] {
-  background: var(--accent-grad);
-  color: var(--on-accent);
-  box-shadow: 0 4px 10px var(--glow);
-}
-
-/* The tabs sit above content that already carries its own top padding, so
-   the first child does not need to re-pad against the sticky strip. */
-@media (max-width: 768px) {
-  .pbs-tabs {
-    padding: 12px 16px;
-    overflow-x: auto;
-    /* Explicit, not left to the initial value. `overflow-x: auto` with
-       `overflow-y: visible` makes the used overflow-y `auto` too, which turns
-       this into a two-axis scroller — and a sticky element that scrolls
-       vertically against itself is where the iOS bugs live. It only ever needs
-       to move sideways. */
-    overflow-y: hidden;
-    /* Tell the browser this strip pans horizontally. Without it a drag that
-       starts even slightly off-axis is claimed by the page's vertical scroll,
-       which is the difference between "scrolls if you are careful" and
-       "scrolls". */
-    touch-action: pan-x;
-    /* A swipe that reaches the end stops there instead of dragging the page
-       behind it sideways. */
-    overscroll-behavior-x: contain;
-    scrollbar-width: none;
-  }
-  .pbs-tabs::-webkit-scrollbar {
-    display: none;
-  }
-  .pbs-tab {
-    flex: 0 0 auto;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pbs-tab {
-    transition: none;
-  }
-}
-
 /* â”€â”€ /settings â€” General â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
    Appearance, Inbox and Integrations. Same rule as the rest of this
    file: every colour is a token, because both themes ride on them. The
@@ -237,13 +156,6 @@
   min-width: 0;
 }
 
-.stg-section-title {
-  margin: 0;
-  font-size: 0.84375rem;
-  font-weight: 800;
-  color: var(--text);
-}
-
 .stg-section-sub {
   margin: -4px 0 0;
   font-size: 0.75rem;
@@ -268,9 +180,9 @@
    A list you read: a small label, the value under it, and a Change (or Add)
    on the right. Change swaps that one line for its editor in place.
 
-   One column capped at 40rem: the values are short (a name, an address), and
-   on a wide screen a Change link 1200px from the thing it changes is a link
-   nobody connects to its row. */
+   One column, capped so a Change link is not 1200px from the thing it
+   changes on a wide screen. The cap was 40rem; Jordan widened it to 70rem
+   on 21 Nov 2026. */
 
 .stg-eyebrow {
   margin: 0 0 6px;
@@ -279,9 +191,11 @@
   color: var(--muted);
 }
 
+/* 70rem, Jordan's call (21 Nov 2026); it was 40rem. The group and the
+   auto-reply status card share it so the column has one right edge. */
 .stg-biz {
   margin: 0;
-  max-width: 40rem;
+  max-width: 70rem;
   border-top: 1px solid var(--border-soft);
 }
 
@@ -430,16 +344,22 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-width: 40rem;
+  max-width: 70rem;
 }
 
-.stg-biz-heading {
+/* One size for every h2 in Settings ("Getting messages in", "3 people",
+   "Your forms"). It was a 0.6875rem uppercase eyebrow in --muted until
+   21 Nov 2026, when Jordan asked for bigger headings: at that size a
+   section heading read as a caption. .stg-h2 (Forms) had no rule at all
+   and fell back to the browser's 1.5em. */
+.stg-biz-heading,
+.stg-section-title,
+.stg-h2 {
   margin: 0;
-  font-size: 0.6875rem;
+  font-size: 1.0625rem;
   font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--muted);
+  line-height: 1.3;
+  color: var(--text);
 }
 
 .stg-biz-mono {
@@ -483,7 +403,7 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  max-width: 40rem;
+  max-width: 70rem;
   padding: 16px 18px;
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -762,215 +682,6 @@
 @media (max-width: 768px) {
   .stg-wrap {
     padding: 18px 14px 40px;
-  }
-}
-
-/* ── /settings — Contacts ─────────────────────────────────────────
-   Everyone who has ever written in: avatar, name, email, first seen,
-   ticket count. Same rules as the rest of this file — every colour is a
-   token, and the geometry is declared here exactly once so that
-   contacts/loading.tsx can borrow it instead of restating it.
-
-   Ground is --surface, matching .pbm-page underneath, so a short list
-   (or the empty state) leaves no colour seam where the wrapper stops —
-   .pbm-page > * is forced to flex: 0 0 auto, so this box is only ever as
-   tall as its content. The rows then sit on --surface-2, which is the
-   same card recipe the Auto-reply tab uses next door.                */
-
-.stc-wrap {
-  min-width: 0;
-  padding: 30px 32px 56px;
-  background: var(--surface);
-  color: var(--text);
-}
-
-/* The reading column. Centred rather than full-bleed: a list of names and
-   email addresses has nothing to put in a second column. */
-.stc-col {
-  max-width: 760px;
-  margin: 0 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.stc-head {
-  min-width: 0;
-}
-
-.stc-title {
-  margin: 0 0 6px;
-  font-size: 1.3125rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.stc-sub {
-  margin: 0;
-  max-width: 62ch;
-  font-size: 0.8125rem;
-  line-height: 1.65;
-  color: var(--muted-2);
-}
-
-.stc-list {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.stc-row {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  min-width: 0;
-  padding: 13px 16px;
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--surface-2);
-}
-
-.stc-avatar {
-  flex: 0 0 auto;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 1px solid var(--border-soft);
-  background: var(--surface-3);
-  color: var(--text-3);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.78125rem;
-  font-weight: 800;
-}
-
-.stc-person {
-  flex: 1 1 auto;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* Fixed line-heights, not the inherited default: the skeleton stands a
-   non-breaking space in these same elements, so the row's height is the
-   real font's line box and cannot drift from the real list. */
-.stc-name,
-.stc-email {
-  min-width: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.stc-name {
-  font-size: 0.875rem;
-  font-weight: 700;
-  line-height: 1.35;
-  color: var(--text);
-}
-
-.stc-email {
-  font-size: 0.78125rem;
-  font-weight: 600;
-  line-height: 1.4;
-  color: var(--muted-2);
-}
-
-.stc-meta {
-  flex: 0 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.stc-count {
-  flex: 0 0 auto;
-  padding: 3px 9px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent-text);
-  font-size: 0.71875rem;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.stc-seen {
-  flex: 0 0 auto;
-  min-width: 56px;
-  text-align: right;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.stc-empty {
-  margin: 0;
-  padding: 28px 24px;
-  border: 1px dashed var(--border);
-  border-radius: 18px;
-  background: var(--surface-2);
-  text-align: center;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: var(--muted-2);
-}
-
-/* ── responsive ─────────────────────────────────────────────────
-   Inline styles carry no media query, which is why this page had no
-   small-screen behaviour at all. Usable at 390px is the target.      */
-
-@media (max-width: 768px) {
-  .stc-wrap {
-    padding: 18px 14px 40px;
-  }
-  .stc-row {
-    gap: 11px;
-    padding: 12px 13px;
-  }
-}
-
-/* Below this the name, the count and the date cannot share one line
-   without the name collapsing to two characters and an ellipsis. The
-   count and date drop to a second line, indented past the avatar so the
-   row still reads as one person. */
-@media (max-width: 520px) {
-  .stc-row {
-    flex-wrap: wrap;
-  }
-  .stc-meta {
-    /*
-      ── THE INDENT HAS TO COME OUT OF THE WIDTH ──
-
-      `flex-basis: 100%` with `margin-left: 45px` is 100% of the line PLUS the
-      indent: a margin sits outside the box, box-sizing does not cover it, and
-      `flex: 0 0 100%` leaves no shrink to absorb it. So the row overflowed by
-      exactly the indent — measured 7 Sep 2026 at 392px against a 375px
-      viewport, carrying the ticket count and the first-seen date off the edge
-      and under .pb-shell's overflow:hidden.
-
-      This is the SAME defect fixed in .psb-meta on 6 Sep, and it survived here
-      for one reason: /settings/contacts had no harness, so nothing had ever
-      rendered this row. It is the argument for the file this was found by.
-
-      One custom property, so the width and the indent cannot drift apart.
-    */
-    --stc-meta-indent: 45px;
-    flex-basis: calc(100% - var(--stc-meta-indent, 45px));
-    justify-content: flex-start;
-    margin-left: var(--stc-meta-indent, 45px);
-  }
-  .stc-seen {
-    min-width: 0;
-    text-align: left;
   }
 }
 
@@ -1614,9 +1325,147 @@
 }
 
 /* ── Team ────────────────────────────────────────────────────────
-   Reuses the .stc-* contact-row geometry so the two people-shaped lists in
-   Settings do not drift apart. Only the bits that differ live here.
+   The member list. The .stc-* names come from the Contacts page, which
+   shared this row until it was removed on 21 Nov 2026; team/loading.tsx
+   wears the same classes so its rows are the real rows' height.
 */
+.stc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stc-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 13px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.stc-avatar {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-3);
+  color: var(--text-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78125rem;
+  font-weight: 800;
+}
+
+.stc-person {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* Fixed line-heights, not the inherited default: the skeleton stands a
+   non-breaking space in these same elements, so the row's height is the
+   real font's line box and cannot drift from the real list. */
+.stc-name,
+.stc-email {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stc-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--text);
+}
+
+.stc-email {
+  font-size: 0.78125rem;
+  font-weight: 600;
+  line-height: 1.4;
+  color: var(--muted-2);
+}
+
+.stc-meta {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+@media (max-width: 768px) {
+  .stc-row {
+    gap: 11px;
+    padding: 12px 13px;
+  }
+}
+
+/* Below this the email and the Remove button cannot share one line without
+   the address collapsing to a few characters. The button drops to a second
+   line, indented past the avatar so the row still reads as one person. */
+@media (max-width: 520px) {
+  .stc-row {
+    flex-wrap: wrap;
+  }
+  .stc-meta {
+    /* The indent comes out of the width: flex-basis 100% plus a margin
+       overflowed the row by exactly the margin (7 Sep 2026). One custom
+       property, so the two cannot drift apart. */
+    --stc-meta-indent: 45px;
+    flex-basis: calc(100% - var(--stc-meta-indent, 45px));
+    justify-content: flex-start;
+    margin-left: var(--stc-meta-indent, 45px);
+  }
+  .stc-meta:empty {
+    display: none;
+  }
+}
+
+/* "‹ Website & email" above a section's other pages (SettingsBackLink). Sits
+   on the page ground and lines up with .stg-wrap's padding. */
+.stg-back-bar {
+  padding: 18px 32px 0;
+  background: var(--surface-2);
+}
+
+.stg-back {
+  display: inline-flex;
+  align-items: center;
+  /* A gap, not a space: whitespace at the end of a flex item is dropped. */
+  gap: 6px;
+  min-height: var(--tap-min, 44px);
+  padding: 0 12px;
+  margin-left: -12px;
+  border-radius: 12px;
+  font-size: 0.84375rem;
+  font-weight: 700;
+  color: var(--text-2);
+  text-decoration: none;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.stg-back:hover {
+  background: var(--surface-3);
+  color: var(--text);
+}
+
+@media (max-width: 768px) {
+  .stg-back-bar {
+    padding: 12px 14px 0;
+  }
+}
 .stg-notice {
   background: var(--tag-c-bg);
   border: 1px solid var(--tag-c-fg);

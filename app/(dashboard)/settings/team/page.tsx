@@ -7,6 +7,7 @@ import { initials } from "@/lib/tickets";
 import { inviteTeammateAction, revokeTeammateAction } from "./actions";
 import { listTeam } from "./queries";
 import InviteMember from "./InviteMember";
+import { InfoRow, RowGroup, RowLink } from "../rows";
 
 export const metadata = { title: "Team · Settings" };
 
@@ -189,6 +190,20 @@ export default async function TeamSettingsPage({
           </p>
       </section>
       )}
+
+      {/* The other half of "who has access": visits by Postbox staff. Its own
+          page, reached from here since the settings tabs went (21 Nov 2026). */}
+      <RowGroup title="Postbox access">
+        <InfoRow
+          label="Access log"
+          value="Every time someone from Postbox opened your workspace"
+          action={
+            <RowLink href="/settings/access-log" label="View the access log">
+              View
+            </RowLink>
+          }
+        />
+      </RowGroup>
     </div>
   );
 }

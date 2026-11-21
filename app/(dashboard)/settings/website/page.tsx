@@ -14,8 +14,9 @@ export const metadata = { title: "Website & email · Settings" };
  *
  * A summary of facts, each with the one thing you would do about it. The
  * long-form instructions (snippets, prompts for site builders) stay on
- * /settings/install, which "Setup steps" links to and which sits beside this
- * page as a tab.
+ * /settings/install, which "Setup steps" links to; named forms are on
+ * /settings/forms, which "Manage" links to. Both link back here
+ * (SettingsBackLink).
  *
  * Every sentence here is checked against the code it describes:
  *   - "Connected" means a contact-form message has actually arrived
@@ -68,6 +69,16 @@ export default async function WebsiteEmailPage() {
           action={
             <RowLink href="/settings/install" label="Set up your newsletter sign-up">
               Set up
+            </RowLink>
+          }
+        />
+        <InfoRow
+          label="Forms"
+          value="A separate form for each page"
+          note="Each form gets its own key, so you can see which page a message came from."
+          action={
+            <RowLink href="/settings/forms" label="Manage your forms">
+              Manage
             </RowLink>
           }
         />

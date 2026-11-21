@@ -140,8 +140,9 @@
   override was left neutralising nothing — except the one child that genuinely
   needs to scroll.
 
-  .pbs-tabs is a direct child of .pbm-page (see settings/layout.tsx) and sets
-  `overflow-x: auto` so the eight settings tabs can be swiped on a phone.
+  The settings tab strip (removed 21 Nov 2026) was a direct child of .pbm-page
+  and set `overflow-x: auto` so the eight settings tabs could be swiped on a
+  phone.
   `overflow: visible !important` beat it, so the strip clipped at the screen
   edge and could not be scrolled by any means — Jordan reported it, and his
   devtools showed the overflow-x declaration struck through with no rule above
@@ -2020,12 +2021,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   font-weight: 500;
   color: var(--muted-2);
 }
-.pbm-results-aside {
-  margin-left: auto;
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--accent-text);
-}
 .pbm-group-body {
   display: flex;
   flex-direction: column;
@@ -2110,9 +2105,8 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   font-weight: 700;
 }
 
-/* People and label rows are one line, so they lay out as a row not a stack. */
-.pbm-result--person,
-.pbm-result--label {
+/* People rows are one line, so they lay out as a row not a stack. */
+.pbm-result--person {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -2149,9 +2143,6 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
   font-size: 0.71875rem;
   font-weight: 700;
   color: var(--text-4);
-}
-.pbm-result--label .pbm-result-count {
-  margin-left: auto;
 }
 
 @media (max-width: 767px) {

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readdirSync, statSync } from "node:fs";
+import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { SETTINGS_SECTIONS, settingsSectionFor } from "../lib/settings-sections";
 
@@ -32,8 +32,8 @@ const listed = SETTINGS_SECTIONS.flatMap((s) => s.pages.map((p) => p.href));
 describe("lib/settings-sections", () => {
   it("found the settings routes", () => {
     expect(routes).toContain("/settings");
-    // Nine since labels left the product; the floor only has to prove the
-    // walker found the tree.
+    // Eight since Contacts went (21 Nov 2026); the floor only has to prove
+    // the walker found the tree.
     expect(routes.length).toBeGreaterThanOrEqual(8);
   });
 
@@ -62,6 +62,27 @@ describe("lib/settings-sections", () => {
 
   it("sends each sidebar item to its own first page", () => {
     for (const s of SETTINGS_SECTIONS) expect(s.href).toBe(s.pages[0]!.href);
+  });
+
+  /*
+    Since 21 Nov 2026 there are no tabs: a section's other pages (Setup steps,
+    Forms, Access log) have no sidebar item, so the ONLY way to them is a link
+    on the section's own page. Drop that link and the page is unreachable.
+  */
+  it("links every other page of a section from the section's own page", () => {
+    const missing: string[] = [];
+    let checked = 0;
+    for (const s of SETTINGS_SECTIONS) {
+      if (s.pages.length < 2) continue;
+      const rel = s.href.replace(/^\/settings/, "");
+      const src = readFileSync(join(SETTINGS_DIR, rel, "page.tsx"), "utf8");
+      for (const p of s.pages.slice(1)) {
+        checked++;
+        if (!src.includes(`href="${p.href}"`)) missing.push(`${s.href} → ${p.href}`);
+      }
+    }
+    expect(checked).toBeGreaterThanOrEqual(3);
+    expect(missing).toEqual([]);
   });
 
   it("finds the section for every page, and only inside Settings", () => {

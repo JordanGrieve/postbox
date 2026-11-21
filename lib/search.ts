@@ -3,24 +3,24 @@ import { and, asc, desc, eq, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import {
   contacts,
-  labels,
   ticketMessages,
   tickets,
-  type LabelColor,
   type MessageDirection,
   type TicketSource,
   type TicketStatus,
 } from "@/db/schema";
 
 /**
- * Search across a workspace's tickets, message bodies, contacts and labels.
+ * Search across a workspace's tickets, message bodies and contacts. (Labels
+ * were a fourth group until 21 Nov 2026; they left the product with the
+ * simple inbox, and search was the last place still showing them.)
  *
  * ── TENANCY ──────────────────────────────────────────────────────
  * Search is the easiest place in this product to leak a tenant: one missing
  * predicate and a stranger's customer emails and message bodies come back in a
  * ranked list. So every statement below is built the same way:
  *
- *   - `tickets`, `contacts` and `labels` carry workspace_id and are filtered on
+ *   - `tickets` and `contacts` carry workspace_id and are filtered on
  *     it directly.
  *   - `ticket_messages` carries NO workspace_id. It is reached ONLY through an
  *     innerJoin up to `tickets` whose WHERE pins tickets.workspace_id — the
@@ -29,9 +29,9 @@ import {
  *     future filter can only ever be ANDed onto it, never replace it.
  *
  * `searchQueries()` below is exported separately from `searchWorkspace()` so
- * the four statements can be rendered with `.toSQL()` and the emitted SQL read
+ * the three statements can be rendered with `.toSQL()` and the emitted SQL read
  * directly, with no database and no connection. That is how these were
- * checked, rather than by reading the TypeScript and trusting it. The four
+ * checked, rather than by reading the TypeScript and trusting it. The three
  * statements it currently emits, with terms ["refund","order"] and workspace 7:
  *
  *   tickets   … where ("tickets"."workspace_id" = $1 and (concat_ws(…) ILIKE $2 …))
@@ -40,12 +40,10 @@ import {
  *               where ("tickets"."workspace_id" = $1 and ("ticket_messages"."body" ILIKE $2 …))
  *   contacts  … where ("contacts"."workspace_id" = $2 and (concat_ws(…) ILIKE $3 …))
  *               with its count subquery carrying its own t.workspace_id = $1
- *   labels    … where ("labels"."workspace_id" = $2 and ("labels"."name" ILIKE $3 …))
- *               with its count subquery carrying its own t.workspace_id = $1
  *
  * Note in particular that Drizzle qualifies EVERY column in the joined
  * `messages` select ("ticket_messages"."body", not a bare "body"), and that
- * both correlated counts filter workspace_id themselves — the outer WHERE does
+ * the correlated count filters workspace_id themselves — the outer WHERE does
  * not reach into a subquery that selects FROM `tickets` afresh.
  *
  * ── WHY SUBSTRING MATCHING AND NOT POSTGRES FULL-TEXT ─────────────
@@ -251,8 +249,8 @@ export function matchedFields(
  * qualifier in several positions — a bare `"body"` or `"email"`. Inside a join
  * or a correlated subquery that bare name binds to whichever table Postgres
  * resolves it against first, which has silently produced wrong data twice in
- * this codebase (see lib/labels.ts and the note in lib/data.ts
- * listContactsWithCounts). Every column that appears inside a fragment below is
+ * this codebase (the inbox preview line, and the contacts page's ticket count
+ * before that page was removed). Every column that appears inside a fragment below is
  * therefore spelled out, so none of it depends on where the fragment lands.
  */
 const T_ID = sql.raw('"tickets"."id"');
@@ -263,8 +261,6 @@ const T_ORDER = sql.raw('"tickets"."order_id"');
 const M_BODY = sql.raw('"ticket_messages"."body"');
 const C_NAME = sql.raw('"contacts"."name"');
 const C_EMAIL = sql.raw('"contacts"."email"');
-const L_ID = sql.raw('"labels"."id"');
-const L_NAME = sql.raw('"labels"."name"');
 
 /**
  * Everything about a ticket a search should look at. `concat_ws` skips NULLs,
@@ -297,7 +293,7 @@ const MATCH_TOTAL = sql<number>`(count(*) OVER ())::int`;
 // ── Queries ──────────────────────────────────────────────────────
 
 /**
- * The four statements, unexecuted.
+ * The three statements, unexecuted.
  *
  * Split out from `searchWorkspace` so they can be rendered and inspected:
  *
@@ -394,34 +390,6 @@ export function searchQueries(
       )
       .orderBy(asc(contacts.name))
       .limit(limit),
-
-    labels: db
-      .select({
-        id: labels.id,
-        name: labels.name,
-        color: labels.color,
-        // ticket_labels has no workspace_id either: the count joins up to
-        // `tickets` and filters there, as listLabelsWithCounts does — including
-        // leaving out trashed tickets, so this number matches the nav badge.
-        ticketCount: sql<number>`(
-          SELECT count(*)::int
-          FROM ticket_labels tl
-          JOIN tickets t ON t.id = tl.ticket_id
-          WHERE tl.label_id = ${L_ID}
-            AND t.workspace_id = ${workspaceId}
-            AND t.deleted_at IS NULL
-        )`,
-        total: MATCH_TOTAL,
-      })
-      .from(labels)
-      .where(
-        and(
-          eq(labels.workspaceId, workspaceId),
-          everyTermMatches(L_NAME, terms),
-        ),
-      )
-      .orderBy(asc(labels.name))
-      .limit(limit),
   };
 }
 
@@ -464,13 +432,6 @@ export type ContactHit = {
   ticketCount: number;
 };
 
-export type LabelHit = {
-  id: number;
-  name: Segment[];
-  color: LabelColor;
-  ticketCount: number;
-};
-
 /** One group of results: what we are showing, and how many exist. */
 export type SearchGroup<T> = {
   items: T[];
@@ -487,8 +448,7 @@ export type SearchResults = {
   tickets: SearchGroup<TicketHit>;
   messages: SearchGroup<MessageHit>;
   contacts: SearchGroup<ContactHit>;
-  labels: SearchGroup<LabelHit>;
-  /** Matches across all four groups. */
+  /** Matches across all three groups. */
   total: number;
 };
 
@@ -501,7 +461,6 @@ function emptyResults(query: string, tooShort: boolean): SearchResults {
     tickets: none,
     messages: none,
     contacts: none,
-    labels: none,
     total: 0,
   };
 }
@@ -514,8 +473,8 @@ function totalOf(rows: { total: number }[]): number {
 /**
  * Run the search. Every group is scoped to `workspaceId`; see the header.
  *
- * The four statements run in parallel — they share nothing, and a search that
- * waited for message bodies before starting on labels would be four round
+ * The three statements run in parallel — they share nothing, and a search that
+ * waited for message bodies before starting on contacts would be three round
  * trips deep for no reason.
  */
 export async function searchWorkspace(
@@ -529,11 +488,10 @@ export async function searchWorkspace(
   }
 
   const q = searchQueries(workspaceId, terms, limit);
-  const [ticketRows, messageRows, contactRows, labelRows] = await Promise.all([
+  const [ticketRows, messageRows, contactRows] = await Promise.all([
     q.tickets,
     q.messages,
     q.contacts,
-    q.labels,
   ]);
 
   const ticketHits: TicketHit[] = ticketRows.map((r) => ({
@@ -579,18 +537,10 @@ export async function searchWorkspace(
     ticketCount: r.ticketCount,
   }));
 
-  const labelHits: LabelHit[] = labelRows.map((r) => ({
-    id: r.id,
-    name: highlightSegments(r.name, terms),
-    color: r.color,
-    ticketCount: r.ticketCount,
-  }));
-
   const groups = {
     tickets: { items: ticketHits, total: totalOf(ticketRows) },
     messages: { items: messageHits, total: totalOf(messageRows) },
     contacts: { items: contactHits, total: totalOf(contactRows) },
-    labels: { items: labelHits, total: totalOf(labelRows) },
   };
 
   return {
@@ -601,7 +551,6 @@ export async function searchWorkspace(
     total:
       groups.tickets.total +
       groups.messages.total +
-      groups.contacts.total +
-      groups.labels.total,
+      groups.contacts.total,
   };
 }

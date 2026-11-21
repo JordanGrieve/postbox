@@ -8,12 +8,14 @@
  * business, Auto-reply, Team, Website & email, Billing — which is how a client
  * thinks about it. (An earlier draft that day had Notifications and Email &
  * forms; the later designs replaced them.) More pages exist than the designs
- * show, so each section owns the pages that belong with it, and a section with
- * more than one shows them as a small row of tabs inside the page
- * (SettingsTabs) — Jordan's call, 20 Nov 2026.
+ * show, so each section owns the pages that belong with it. The section's
+ * first page links to the others from its own rows (Team → Access log,
+ * Website & email → Setup steps and Forms), and each of those pages carries a
+ * link back to it (SettingsBackLink). They were a row of tabs until
+ * 21 Nov 2026, when Jordan took the tabs out.
  *
  * One definition, read by both the sidebar (components/mail/MailNavShell.tsx)
- * and the in-page tabs, so the two cannot disagree about where a page lives.
+ * and the back link, so the two cannot disagree about where a page lives.
  * tests/settings-sections.test.ts walks the route tree and fails if a settings
  * page belongs to no section, or to two.
  *
@@ -59,15 +61,13 @@ export const SETTINGS_SECTIONS: readonly SettingsSection[] = [
     label: "Website & email",
     href: "/settings/website",
     pages: [
-      // The read-then-Change summary from the 20 Nov 2026 design. Not
-      // "Overview": a tab has to say what it opens from its own words (2.4.9).
+      // The read-then-Change summary from the 20 Nov 2026 design.
       { href: "/settings/website", label: "Website & email" },
       // The full instructions the summary's "Setup steps" links to.
       { href: "/settings/install", label: "Setup steps" },
       { href: "/settings/forms", label: "Forms" },
-      // Who has written in: the people behind the mail that arrives. (Labels
-      // sat here too until labels left the product with the simple inbox.)
-      { href: "/settings/contacts", label: "Contacts" },
+      // Contacts sat here until 21 Nov 2026, when Jordan removed the page as
+      // redundant: search finds people, and every thread shows its contact.
     ],
   },
   {

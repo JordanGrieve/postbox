@@ -10,7 +10,7 @@ import { SEARCH_GROUP_LIMIT, searchWorkspace } from "@/lib/search";
  * `activeWorkspace()`, which resolves the signed-in tenant — or, for a Postbox
  * operator, the client they entered through the audited impersonation path. So
  * there is no id in the query string a caller could swap for someone else's,
- * and `searchWorkspace` filters every one of its four statements on it (see
+ * and `searchWorkspace` filters every one of its three statements on it (see
  * the tenancy note in lib/search.ts).
  *
  * Uncached by default, which is what we want: results are per tenant and per

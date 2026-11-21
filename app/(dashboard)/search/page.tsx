@@ -9,7 +9,6 @@ import {
   SEARCH_QUERY_MIN,
   searchWorkspace,
   type ContactHit,
-  type LabelHit,
   type MessageHit,
   type Segment,
   type TicketHit,
@@ -18,10 +17,10 @@ import {
 export const metadata = { title: "Search" };
 
 /**
- * /search?q=… — results across tickets, message bodies, contacts and labels.
+ * /search?q=… — results across tickets, message bodies and contacts.
  *
  * One full-width pane rather than the two-pane mail layout: a result set spans
- * four kinds of thing, and squeezing it into the 336px list column would mean
+ * three kinds of thing, and squeezing it into the 336px list column would mean
  * truncating exactly the snippets that make the result useful.
  *
  * Everything here is scoped to `viewer.workspace` — see the tenancy note at the
@@ -72,7 +71,7 @@ export default async function SearchPage({
               body={
                 results.tooShort
                   ? `Searches need at least ${SEARCH_QUERY_MIN} characters — one letter matches almost everything.`
-                  : "Subjects, senders, the text inside messages, your contacts and your labels. Try an address, a word from a reply, or a ticket reference like TKT-42."
+                  : "Subjects, senders, the text inside messages and your contacts. Try an address, a word from a reply, or a ticket reference like TKT-42."
               }
             />
           ) : results.total === 0 ? (
@@ -80,7 +79,7 @@ export default async function SearchPage({
               title="No matches"
               body={`Nothing in ${viewer.workspace.name} contains ${
                 results.terms.length > 1 ? "all of those words" : "that"
-              }. Every word has to appear somewhere in the same ticket, message, contact or label.`}
+              }. Every word has to appear somewhere in the same ticket, message or contact.`}
             />
           ) : (
             <>
@@ -108,24 +107,9 @@ export default async function SearchPage({
                 title="People"
                 shown={results.contacts.items.length}
                 total={results.contacts.total}
-                aside={
-                  <Link className="pbm-results-aside" href="/settings/contacts">
-                    All contacts
-                  </Link>
-                }
               >
                 {results.contacts.items.map((c) => (
                   <ContactResult key={c.id} hit={c} now={now} />
-                ))}
-              </Group>
-
-              <Group
-                title="Labels"
-                shown={results.labels.items.length}
-                total={results.labels.total}
-              >
-                {results.labels.items.map((l) => (
-                  <LabelResult key={l.id} hit={l} />
                 ))}
               </Group>
             </>
@@ -177,20 +161,18 @@ function ResultsSummary({
 
 /**
  * A group renders nothing at all when it is empty. An empty group with a "0"
- * beside it reads as a broken query rather than as "there are no labels called
+ * beside it reads as a broken query rather than as "there are no contacts called
  * that", and the summary line already carries the overall total.
  */
 function Group({
   title,
   shown,
   total,
-  aside,
   children,
 }: {
   title: string;
   shown: number;
   total: number;
-  aside?: React.ReactNode;
   children: React.ReactNode;
 }) {
   if (total === 0) return null;
@@ -203,7 +185,6 @@ function Group({
         {shown < total && (
           <span className="pbm-group-more">showing the newest {shown}</span>
         )}
-        {aside}
       </header>
       <div className="pbm-group-body">{children}</div>
     </section>
@@ -309,20 +290,3 @@ function ContactResult({ hit, now }: { hit: ContactHit; now: Date }) {
   );
 }
 
-function LabelResult({ hit }: { hit: LabelHit }) {
-  return (
-    <Link
-      className="pbm-result pbm-result--label"
-      href={`/inbox?folder=labeled&label=${hit.id}`}
-    >
-      <span className="pbm-label" data-color={hit.color}>
-        <span className="pbm-label-name">
-          <Marked segments={hit.name} />
-        </span>
-      </span>
-      <span className="pbm-result-count">
-        {hit.ticketCount} {hit.ticketCount === 1 ? "ticket" : "tickets"}
-      </span>
-    </Link>
-  );
-}

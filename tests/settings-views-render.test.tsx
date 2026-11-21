@@ -2,11 +2,11 @@ import { describe, it, expect, vi } from "vitest";
 import { renderToStaticMarkup } from "react-dom/server";
 
 // Same stand-in as tests/mail-views-render.test.tsx — see the note there.
-// SettingsTabs reads the pathname to pick its section's pages, and draws
-// nothing for a one-page section. /settings/website is in Website & email,
-// which has five, so the "tabs" view has a strip to show.
+// SettingsBackLink reads the pathname and draws nothing on a section's own
+// page. /settings/install is a second page of Website & email, so the
+// "install" view shows it.
 vi.mock("next/navigation", () => ({
-  usePathname: () => "/settings/website",
+  usePathname: () => "/settings/install",
   useSearchParams: () => new URLSearchParams(""),
   useRouter: () => ({
     push: () => {},
@@ -21,7 +21,7 @@ vi.mock("next/navigation", () => ({
 import { writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
 import ThemePicker from "../app/(dashboard)/settings/ThemePicker";
-import SettingsTabs from "../app/(dashboard)/settings/SettingsTabs";
+import SettingsBackLink from "../app/(dashboard)/settings/SettingsBackLink";
 import BusinessDetails from "../app/(dashboard)/settings/BusinessDetails";
 import WelcomeEmailForm from "../app/(dashboard)/newsletters/welcome/WelcomeEmailForm";
 import { DEFAULT_WELCOME } from "../lib/welcome-store";
@@ -56,7 +56,6 @@ import { DEFAULT_CONFIG } from "../lib/auto-reply";
 const OUT = process.env.SETTINGS_HARNESS_OUT;
 
 const views: Record<string, React.ReactElement> = {
-  tabs: <SettingsTabs />,
   themes: <ThemePicker value="dark" />,
   // Your business, read mode. Nothing optional filled in — the state every new
   // workspace is in, and the one that shows the postal-address warning.
@@ -169,7 +168,10 @@ const views: Record<string, React.ReactElement> = {
       workspaceName="Open Door Bakery"
     />
   ),
+  // With the back link above it, as settings/layout.tsx draws it.
   install: (
+    <>
+    <SettingsBackLink />
     <InstallView
       apiKey="cli_abc123def456"
       inboundEmail="bakery@inbound.postbox.help"
@@ -181,6 +183,7 @@ const views: Record<string, React.ReactElement> = {
       honeypotFields={["company_website", "fax_number"]}
       requireSignupConfirmation={false}
     />
+    </>
   ),
   /*
     The skeleton, beside the thing it stands in for.
@@ -221,6 +224,12 @@ describe("every settings view renders", () => {
       expect(html.length, `${name} rendered nothing`).toBeGreaterThan(200);
     });
   }
+
+  it("Setup steps links back to Website & email", () => {
+    const html = renderToStaticMarkup(<SettingsBackLink />);
+    expect(html).toContain('href="/settings/website"');
+    expect(html).toContain("Website &amp; email");
+  });
 
   it("the unconfigured state actually reaches the markup", () => {
     // The canary: a form that dropped its warning would satisfy every length

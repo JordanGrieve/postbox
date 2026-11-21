@@ -394,42 +394,6 @@ export async function upsertContact(
     .onConflictDoNothing();
 }
 
-export type ContactWithCount = {
-  id: number;
-  name: string;
-  email: string;
-  firstSeen: Date;
-  ticketCount: number;
-};
-
-/** A workspace's contacts, newest first, with how many tickets each has. */
-export async function listContactsWithCounts(
-  workspaceId: number,
-): Promise<ContactWithCount[]> {
-  return db
-    .select({
-      id: contacts.id,
-      name: contacts.name,
-      email: contacts.email,
-      firstSeen: contacts.firstSeen,
-      // sql.raw for the outer column, NOT ${contacts.email}. Drizzle renders a
-      // Column reference unqualified when it is a top-level field of a
-      // single-table select, so ${contacts.email} emits a bare "email" — which
-      // inside this subquery would bind to `tickets`, not `contacts`. It is
-      // correct today only because tickets has no email column and Postgres
-      // resolves the name outward. Add one and every count silently goes wrong,
-      // with no error. This is the same trap that made every inbox preview line
-      // read the wrong message; see the note in lib/labels.ts.
-      ticketCount: sql<number>`(
-        SELECT count(*)::int FROM tickets t
-        WHERE t.workspace_id = ${workspaceId}
-          AND t.customer_email = ${sql.raw('"contacts"."email"')}
-      )`,
-    })
-    .from(contacts)
-    .where(eq(contacts.workspaceId, workspaceId))
-    .orderBy(desc(contacts.firstSeen));
-}
 
 // ── Ticket reads (always scoped to a workspace) ──────────────────
 

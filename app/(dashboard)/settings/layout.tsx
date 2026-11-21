@@ -1,20 +1,17 @@
-import SettingsTabs from "./SettingsTabs";
+import SettingsBackLink from "./SettingsBackLink";
 import "../../settings.css";
 
 /**
- * Shared chrome for the three settings surfaces.
+ * Shared chrome for every settings page: the scroll pane, the stylesheet, and
+ * a link back to the section's first page when you are on one of its others.
  *
- * Contacts, Auto-reply and Install used to be three separate entries in the
- * mail nav, which made an already long sidebar longer and put three
- * unrelated-looking links beside the folders. They are all "things you
- * configure about this workspace", so they collapse into one nav entry and
- * become tabs here.
+ * Deliberately no page heading: each page renders its own, and a "Settings"
+ * title above an "Auto-reply" title is one heading too many. The highlighted
+ * sidebar item says where you are.
  *
- * Deliberately no page heading: each tab already renders its own, and a
- * "Settings" title above an "Auto-reply" title is one heading too many. The tab
- * strip and the highlighted nav entry say where you are.
- *
- * The stylesheet is imported here so all three tabs share it.
+ * There was a row of tabs here, one per page in the section. Jordan took it
+ * out on 21 Nov 2026; the section's first page links to its other pages from
+ * its rows instead.
  */
 export default function SettingsLayout({
   children,
@@ -23,7 +20,7 @@ export default function SettingsLayout({
 }) {
   return (
     <div className="pbm-page pb-scroll">
-      <SettingsTabs />
+      <SettingsBackLink />
       {children}
     </div>
   );

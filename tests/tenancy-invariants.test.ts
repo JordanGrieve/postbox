@@ -3,7 +3,7 @@ import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { QueryBuilder } from "drizzle-orm/pg-core";
 import { sql } from "drizzle-orm";
-import { labels, contacts } from "../db/schema";
+import { labels } from "../db/schema";
 
 /**
  * Tenancy invariants for the tables that carry NO workspace_id.
@@ -338,47 +338,8 @@ describe("Drizzle column qualification inside raw subqueries", () => {
     expect(rendered).toMatch(/tl\.label_id = "id"/);
     expect(rendered).not.toMatch(/tl\.label_id = "labels"\."id"/);
   });
-
-  /**
-   * THE HAZARD THIS RECORDS HAS SINCE BEEN FIXED, and the test is kept because
-   * the hazard has not gone away — only this one instance of it has.
-   *
-   * listContactsWithCounts in lib/data.ts once used the interpolated form
-   * (`t.customer_email = ${contacts.email}`), which renders as a bare "email".
-   * That was correct only by luck: the subquery's own table (tickets) has no
-   * `email` column, so Postgres resolved the name outward to contacts.email.
-   * Add an `email` column to `tickets` and it would silently have compared
-   * tickets.customer_email to tickets.email, and every contact's ticket count
-   * would quietly have become wrong.
-   *
-   * It now writes `sql.raw('"contacts"."email"')`, as lib/search.ts does
-   * throughout — asserted below. The rendering assertion and the schema check
-   * stay: they are what would fail if anyone reintroduced the interpolated
-   * form, and the shadowing column is still the thing that would make it bite.
-   */
-  it("listContactsWithCounts' correlated subquery has no shadowing column on tickets", () => {
-    const contactsQ = qb.select({ id: contacts.id, c: sql<number>`(SELECT count(*) FROM tickets t WHERE t.customer_email = ${contacts.email})` }).from(contacts).toSQL().sql;
-    expect(contactsQ).toMatch(/t.customer_email = "email"/);
-
-    const schema = read("db/schema.ts");
-    const ticketsBlock = schema.slice(
-      schema.indexOf("export const tickets = pgTable("),
-      schema.indexOf("export const ticketMessages = pgTable("),
-    );
-    expect(ticketsBlock.length).toBeGreaterThan(0);
-    // The fix that took this out of "correct by luck": the column is spelled
-    // out, so it no longer depends on which table Postgres resolves it against.
-    expect(read("lib/data.ts")).toMatch(
-      /t\.customer_email = \$\{sql\.raw\('"contacts"\."email"'\)\}/,
-    );
-    expect(read("lib/data.ts")).not.toMatch(
-      /t\.customer_email = \$\{contacts\.email\}/,
-    );
-
-    // If this ever fails, qualify the subquery in listContactsWithCounts
-    // (spell `contacts.email` out with sql.raw, as lib/search.ts does).
-    expect(ticketsBlock).not.toMatch(/\bemail:\s*text\("email"\)/);
-  });
+  // A contacts-count case lived here until 21 Nov 2026; it guarded
+  // listContactsWithCounts, which went with the Contacts page.
 });
 
 /* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -940,11 +901,11 @@ describe("derived-workspace statements derive and use it in one statement", () =
 });
 
 /**
- * lib/search.ts is the widest read surface in the product: four statements
- * over four tables, driven by a string the user typed. Two of those tables are
- * parentless.
+ * lib/search.ts is the widest read surface in the product: three statements
+ * over three tables, driven by a string the user typed. One of those tables is
+ * parentless. (A fourth leg, labels, was removed on 21 Nov 2026.)
  */
-describe("search stays inside one workspace on all four legs", () => {
+describe("search stays inside one workspace on every leg", () => {
   const src = read("lib/search.ts");
 
   it("the message leg's tenancy is the innerJoin, and it is present", () => {
@@ -955,27 +916,32 @@ describe("search stays inside one workspace on all four legs", () => {
     );
   });
 
-  it("both correlated count subqueries filter workspace_id themselves", () => {
+  it("every correlated count subquery filters workspace_id itself", () => {
     // The outer WHERE does not constrain a subquery that selects FROM tickets
     // afresh, so each one has to carry its own predicate.
+    let checked = 0;
     for (const stmt of rawSqlStatements(src)) {
       const tables = tablesReadOrWritten(stmt).filter((t) =>
         TENANT_TABLES.includes(t),
       );
       if (tables.length === 0) continue;
+      checked++;
       expect(stmt, `unscoped search subquery over ${tables.join(", ")}`).toMatch(
         /t\.workspace_id = \$\{workspaceId\}/,
       );
     }
+    // The contacts leg's ticket count, at least: a loop that found nothing
+    // would pass while checking nothing.
+    expect(checked).toBeGreaterThanOrEqual(1);
   });
 
   it("column references inside fragments are spelled out, never interpolated", () => {
     // Same trap as lib/labels.ts: an interpolated column renders bare and
     // binds to the wrong table inside a join. Every one of these is sql.raw.
-    for (const name of ["tickets", "ticket_messages", "contacts", "labels"]) {
+    for (const name of ["tickets", "ticket_messages", "contacts"]) {
       expect(src).toMatch(new RegExp(`sql\\.raw\\('"${name}"\\.`));
     }
-    expect(src).not.toMatch(/ILIKE[\s\S]{0,40}\$\{(tickets|contacts|labels)\./);
+    expect(src).not.toMatch(/ILIKE[\s\S]{0,40}\$\{(tickets|contacts)\./);
   });
 });
 

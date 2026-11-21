@@ -10,8 +10,9 @@ import { renderToStaticMarkup } from "react-dom/server";
 
       /search                 /settings/team
       /settings/billing       /settings/access-log
-      /settings/contacts      /subscribers/[id]
-      /settings/forms
+      /settings/forms         /subscribers/[id]
+
+  (and /settings/contacts, removed on 21 Nov 2026)
 
   and, worse than any single page, MailNav -- the navigation column on EVERY
   signed-in screen. mail.css styles it (.pbm-nav-heading was one of the 10px
@@ -29,7 +30,6 @@ import { renderToStaticMarkup } from "react-dom/server";
 const h = vi.hoisted(() => ({
   searchWorkspace: vi.fn(),
   viewerAgentId: vi.fn(),
-  listContactsWithCounts: vi.fn(),
   listForms: vi.fn(),
   countTicketsPerForm: vi.fn(),
   listTeam: vi.fn(),
@@ -103,11 +103,6 @@ vi.mock("../app/(dashboard)/queries", async () => ({
   activeWorkspace: h.activeWorkspace,
 }));
 
-vi.mock("@/lib/data", async () => ({
-  ...(await vi.importActual<typeof import("@/lib/data")>("@/lib/data")),
-  listContactsWithCounts: h.listContactsWithCounts,
-}));
-
 vi.mock("../app/(dashboard)/settings/website/queries", () => ({
   lastArrivals: h.lastArrivals,
 }));
@@ -164,7 +159,6 @@ import { writeFileSync, mkdirSync, copyFileSync } from "node:fs";
 import { join } from "node:path";
 import MailNav from "../components/mail/MailNav";
 import SearchPage from "../app/(dashboard)/search/page";
-import ContactsPage from "../app/(dashboard)/settings/contacts/page";
 import BillingPage from "../app/(dashboard)/settings/billing/page";
 import FormsPage from "../app/(dashboard)/settings/forms/page";
 import TeamPage from "../app/(dashboard)/settings/team/page";
@@ -178,7 +172,6 @@ import type { ImpersonationSession } from "../db/schema";
 import type { TeamMember } from "../lib/team";
 import type { SubscriberDetail } from "../app/(dashboard)/subscribers/queries";
 import type { MailCountsDTO } from "../components/mail/types";
-import type { ContactWithCount } from "../lib/data";
 import type { SearchResults } from "../lib/search";
 import type { Entitlement } from "../lib/trial";
 import type { Form } from "../db/schema";
@@ -326,10 +319,6 @@ describe("the signed-in screens that had no harness", () => {
           },
         ],
       },
-      labels: {
-        total: 0,
-        items: [{ id: 1, name: [seg("Wholesale")], color: "tag_a", ticketCount: 7 }],
-      },
     } satisfies SearchResults);
 
     const html = record(
@@ -338,45 +327,6 @@ describe("the signed-in screens that had no harness", () => {
     );
     expect(html).toContain("Marcus Bell");
     expect(html.length).toBeGreaterThan(1000);
-  });
-
-  it("/settings/contacts", async () => {
-    /*
-      ── A FIXTURE HANDED TO vi.fn() IS UNCHECKED UNLESS IT SAYS WHAT IT IS ──
-
-      mockResolvedValue on a bare vi.fn() takes `any`, so none of these objects
-      were being type-checked at all — the same hole `as never` opens, arrived
-      at by a different route. The `satisfies` is what restores it.
-
-      It earned itself immediately. The first version of the second row had
-      `name: null`, and initials() duly crashed on `null.trim()`, which looked
-      for a moment like a real defect on a page that shows customer names. It
-      is not one: contacts.name is notNull() in the schema and
-      ContactWithCount types it `string`, so no such row can exist. The fixture
-      had invented an impossible state — the twelve wrong fixtures of 6 Sep,
-      pointing the other way.
-
-      The awkward row is therefore a very long ADDRESS, which is a real thing a
-      bakery's contact list contains and a real risk to a narrow layout.
-    */
-    h.listContactsWithCounts.mockResolvedValue([
-      {
-        id: 5,
-        name: "Marcus Bell",
-        email: "marcus@example.com",
-        firstSeen: at(900),
-        ticketCount: 3,
-      },
-      {
-        id: 6,
-        name: "Margarethe Van Der Berg-Whitmore",
-        email: "margarethe.vandenberg-whitmore@averylongdomainname.example.co.uk",
-        firstSeen: at(60),
-        ticketCount: 1,
-      },
-    ] satisfies ContactWithCount[]);
-    const html = record("contacts", renderToStaticMarkup(await ContactsPage()));
-    expect(html).toContain("Marcus Bell");
   });
 
   it("/settings/billing — on a trial, with Stripe not configured", async () => {

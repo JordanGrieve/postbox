@@ -77,7 +77,7 @@ describe("Settings in the sidebar", () => {
     for (const [path, section] of [
       ["/settings/access-log", "Team"],
       ["/settings/install", "Website & email"],
-      ["/settings/contacts", "Website & email"],
+      ["/settings/forms", "Website & email"],
     ] as const) {
       cleanup();
       show(path);
