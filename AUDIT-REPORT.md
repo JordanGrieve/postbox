@@ -48,15 +48,16 @@ The two lint warnings are `window.location.assign()` in
 
 ## Not fixed
 
-### Needs your decision
+### Decided (21 Nov 2026)
 
-| Sev | Finding | The decision |
+| Sev | Finding | Decision and what was done |
 | --- | --- | --- |
-| Important | An operator starting checkout inside a client workspace creates the client's Stripe customer with the **operator's** email (`app/api/billing/checkout/route.ts:82`), so receipts and dunning go to Postbox staff. Operators can also open the client's billing portal and cancel. | Should operators be blocked from billing while impersonating, or should checkout use the workspace owner's email? |
-| Important | The admin-action hash chain is written on every action but **never verified**: `verifyAdminActionLog` and `describeAdminChain` have no callers. The impersonation chain is verified. | Where should verification surface: the console, or the daily health job? |
-| Maybe | Operator replies, campaign sends and settings changes made while impersonating are not recorded as admin actions (only exports are). | Intended "full experience", or should sends be attributed or blocked? |
-| Maybe | Search returns trashed tickets, and links them to `?folder=all` where they don't appear. Contact ticket counts include trashed tickets too. | Should search and contact counts exclude Trash like every folder does? |
-| Nit | Any team member can invite; only the owner can remove (`lib/team.ts` `checkInvite` vs `checkRevoke`). A member about to be removed can invite a second address. | Owner-only invites? |
+| Important | An operator starting checkout inside a client workspace created the client's Stripe customer with the **operator's** email, so receipts and dunning went to Postbox staff. Operators could also open the client's billing portal and cancel. | **Block.** `operatorBillingRefusal` (`lib/stripe.ts`): checkout and portal return 403 for an operator before reaching Stripe. Settings → Billing shows operators the state with no buttons, and hides Close workspace (that route already refused them). Guarded in `tests/checkout-refusal.test.ts`. |
+| Important | The admin-action hash chain was written on every action but **never verified**. | **Daily health job.** `app/api/cron/health` verifies it; `adminChainAlert` sends a break to Sentry as an error and a failed read as a warning, on fixed fingerprints. `tests/admin-chain-health.test.ts`. |
+| Maybe | Operator replies, campaign sends and settings changes made while impersonating were not recorded (only exports were). | **Record them.** `recordOperatorAction` (`lib/operator-actions.ts`) writes an admin action before the reply, the schedule/send, and every settings write (business, auto-reply, welcome, forms, team invite), and refuses the action if the row cannot be written, as exports do. The client sees them on Access log under "Things Postbox staff did here"; the console labels them. `tests/operator-actions.test.ts`. |
+| Maybe | Search returned trashed tickets and linked them to a view where they don't appear. | **Exclude Trash from search** (ticket and message legs). `tests/search-trash.test.ts`. |
+| Maybe | Contact ticket counts include trashed tickets. | **Left as is.** |
+| Nit | Any team member can invite; only the owner can remove. | **Left as is.** |
 
 ### Left for later (judgement or larger change)
 
@@ -109,6 +110,6 @@ they should be shared.
 sign-off) and every important finding without an open question are fixed and
 guarded by tests. No auth bypass, cross-tenant read or injection was found.
 
-What stops it being a clean yes is the "needs your decision" table: the
-operator-email-on-Stripe item and the unverified admin chain are the two to
-settle first.
+The open decisions were settled on 21 Nov 2026 (the "Decided" table above),
+so what remains is the "Left for later" list, led by the npm audit, which
+needs a deliberate dependency bump.

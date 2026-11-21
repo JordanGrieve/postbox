@@ -3,6 +3,7 @@ import { json } from "@/lib/http";
 import { rateLimitDurable } from "@/lib/rate-limit-store";
 import { getTicket, getMessages, addMessage } from "@/lib/data";
 import { activeWorkspace } from "@/lib/viewer";
+import { recordOperatorAction } from "@/lib/operator-actions";
 import { sendReplyEmail } from "@/lib/email";
 import { buildReplyTo } from "@/lib/tickets";
 import { EMAIL_FROM_ADDRESS } from "@/lib/config";
@@ -62,6 +63,13 @@ export async function POST(
   }
   const ticket = await getTicket(workspace.id, ticketId);
   if (!ticket) return json({ error: "Not found" }, { status: 404 });
+
+  // A Postbox operator replying as the client is recorded first, or refused.
+  const unrecorded = await recordOperatorAction(
+    "operator_replied",
+    `Replied in conversation TKT-${ticket.id}`,
+  );
+  if (unrecorded) return json({ error: unrecorded }, { status: 503 });
 
   // Threading: reference only REAL delivered Message-IDs — the customer's own
   // (captured by the inbound webhook) and ours learned from their replies'

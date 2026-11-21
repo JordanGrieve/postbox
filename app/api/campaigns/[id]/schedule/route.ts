@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { json } from "@/lib/http";
 import { activeWorkspace } from "@/lib/viewer";
+import { recordOperatorAction } from "@/lib/operator-actions";
 import { cancelCampaignSchedule, scheduleCampaign } from "@/lib/campaign-send";
 import { parseScheduleTime } from "@/lib/campaign-schedule";
 import { mailableSender } from "@/lib/newsletter";
@@ -118,6 +119,14 @@ export async function POST(
       { status: 409 },
     );
   }
+
+  // A Postbox operator arming or sending as the client is recorded first, or
+  // refused (lib/operator-actions.ts).
+  const unrecorded = await recordOperatorAction(
+    "operator_campaign_sent",
+    `Scheduled campaign #${campaignId} for ${when.when.toISOString()}`,
+  );
+  if (unrecorded) return json({ error: unrecorded }, { status: 503 });
 
   const result = await scheduleCampaign(workspace.id, campaignId, when.when);
   if (result === null) return json({ error: "Not found" }, { status: 404 });

@@ -2,7 +2,12 @@ import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { workspaces } from "@/db/schema";
 import { resolveViewer } from "@/lib/viewer";
-import { checkoutRefusal, stripeClient, stripePriceId } from "@/lib/stripe";
+import {
+  checkoutRefusal,
+  operatorBillingRefusal,
+  stripeClient,
+  stripePriceId,
+} from "@/lib/stripe";
 import { PLANS, type PlanId } from "@/lib/pricing";
 import { APP_URL } from "@/lib/config";
 
@@ -30,6 +35,9 @@ export async function POST(req: Request): Promise<Response> {
   if (!viewer.workspace) {
     return Response.json({ error: "No workspace" }, { status: 403 });
   }
+  // Before anything reaches Stripe. See operatorBillingRefusal.
+  const operator = operatorBillingRefusal(viewer);
+  if (operator) return Response.json({ error: operator }, { status: 403 });
 
   const stripe = stripeClient();
   if (!stripe) {

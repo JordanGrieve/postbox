@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { resolveViewer } from "@/lib/viewer";
+import { recordOperatorAction } from "@/lib/operator-actions";
 import {
   createForm,
   renameForm,
@@ -35,6 +36,17 @@ async function requireWorkspace() {
   return viewer.workspace;
 }
 
+/**
+ * A Postbox operator changing forms as the client is recorded first, or the
+ * change is refused (lib/operator-actions.ts). These actions return nothing,
+ * so a refusal throws to the error boundary; it only happens when the access
+ * log cannot be written.
+ */
+async function recordedOrThrow(detail: string): Promise<void> {
+  const refused = await recordOperatorAction("operator_settings_changed", `Forms: ${detail}`);
+  if (refused) throw new Error(refused);
+}
+
 function formIdFrom(formData: FormData): number | null {
   const id = Number(formData.get("formId"));
   return Number.isInteger(id) && id > 0 ? id : null;
@@ -47,6 +59,7 @@ export async function createFormAction(formData: FormData): Promise<void> {
   // An empty name is a slip, not an attack: the field is required in the
   // markup, so this is the case where somebody submitted with the keyboard
   // before typing. Returning silently leaves the page as it was.
+  await recordedOrThrow(`created "${name.trim().slice(0, 80)}"`);
   await createForm({ workspaceId: workspace.id, name });
 
   revalidatePath("/settings/forms");
@@ -57,6 +70,7 @@ export async function renameFormAction(formData: FormData): Promise<void> {
   const formId = formIdFrom(formData);
   if (!formId) return;
 
+  await recordedOrThrow(`renamed form #${formId}`);
   await renameForm({
     workspaceId: workspace.id,
     formId,
@@ -71,6 +85,7 @@ export async function revokeFormKeyAction(formData: FormData): Promise<void> {
   const formId = formIdFrom(formData);
   if (!formId) return;
 
+  await recordedOrThrow(`revoked the key of form #${formId}`);
   await revokeFormKey({ workspaceId: workspace.id, formId });
 
   /*
@@ -90,6 +105,7 @@ export async function regenerateFormKeyAction(
   const formId = formIdFrom(formData);
   if (!formId) return;
 
+  await recordedOrThrow(`replaced the key of form #${formId}`);
   await regenerateFormKey({ workspaceId: workspace.id, formId });
 
   revalidatePath("/settings/forms");

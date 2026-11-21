@@ -52,7 +52,11 @@ function writersOfTheLog(): string {
         walk(path);
       } else if (/\.tsx?$/.test(entry.name)) {
         const text = readFileSync(path, "utf8");
-        if (text.includes("recordAdminAction(")) found.push(text);
+        // recordOperatorAction (lib/operator-actions.ts, 21 Nov 2026) writes
+        // through recordAdminAction with the kind as its first argument.
+        if (text.includes("recordAdminAction(") || text.includes("recordOperatorAction(")) {
+          found.push(text);
+        }
       }
     }
   };
@@ -93,6 +97,9 @@ const EVERY_KIND = {
   workspace_exported: true,
   workspace_key_rotated: true,
   workspace_optin_changed: true,
+  operator_replied: true,
+  operator_campaign_sent: true,
+  operator_settings_changed: true,
 } satisfies Record<AdminActionKind, true>;
 
 const ALL = Object.keys(EVERY_KIND) as AdminActionKind[];
@@ -137,7 +144,10 @@ describe("the log survives what it describes", () => {
 describe("every action kind is recorded somewhere", () => {
   for (const action of ALL) {
     it(action, () => {
-      expect(ACTIONS).toContain(`action: "${action}"`);
+      // Either written directly, or passed to recordOperatorAction.
+      const direct = ACTIONS.includes(`action: "${action}"`);
+      const viaOperator = new RegExp(`recordOperatorAction\\(\\s*"${action}"`).test(ACTIONS);
+      expect(direct || viaOperator, `${action} is written somewhere`).toBe(true);
     });
   }
 

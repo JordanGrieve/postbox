@@ -1,7 +1,34 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { checkoutRefusal } from "../lib/stripe";
+import { checkoutRefusal, operatorBillingRefusal } from "../lib/stripe";
+
+/**
+ * Postbox operators never touch a client's billing (21 Nov 2026). A checkout
+ * started while impersonating made the client's Stripe customer with the
+ * operator's email, so receipts and dunning went to Postbox staff; the portal
+ * let them change the card or cancel. Both routes refuse before Stripe.
+ */
+describe("operatorBillingRefusal", () => {
+  it("refuses an operator and lets a client through", () => {
+    expect(operatorBillingRefusal({ isAdmin: true })).toMatch(/only be changed by the client/);
+    expect(operatorBillingRefusal({ isAdmin: false })).toBeNull();
+  });
+
+  for (const route of ["checkout", "portal"]) {
+    it(`app/api/billing/${route} refuses operators before it reaches Stripe`, () => {
+      const src = readFileSync(
+        join(__dirname, "..", "app", "api", "billing", route, "route.ts"),
+        "utf8",
+      );
+      const refusalAt = src.indexOf("operatorBillingRefusal(viewer)");
+      const stripeAt = src.indexOf("stripeClient()");
+      expect(refusalAt, "the route consults operatorBillingRefusal").toBeGreaterThan(-1);
+      expect(stripeAt).toBeGreaterThan(-1);
+      expect(refusalAt).toBeLessThan(stripeAt);
+    });
+  }
+});
 
 /**
  * A workspace that already pays must not be able to open a second checkout.

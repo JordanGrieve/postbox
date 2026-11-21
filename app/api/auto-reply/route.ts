@@ -7,6 +7,7 @@ import {
   type AutoReplyConfig,
 } from "@/lib/auto-reply";
 import { getAutoReplyConfig, saveAutoReplyConfig } from "@/lib/auto-reply-send";
+import { recordOperatorAction } from "@/lib/operator-actions";
 import { isValidBusinessHours, isValidTimeZone } from "@/lib/business-hours";
 import type {
   AutoReplyDelay,
@@ -183,6 +184,14 @@ export async function PATCH(req: Request) {
       { status: 400 },
     );
   }
+
+  // A Postbox operator changing this as the client is recorded first, or
+  // refused (lib/operator-actions.ts).
+  const unrecorded = await recordOperatorAction(
+    "operator_settings_changed",
+    `Auto-reply: ${Object.keys(body).join(", ")}`,
+  );
+  if (unrecorded) return json({ error: unrecorded }, { status: 503 });
 
   const saved = await saveAutoReplyConfig(workspace.id, next);
   return json({ ok: true, config: saved });

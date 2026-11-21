@@ -9,6 +9,7 @@ import {
   type WelcomeConfig,
 } from "@/lib/welcome-store";
 import { isTemplateKey, parseProducts, safeImageUrl } from "@/lib/newsletter";
+import { recordOperatorAction } from "@/lib/operator-actions";
 
 /**
  * GET   /api/welcome  (authed) → this workspace's welcome email
@@ -159,6 +160,14 @@ export async function PATCH(req: Request) {
     if (!parsed.ok) return json({ error: parsed.error }, { status: 400 });
     next.products = parsed.value;
   }
+
+  // A Postbox operator changing this as the client is recorded first, or
+  // refused (lib/operator-actions.ts).
+  const unrecorded = await recordOperatorAction(
+    "operator_settings_changed",
+    `Welcome email: ${Object.keys(body).join(", ")}`,
+  );
+  if (unrecorded) return json({ error: unrecorded }, { status: 503 });
 
   const saved = await upsertWelcomeEmail(workspace.id, next);
   return json({ ok: true, config: welcomeConfigFrom(saved) });

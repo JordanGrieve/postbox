@@ -6,6 +6,7 @@ import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
 import { agents } from "@/db/schema";
 import { resolveViewer } from "@/lib/viewer";
+import { recordOperatorAction } from "@/lib/operator-actions";
 import { getAgentByEmail } from "@/lib/data";
 import { INVITE_PREFIX } from "@/lib/workspace";
 import { sendInviteEmail } from "@/lib/email";
@@ -88,6 +89,15 @@ export async function inviteTeammateAction(formData: FormData): Promise<void> {
     upgradeTo: seats.upgradeTo,
   });
   if (!check.ok) back(check.error);
+
+  // A Postbox operator inviting someone as the client is recorded first, or
+  // refused (lib/operator-actions.ts). Operators cannot remove anyone:
+  // checkRevoke allows only the owner, and an operator is never on the team.
+  const unrecorded = await recordOperatorAction(
+    "operator_settings_changed",
+    `Team: invited ${check.email}`,
+  );
+  if (unrecorded) back(unrecorded);
 
   await db.insert(agents).values({
     workspaceId: workspace.id,

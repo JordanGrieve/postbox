@@ -18,7 +18,11 @@ const h = vi.hoisted(() => ({
 }));
 
 vi.mock("@clerk/nextjs/server", () => ({ auth: async () => ({ userId: "u1" }) }));
-vi.mock("@/lib/viewer", () => ({ activeWorkspace: async () => ({ id: 3, name: "Open Door Bakery" }) }));
+vi.mock("@/lib/viewer", () => ({
+  activeWorkspace: async () => ({ id: 3, name: "Open Door Bakery" }),
+  // A client replying, not an operator: lib/operator-actions records nothing.
+  currentImpersonation: async () => null,
+}));
 vi.mock("@/lib/rate-limit-store", () => ({ rateLimitDurable: async () => ({ ok: true }) }));
 vi.mock("@/lib/email", () => ({ sendReplyEmail: h.sendReplyEmail }));
 vi.mock("@/lib/tickets", () => ({ buildReplyTo: () => "reply+5@postbox.help" }));

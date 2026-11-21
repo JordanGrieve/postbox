@@ -4,7 +4,7 @@ import { resolveViewer } from "@/lib/viewer";
 import { getWorkspaceEntitlement } from "@/lib/billing-query";
 import { PLANS, TRIAL_DAYS, formatPrice, planById } from "@/lib/pricing";
 import { describeBlock } from "@/lib/trial";
-import { stripeConfigured } from "@/lib/stripe";
+import { OPERATOR_BILLING_REFUSAL, stripeConfigured } from "@/lib/stripe";
 import { InfoRow, RowGroup, RowLink, SettingsHeader } from "../rows";
 import { ChoosePlanRow, CloseWorkspaceRow, ManageBillingButton } from "./BillingActions";
 
@@ -83,7 +83,15 @@ export default async function BillingSettingsPage() {
           />
         )}
 
-        {!stripe ? (
+        {viewer.isAdmin ? (
+          // An operator inside the workspace: the billing routes refuse them
+          // (operatorBillingRefusal), so offer no button that would fail.
+          <InfoRow
+            label="Payments"
+            value={paying ? "Paid monthly by card" : e.comped ? "Nothing to pay" : "Not paying yet"}
+            note={OPERATOR_BILLING_REFUSAL}
+          />
+        ) : !stripe ? (
           <InfoRow
             label="Payments"
             value="Not set up yet"
@@ -116,9 +124,12 @@ export default async function BillingSettingsPage() {
         )}
       </RowGroup>
 
-      <RowGroup title="Leaving">
-        <CloseWorkspaceRow workspaceName={w.name} email={viewer.email} />
-      </RowGroup>
+      {/* The close request refuses operators too; they close from the console. */}
+      {!viewer.isAdmin && (
+        <RowGroup title="Leaving">
+          <CloseWorkspaceRow workspaceName={w.name} email={viewer.email} />
+        </RowGroup>
+      )}
     </div>
   );
 }

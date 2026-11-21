@@ -1,5 +1,5 @@
 import "server-only";
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { adminActions } from "@/db/schema";
 import type { AdminActionKind } from "@/db/schema";
@@ -237,6 +237,51 @@ export async function recentAdminActions(limit = 50): Promise<AdminActionRow[]> 
  * the export kind so this cannot be widened by accident into a reader for the
  * whole platform log, which is what admin_actions mostly holds.
  */
+/**
+ * What Postbox staff DID inside this workspace (replies, newsletter sends,
+ * setting changes), newest first, for the client's own access log. Written
+ * by recordOperatorAction (lib/operator-actions.ts) from 21 Nov 2026.
+ *
+ * Like exportsForWorkspace, a read failure returns [] and logs: the access
+ * log must still render. The page says what it shows, not that nothing
+ * happened.
+ */
+export const OPERATOR_ACTION_KINDS = [
+  "operator_replied",
+  "operator_campaign_sent",
+  "operator_settings_changed",
+] as const satisfies readonly AdminActionKind[];
+
+export async function operatorActionsForWorkspace(
+  workspaceId: number,
+  limit = 50,
+): Promise<
+  { id: number; action: AdminActionKind; actorEmail: string; detail: string | null; createdAt: Date }[]
+> {
+  try {
+    return await db
+      .select({
+        id: adminActions.id,
+        action: adminActions.action,
+        actorEmail: adminActions.actorEmail,
+        detail: adminActions.detail,
+        createdAt: adminActions.createdAt,
+      })
+      .from(adminActions)
+      .where(
+        and(
+          inArray(adminActions.action, [...OPERATOR_ACTION_KINDS]),
+          eq(adminActions.targetId, workspaceId),
+        ),
+      )
+      .orderBy(desc(adminActions.createdAt))
+      .limit(limit);
+  } catch (err) {
+    console.error("[admin-audit] could not read operator actions:", err);
+    return [];
+  }
+}
+
 export async function exportsForWorkspace(
   workspaceId: number,
   limit = 50,
@@ -287,6 +332,14 @@ export function describeAdminAction(action: AdminActionKind): string {
     // can tell from it what was changed.
     case "workspace_optin_changed":
       return "Changed newsletter signup confirmation";
+    // Done inside the client's workspace, as the client. The row's detail
+    // names the conversation, campaign or setting.
+    case "operator_replied":
+      return "Replied to a customer";
+    case "operator_campaign_sent":
+      return "Scheduled or sent a newsletter";
+    case "operator_settings_changed":
+      return "Changed a client setting";
   }
 }
 

@@ -85,6 +85,23 @@ export function planForPriceId(priceId: string): PlanId | null {
  * moment a subscription ends (app/api/webhooks/stripe/route.ts), so non-null
  * means a subscription that has not ended.
  */
+/**
+ * Postbox operators never touch a client's billing (Jordan's call, 21 Nov
+ * 2026). An operator inside a workspace is impersonating, and a checkout
+ * started there created the client's Stripe customer with the OPERATOR's
+ * email, so receipts and failed-payment notices went to Postbox staff; the
+ * portal let them change the card or cancel. Both routes refuse instead.
+ *
+ * An admin only ever has a workspace through impersonation, so isAdmin is
+ * the whole test.
+ */
+export const OPERATOR_BILLING_REFUSAL =
+  "Billing can only be changed by the client. Ask them to do it from their own account.";
+
+export function operatorBillingRefusal(viewer: { isAdmin: boolean }): string | null {
+  return viewer.isAdmin ? OPERATOR_BILLING_REFUSAL : null;
+}
+
 export function checkoutRefusal(ws: {
   stripeSubscriptionId: string | null;
 }): string | null {

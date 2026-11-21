@@ -2,6 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { json } from "@/lib/http";
 import { activeWorkspace } from "@/lib/viewer";
 import { updateWorkspace } from "@/lib/data";
+import { recordOperatorAction } from "@/lib/operator-actions";
 import { THEMES } from "@/lib/theme";
 import { normalizeSignOff } from "@/lib/newsletter";
 import { parseHex, toHex } from "@/lib/email-colour";
@@ -103,6 +104,14 @@ export async function PATCH(req: Request) {
   if (!workspace) {
     return json({ error: "Select a client workspace first." }, { status: 400 });
   }
+  // A Postbox operator changing this as the client is recorded first, or
+  // refused (lib/operator-actions.ts).
+  const unrecorded = await recordOperatorAction(
+    "operator_settings_changed",
+    `Your business: ${Object.keys(patch).join(", ")}`,
+  );
+  if (unrecorded) return json({ error: unrecorded }, { status: 503 });
+
   const updated = await updateWorkspace(workspace.id, patch);
   return json({ ok: true, workspace: updated });
 }

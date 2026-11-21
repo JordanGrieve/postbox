@@ -1,5 +1,5 @@
 import "server-only";
-import { and, asc, desc, eq, sql, type SQL } from "drizzle-orm";
+import { and, asc, desc, eq, isNull, sql, type SQL } from "drizzle-orm";
 import { db } from "@/db";
 import {
   contacts,
@@ -326,6 +326,9 @@ export function searchQueries(
       .where(
         and(
           eq(tickets.workspaceId, workspaceId),
+          // Trash is out of search, as it is out of every folder: a trashed
+          // result linked to a view it does not appear in (21 Nov 2026).
+          isNull(tickets.deletedAt),
           everyTermMatches(TICKET_HAYSTACK, terms),
         ),
       )
@@ -357,6 +360,8 @@ export function searchQueries(
       .where(
         and(
           eq(tickets.workspaceId, workspaceId),
+          // Messages in a trashed conversation stay out too.
+          isNull(tickets.deletedAt),
           everyTermMatches(M_BODY, terms),
         ),
       )

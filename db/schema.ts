@@ -1729,7 +1729,19 @@ export type AdminActionKind =
    * `subscribers.consent_source` records that per row. This is the other half:
    * who changed the setting, and when.
    */
-  | "workspace_optin_changed";
+  | "workspace_optin_changed"
+  /*
+   * An operator, inside a client's workspace, did something the client's
+   * customers or the client's setup will feel: replied to a customer, armed
+   * or sent a newsletter, or changed a setting. Until 21 Nov 2026 only
+   * exports were recorded; Jordan chose to keep the full experience and
+   * record these (AUDIT-REPORT.md). `detail` says which conversation,
+   * campaign or setting. Written by recordOperatorAction in
+   * lib/operator-actions.ts, before the action runs.
+   */
+  | "operator_replied"
+  | "operator_campaign_sent"
+  | "operator_settings_changed";
 
 /**
  * WHICH client records an operator actually opened, during an impersonation.

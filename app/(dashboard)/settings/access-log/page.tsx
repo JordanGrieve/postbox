@@ -10,7 +10,11 @@ import {
   readsForSessions,
   type ImpersonationReadRow,
 } from "@/lib/impersonation-reads";
-import { exportsForWorkspace } from "@/lib/admin-audit";
+import {
+  describeAdminAction,
+  exportsForWorkspace,
+  operatorActionsForWorkspace,
+} from "@/lib/admin-audit";
 // The operator console's formatters, imported rather than reimplemented. This
 // screen and app/(admin)/admin/sections.tsx are two views of ONE table, and the
 // client must be able to quote a row back at us and have it match what we see.
@@ -124,6 +128,8 @@ export default async function AccessLogPage({
     everything else here: the id comes from resolveViewer, never from the URL.
   */
   const dataExports = await exportsForWorkspace(workspace.id);
+  // What they did while in: replies, newsletter sends, setting changes.
+  const operatorActions = await operatorActionsForWorkspace(workspace.id);
 
   // One clock for the whole list, so no two rows are classified against
   // different instants and land either side of the abandoned threshold.
@@ -281,6 +287,41 @@ export default async function AccessLogPage({
         taken" section trains the reader to skip the space it occupies, which
         is the one place on this page that must catch the eye.
       */}
+      {/*
+        Replies, newsletter sends and setting changes made by Postbox staff
+        while inside, recorded from 21 Nov 2026 (lib/operator-actions.ts).
+        Absent when there are none, like the copies below.
+      */}
+      {operatorActions.length > 0 && (
+        <section className="stg-section">
+          <h2 className="stg-section-title">Things Postbox staff did here</h2>
+          <ol className="stg-al-list">
+            {operatorActions.map((a) => (
+              <li key={a.id} className="stg-al-visit">
+                <div className="stg-al-visit-head">
+                  <div className="stg-al-who">
+                    <span className="stg-al-who-email">{a.actorEmail}</span>
+                  </div>
+                  <span className="stg-al-pill">{describeAdminAction(a.action)}</span>
+                </div>
+                <dl className="stg-al-facts">
+                  <div className="stg-al-fact">
+                    <dt className="stg-al-key">When</dt>
+                    <dd className="stg-al-val">{formatDateTime(a.createdAt)}</dd>
+                  </div>
+                  {a.detail && (
+                    <div className="stg-al-fact stg-al-fact-wide">
+                      <dt className="stg-al-key">What</dt>
+                      <dd className="stg-al-val">{a.detail}</dd>
+                    </div>
+                  )}
+                </dl>
+              </li>
+            ))}
+          </ol>
+        </section>
+      )}
+
       {dataExports.length > 0 && (
         <section className="stg-section">
           <h2 className="stg-section-title">Copies taken of all your data</h2>

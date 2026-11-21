@@ -11,6 +11,8 @@ import { pruneRateLimits } from "@/lib/rate-limit-store";
 import { purgeExpiredTrash } from "@/lib/trash-store";
 import { TRASH_RETENTION_DAYS } from "@/lib/trash";
 import { transactionalSentToday } from "@/lib/email-quota-store";
+import { verifyAdminActionLog } from "@/lib/admin-audit";
+import { adminChainAlert, describeAdminChain } from "@/lib/admin-actions-chain";
 
 /**
  * GET /api/cron/health — the daily "is anything broken?" sweep.
@@ -145,6 +147,28 @@ export async function GET(req: Request) {
       "Could not read the transactional email day counter",
       "warning",
     );
+  }
+
+  /*
+    ── THE ADMIN ACTION LOG ──
+    Hash-chained on every write, and until 21 Nov 2026 verified by nothing,
+    so an edited or deleted row went unnoticed. adminChainAlert decides what
+    is worth an alert; verifyAdminActionLog already turns a failed read into
+    an unverified result rather than a throw.
+  */
+  const chain = await verifyAdminActionLog();
+  const chainAlert = adminChainAlert(chain);
+  if (chainAlert) {
+    console.error("[cron/health] %s: %s", chainAlert.title, chainAlert.detail);
+    Sentry.withScope((scope) => {
+      scope.setFingerprint([chainAlert.fingerprint]);
+      scope.setLevel(chainAlert.level);
+      scope.setTag("alert_kind", "admin_action_chain");
+      scope.setContext("chain", { detail: chainAlert.detail });
+      Sentry.captureMessage(chainAlert.title, chainAlert.level);
+    });
+  } else {
+    console.info("[cron/health] admin action log: %s", describeAdminChain(chain));
   }
 
   for (const alert of report.alerts) {

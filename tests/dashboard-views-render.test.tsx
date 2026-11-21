@@ -39,6 +39,7 @@ const h = vi.hoisted(() => ({
   listImpersonationSessionsForWorkspace: vi.fn(),
   readsForSessions: vi.fn(),
   exportsForWorkspace: vi.fn(),
+  operatorActionsForWorkspace: vi.fn(),
   activeWorkspace: vi.fn(),
   lastArrivals: vi.fn(),
   getAutoReplyConfig: vi.fn(),
@@ -153,6 +154,7 @@ vi.mock("@/lib/impersonation-reads", () => ({
 vi.mock("@/lib/admin-audit", async () => ({
   ...(await vi.importActual<typeof import("@/lib/admin-audit")>("@/lib/admin-audit")),
   exportsForWorkspace: h.exportsForWorkspace,
+  operatorActionsForWorkspace: h.operatorActionsForWorkspace,
 }));
 
 import { writeFileSync, mkdirSync, copyFileSync } from "node:fs";
@@ -173,6 +175,7 @@ import type { TeamMember } from "../lib/team";
 import type { SubscriberDetail } from "../app/(dashboard)/subscribers/queries";
 import type { MailCountsDTO } from "../components/mail/types";
 import type { SearchResults } from "../lib/search";
+import type { operatorActionsForWorkspace } from "../lib/admin-audit";
 import type { Entitlement } from "../lib/trial";
 import type { Form } from "../db/schema";
 import type { countTicketsPerForm } from "../app/(dashboard)/settings/forms/queries";
@@ -524,8 +527,28 @@ describe("the signed-in screens that had no harness", () => {
     h.exportsForWorkspace.mockResolvedValue([
       { id: 7, actorEmail: "jordan@postbox.help", createdAt: at(300) },
     ]);
+    // What staff did while in (21 Nov 2026): a reply, and one with no detail.
+    h.operatorActionsForWorkspace.mockResolvedValue([
+      {
+        id: 9,
+        action: "operator_replied",
+        actorEmail: "jordan@postbox.help",
+        detail: "Replied in conversation TKT-41",
+        createdAt: at(25),
+      },
+      {
+        id: 8,
+        action: "operator_settings_changed",
+        actorEmail: "jordan@postbox.help",
+        detail: null,
+        createdAt: at(27),
+      },
+    ] satisfies Awaited<ReturnType<typeof operatorActionsForWorkspace>>);
     const html = record("access-log", renderToStaticMarkup(await AccessLogPage()));
     expect(html).toContain("jordan@postbox.help");
+    expect(html).toContain("Things Postbox staff did here");
+    expect(html).toContain("Replied to a customer");
+    expect(html).toContain("Replied in conversation TKT-41");
   });
 
   it("/settings — Your business, a new workspace with nothing optional filled in", async () => {

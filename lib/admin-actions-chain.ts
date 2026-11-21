@@ -130,6 +130,50 @@ export function verifyAdminActionChain(
 }
 
 /**
+ * What the daily health job raises about the admin-action chain, or null.
+ *
+ * The chain was written on every action from the start and verified by
+ * nothing, so an edited or deleted row would never have been noticed. From
+ * 21 Nov 2026 app/api/cron/health verifies it once a day (Jordan's call:
+ * the health job, not the console) and sends this to Sentry.
+ *
+ *   - A break is an error: a row no longer matches what was written.
+ *   - A failed read is a warning, said as such. "Could not check" and
+ *     "checked and fine" must never look the same.
+ *   - A clean chain raises nothing. An unkeyed one is still clean; the
+ *     health job logs that it is unkeyed rather than alerting every day.
+ *
+ * The fingerprint is fixed, so a lasting break is one Sentry issue whose
+ * count rises, not a new issue each morning.
+ */
+export type AdminChainAlert = {
+  level: "error" | "warning";
+  fingerprint: string;
+  title: string;
+  detail: string;
+};
+
+export function adminChainAlert(v: ChainVerification): AdminChainAlert | null {
+  if (v.firstBreak) {
+    return {
+      level: "error",
+      fingerprint: "admin-action-chain-broken",
+      title: "The admin action log's hash chain is broken",
+      detail: describeAdminChain(v),
+    };
+  }
+  if (!v.ok) {
+    return {
+      level: "warning",
+      fingerprint: "admin-action-chain-unverified",
+      title: "The admin action log could not be verified",
+      detail: v.note ?? "The chain did not verify, and no break was found.",
+    };
+  }
+  return null;
+}
+
+/**
  * One line for an operator. Its own wording rather than a shared helper:
  * "3 recorded actions verify against each other" is not the sentence the
  * impersonation log wants, and a generic version says "rows", which is what a
