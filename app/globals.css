@@ -318,10 +318,10 @@
   /*
     The dark brand panel. FIXED in both themes, on purpose.
 
-    The marketing hero, the closing band and the product shots are pictures of
-    the product, not chrome that belongs to a palette — and a visitor who
-    prefers light still gets the dark band, which is the design. The install
-    page's code block is here for the same reason a terminal is dark.
+    The product shots are pictures of the product, not chrome that belongs to
+    a palette. (The marketing hero and closing band were dark panels too until
+    21 Nov 2026, when Jordan asked for both to blend into the page; they read
+    the theme's own tokens now — app/home.css.)
   */
   --brand-panel: #111111;
   --brand-panel-deep: #0a0a0a;
@@ -390,8 +390,9 @@
    * light theme, also the code should be colourful like vscode." He is right
    * about the first part for the same reason the sidebar stopped being fixed —
    * one near-black slab in the middle of a light page reads as a hole in it.
-   * --brand-panel keeps its meaning and its users (the marketing hero, the
-   * closing band, the product shots); the code block gets its own ground.
+   * --brand-panel keeps its meaning and its users (the product shots, and
+   * until 21 Nov 2026 the marketing hero and closing band); the code block
+   * gets its own ground.
    *
    * These are NOT an editor theme's values. Every ink here is measured at 7:1
    * against --code-bg in tests/code-contrast.test.ts, which is the bar this

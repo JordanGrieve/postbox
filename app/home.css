@@ -311,18 +311,9 @@
   filter: brightness(1.06);
 }
 
-/*
-  The primary button ON the dark closing band. The accent is near-black in
-  light, so on a --brand-panel ground it would be a black button on a black
-  band. Inverted from the panel's own pair instead, which are fixed in both
-  themes like the panel itself. (The hero used this too until it took the
-  theme's own ground, 21 Nov 2026; its primary is the ordinary accent button
-  now, the same green as the nav's.)
-*/
-.home-band .home-btn--primary {
-  background: var(--brand-panel-fg);
-  color: var(--brand-panel);
-}
+/* (The hero and closing band used to invert this button — white on their
+   always-dark panel. Both take the theme's own ground since 21 Nov 2026, so
+   their primary is the ordinary accent button, the same green as the nav's.) */
 
 /* The hero's second button, on the theme's own ground: the quiet button's
    look, with a stronger edge so it reads as a button beside the primary. */
@@ -359,8 +350,9 @@
   It no longer borrows the always-dark --brand-panel and its fixed light
   ink. Everything inside reads the THEME's tokens instead — --text, --text-2,
   --surface, the accent pair — which flip with light and dark and are already
-  measured for AAA, so one set of rules serves both. (The closing band,
-  .home-band, is still the dark brand panel.)
+  measured for AAA, so one set of rules serves both. The closing band
+  (.home-band) does the same, from Jordan's "make the closing band blend in
+  too" the same day.
 */
 .home-hero {
   position: relative;
@@ -520,8 +512,11 @@
 
 /* ── closing CTA band ────────────────────────────────────────── */
 
+/* Blends in like the hero: the theme's own ground a shade off the page, a
+   faint edge, theme ink. See the note above .home-hero. */
 .home-band {
-  background: linear-gradient(150deg, var(--brand-panel), var(--brand-panel-deep));
+  background: color-mix(in srgb, var(--surface) 30%, var(--app-bg));
+  border: 1px solid var(--border-soft);
   border-radius: 24px;
   padding: 48px 40px;
   display: flex;
@@ -535,14 +530,14 @@
   font-size: clamp(1.375rem, 3vw, 1.875rem);
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #fff;
+  color: var(--text);
   margin: 0 0 8px;
 }
 
 .home-band-sub {
   font-size: 0.9375rem;
   line-height: 1.6;
-  color: rgba(244, 241, 255, 0.72);
+  color: var(--text-2);
   margin: 0;
   max-width: 440px;
 }
@@ -557,7 +552,7 @@
 
 /* A link in the band's sentence (pricing: "Questions first? Get in touch").
    Same ink as the sentence, told apart by its underline, so it needs no
-   colour of its own on the always-dark panel. */
+   colour of its own in either theme. */
 .home-band-sub a {
   color: inherit;
   text-decoration: underline;
