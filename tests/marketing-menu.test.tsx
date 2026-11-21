@@ -1,6 +1,8 @@
 // @vitest-environment happy-dom
 import { describe, it, expect, afterEach } from "vitest";
 import { render, screen, cleanup, fireEvent } from "@testing-library/react";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import MarketingMenu from "../components/marketing/MarketingMenu";
 
 /**
@@ -23,20 +25,28 @@ const burger = () => screen.getByRole("button", { name: /menu/i });
 const panel = () => document.querySelector<HTMLElement>(".home-menu")!;
 
 describe("MarketingMenu", () => {
-  it("starts closed, with the panel hidden and the burger saying so", () => {
+  /*
+    Closed, the panel stays in the DOM so it can animate (21 Nov 2026), so
+    "closed" is asserted as what makes it unreachable: inert, and the
+    data-open the stylesheet hides it by.
+  */
+  const isClosed = () => panel().hasAttribute("inert") && panel().dataset.open === "false";
+
+  it("starts closed, with the panel unreachable and the burger saying so", () => {
     render(<MarketingMenu {...TRIAL} />);
     expect(burger().getAttribute("aria-expanded")).toBe("false");
     expect(burger().getAttribute("aria-label")).toBe("Open menu");
-    expect(panel().hidden).toBe(true);
+    expect(isClosed()).toBe(true);
     expect(burger().getAttribute("aria-controls")).toBe(panel().id);
   });
 
-  it("opens to the three pages and both buttons, focus on the first link", () => {
+  it("opens to the three pages and both buttons, with focus in the menu", () => {
     render(<MarketingMenu current="pricing" {...TRIAL} />);
     fireEvent.click(burger());
     expect(burger().getAttribute("aria-expanded")).toBe("true");
     expect(burger().getAttribute("aria-label")).toBe("Close menu");
-    expect(panel().hidden).toBe(false);
+    expect(panel().hasAttribute("inert")).toBe(false);
+    expect(panel().dataset.open).toBe("true");
 
     const links = [...panel().querySelectorAll("a")].map((a) => [a.textContent, a.getAttribute("href")]);
     expect(links).toEqual([
@@ -49,7 +59,9 @@ describe("MarketingMenu", () => {
     // The buttons sit at the bottom, after the page links.
     expect(panel().lastElementChild?.className).toBe("home-menu-actions");
     expect(panel().querySelector('[aria-current="page"]')?.textContent).toBe("Pricing");
-    expect(document.activeElement?.textContent).toBe("Features");
+    // Focus is on the panel itself, so the next Tab is Features.
+    expect(document.activeElement).toBe(panel());
+    expect(panel().querySelector("a")?.textContent).toBe("Features");
     // The page behind does not scroll under a full-screen menu.
     expect(document.body.style.overflow).toBe("hidden");
   });
@@ -58,7 +70,7 @@ describe("MarketingMenu", () => {
     render(<MarketingMenu {...TRIAL} />);
     fireEvent.click(burger());
     fireEvent.keyDown(document, { key: "Escape" });
-    expect(panel().hidden).toBe(true);
+    expect(isClosed()).toBe(true);
     expect(document.activeElement).toBe(burger());
     expect(document.body.style.overflow).toBe("");
   });
@@ -67,7 +79,19 @@ describe("MarketingMenu", () => {
     render(<MarketingMenu {...TRIAL} />);
     fireEvent.click(burger());
     fireEvent.click(screen.getByText("Features"));
-    expect(panel().hidden).toBe(true);
+    expect(isClosed()).toBe(true);
+  });
+
+  it("animates: closed and open are styled states, not removal", () => {
+    // The panel is never unmounted or display:none'd by the component; the
+    // stylesheet moves it between data-open states with a 220ms transition.
+    const css = readFileSync(join(process.cwd(), "app/home.css"), "utf8");
+    const at = css.indexOf(".home-menu {");
+    const rule = css.slice(at, css.indexOf("}", at));
+    expect(rule).toMatch(/transition:[\s\S]*opacity 220ms/);
+    expect(rule).toMatch(/visibility 0s linear 220ms/);
+    expect(css).toContain('.home-menu[data-open="true"]');
+    expect(css).toMatch(/\.home-burger\[aria-expanded="true"\] \.home-burger-bar:nth-child\(1\)/);
   });
 
   it("renders the panel into <body>, outside the sticky bar", () => {

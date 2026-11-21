@@ -18,7 +18,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "db:seed-dev": "tsx db/seed-dev.ts",
-    "db:rekey-chains": "tsx db/rekey-chains.ts"
+    "db:rekey-chains": "tsx db/rekey-chains.ts",
+    "icons": "node scripts/generate-icons.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.9.6",

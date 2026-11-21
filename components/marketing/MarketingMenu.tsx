@@ -18,8 +18,13 @@ const noSubscription = () => () => {};
  *
  * A disclosure, not a modal dialog: a button with aria-expanded controlling a
  * region. What it adds for keyboard and screen-reader users:
- *  - focus moves to the first link when it opens, and back to the burger when
- *    it closes, so nobody is left on a control that disappeared;
+ *  - focus moves into the menu when it opens (onto the panel itself, so the
+ *    next Tab is Features and a tap does not draw a focus box round it), and
+ *    back to the burger when it closes, so nobody is left on a control that
+ *    disappeared;
+ *  - closed, the panel is `inert` and visibility: hidden — it stays in the DOM
+ *    only so it has something to animate from (21 Nov 2026), and must not be
+ *    reachable by Tab or a screen reader while it is invisible;
  *  - Escape closes it;
  *  - the page behind stops scrolling while it covers the screen;
  *  - following a link closes it (a same-page link like /#features would
@@ -45,14 +50,14 @@ export default function MarketingMenu({
   const [open, setOpen] = useState(false);
   const menuId = useId();
   const burgerRef = useRef<HTMLButtonElement>(null);
-  const firstLinkRef = useRef<HTMLAnchorElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   // Only return focus to the burger after the menu was open, not on mount.
   const wasOpen = useRef(false);
 
   useEffect(() => {
     if (open) {
       wasOpen.current = true;
-      firstLinkRef.current?.focus();
+      panelRef.current?.focus();
       const previous = document.body.style.overflow;
       document.body.style.overflow = "hidden";
       const onKey = (e: KeyboardEvent) => {
@@ -93,9 +98,16 @@ export default function MarketingMenu({
   );
 
   const panel = (
-      <div id={menuId} className="home-menu" hidden={!open}>
+      <div
+        ref={panelRef}
+        id={menuId}
+        className="home-menu"
+        data-open={open}
+        inert={!open}
+        tabIndex={-1}
+      >
         <nav className="home-menu-links" aria-label="Menu">
-          <Link ref={firstLinkRef} className="home-menu-link" href="/#features" onClick={close}>
+          <Link className="home-menu-link" href="/#features" onClick={close}>
             Features
           </Link>
           <Link
@@ -137,13 +149,13 @@ export default function MarketingMenu({
         aria-label={open ? "Close menu" : "Open menu"}
         onClick={() => setOpen((o) => !o)}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden="true" focusable="false">
-          {open ? (
-            <path d="M6 6l12 12M18 6 6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-          ) : (
-            <path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
-          )}
-        </svg>
+        {/* Three bars that fold into a cross (home.css, .home-burger-bar),
+            rather than two drawings swapped, so the change can animate. */}
+        <span className="home-burger-icon" aria-hidden="true">
+          <span className="home-burger-bar" />
+          <span className="home-burger-bar" />
+          <span className="home-burger-bar" />
+        </span>
       </button>
       {mounted && createPortal(panel, document.body)}
     </>

@@ -111,6 +111,18 @@
   display: none;
 }
 
+/*
+  Opening and closing are animated (Jordan, 21 Nov 2026: "add an animation for
+  it opening and closing"): the panel fades in and settles down 12px, and the
+  burger's three bars fold into a cross. 220ms, the house sheet/drawer timing
+  (STYLE-GUIDE.md §5). The blanket reduced-motion rule at the end of
+  globals.css takes both to near-instant for anyone who asks for less motion.
+
+  Closed, the panel stays in the DOM so it has something to animate from — so
+  closed has to mean genuinely gone: visibility: hidden (after the fade) keeps
+  it out of the tab order and the accessibility tree, and the component also
+  sets `inert`.
+*/
 .home-menu {
   position: fixed;
   inset: 0;
@@ -124,10 +136,77 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+  opacity: 0;
+  transform: translateY(-12px);
+  visibility: hidden;
+  /* Closing: fade and lift, THEN hide (the 220ms visibility delay). */
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease,
+    visibility 0s linear 220ms;
 }
 
-.home-menu[hidden] {
-  display: none;
+.home-menu[data-open="true"] {
+  opacity: 1;
+  transform: none;
+  visibility: visible;
+  /* Opening: visible at once, then fade and settle. */
+  transition:
+    opacity 220ms ease,
+    transform 220ms ease,
+    visibility 0s;
+}
+
+/* The panel takes focus when it opens, so Tab starts at Features. It is a
+   container, not a control, so it draws no ring of its own. */
+.home-menu:focus {
+  outline: none;
+}
+
+/* The three bars of the burger, folding into a cross when open. */
+.home-burger-icon {
+  position: relative;
+  width: 20px;
+  height: 14px;
+}
+
+.home-burger-bar {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  border-radius: 2px;
+  background: currentColor;
+  transition:
+    transform 220ms ease,
+    opacity 160ms ease,
+    top 220ms ease;
+}
+
+.home-burger-bar:nth-child(1) {
+  top: 0;
+}
+
+.home-burger-bar:nth-child(2) {
+  top: 6px;
+}
+
+.home-burger-bar:nth-child(3) {
+  top: 12px;
+}
+
+.home-burger[aria-expanded="true"] .home-burger-bar:nth-child(1) {
+  top: 6px;
+  transform: rotate(45deg);
+}
+
+.home-burger[aria-expanded="true"] .home-burger-bar:nth-child(2) {
+  opacity: 0;
+}
+
+.home-burger[aria-expanded="true"] .home-burger-bar:nth-child(3) {
+  top: 6px;
+  transform: rotate(-45deg);
 }
 
 .home-menu-links {
@@ -171,8 +250,10 @@
     width: var(--tap-min, 44px);
     height: var(--tap-min, 44px);
     border-radius: 12px;
+    /* The app's own burger (.pbm-burger in mail.css): a filled surface with
+       a hairline edge, so the two phone navigations look like one product. */
     border: 1px solid var(--border);
-    background: transparent;
+    background: var(--surface);
     color: var(--text);
     cursor: pointer;
   }
@@ -231,27 +312,28 @@
 }
 
 /*
-  The primary button ON the dark hero and closing band. The accent is
-  near-black in light, so on a --brand-panel ground it would be a black
-  button on a black band. Inverted from the panel's own pair instead, which
-  are fixed in both themes like the panel itself.
+  The primary button ON the dark closing band. The accent is near-black in
+  light, so on a --brand-panel ground it would be a black button on a black
+  band. Inverted from the panel's own pair instead, which are fixed in both
+  themes like the panel itself. (The hero used this too until it took the
+  theme's own ground, 21 Nov 2026; its primary is the ordinary accent button
+  now, the same green as the nav's.)
 */
-.home-hero .home-btn--primary,
 .home-band .home-btn--primary {
   background: var(--brand-panel-fg);
   color: var(--brand-panel);
 }
 
-/* Ghost button sitting ON the dark hero. Its background is --brand-panel,
-   so light-on-dark is correct in every theme. */
+/* The hero's second button, on the theme's own ground: the quiet button's
+   look, with a stronger edge so it reads as a button beside the primary. */
 .home-btn--ghost {
-  background: rgba(255, 255, 255, 0.07);
-  border-color: rgba(255, 255, 255, 0.22);
-  color: var(--brand-panel-fg);
+  background: var(--surface);
+  border-color: var(--border-strong);
+  color: var(--text);
 }
 
 .home-btn--ghost:hover {
-  background: rgba(255, 255, 255, 0.13);
+  border-color: var(--text-3);
 }
 
 .home-btn--sm {
@@ -269,10 +351,22 @@
 
 /* ── hero ────────────────────────────────────────────────────── */
 
+/*
+  The hero almost blends into the page, in both themes (Jordan, 21 Nov 2026:
+  "the background colour should almost blend in", then "make the light mode
+  hero blend in too"). A ground a shade off the page and a faint edge.
+
+  It no longer borrows the always-dark --brand-panel and its fixed light
+  ink. Everything inside reads the THEME's tokens instead — --text, --text-2,
+  --surface, the accent pair — which flip with light and dark and are already
+  measured for AAA, so one set of rules serves both. (The closing band,
+  .home-band, is still the dark brand panel.)
+*/
 .home-hero {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(150deg, var(--brand-panel), var(--brand-panel-deep));
+  background: color-mix(in srgb, var(--surface) 30%, var(--app-bg));
+  border: 1px solid var(--border-soft);
   border-radius: 28px;
   /*
    * The same 1080px column as everything else on the page.
@@ -293,28 +387,6 @@
 }
 
 
-/*
-  In dark, the hero almost blends into the page (Jordan, 21 Nov 2026: "the
-  background colour should almost blend in"): a ground a shade off the page
-  and a faint edge, instead of a lighter panel. In light the band stays the
-  dark --brand-panel — its ink is fixed light, and a light band would need
-  every colour inside it re-chosen.
-
-  Both spellings of "dark": the public pages carry no data-theme and follow
-  the system; a page that sets one (the harness) uses the attribute.
-*/
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) .home-hero {
-    background: color-mix(in srgb, var(--brand-panel) 40%, var(--app-bg));
-    border: 1px solid var(--border-soft);
-  }
-}
-
-:root[data-theme="dark"] .home-hero {
-  background: color-mix(in srgb, var(--brand-panel) 40%, var(--app-bg));
-  border: 1px solid var(--border-soft);
-}
-
 .home-hero-inner {
   position: relative;
   z-index: 1;
@@ -327,16 +399,16 @@
   line-height: 1.04;
   letter-spacing: -0.03em;
   font-weight: 800;
-  color: #fff;
+  color: var(--text);
   margin: 0 0 20px;
 }
 
 /* The emphasised words in the headline. They were gradient-clipped purple
-   text; now the panel's own ink with an underline, so the emphasis survives
-   without a colour. */
+   text; now the headline's own ink with an underline, so the emphasis
+   survives without a colour. */
 .home-h1 em {
   font-style: normal;
-  color: var(--brand-panel-fg);
+  color: var(--text);
   text-decoration: underline;
   text-decoration-thickness: 0.08em;
   text-underline-offset: 0.12em;
@@ -345,7 +417,7 @@
 .home-lede {
   font-size: 1.09375rem;
   line-height: 1.65;
-  color: rgba(244, 241, 255, 0.78);
+  color: var(--text-2);
   margin: 0 0 32px;
   max-width: 560px;
 }
@@ -360,7 +432,7 @@
 .home-cta-note {
   margin: 18px 0 0;
   font-size: 0.84375rem;
-  color: rgba(244, 241, 255, 0.82);
+  color: var(--text-2);
   /* 107 characters before this — the widest block of text in the product.
      54ch is the house reading width; see .ct-unset and STYLE-GUIDE.md. */
   max-width: 54ch;
@@ -549,11 +621,11 @@
 /* ── the product shot in the hero ────────────────────────────── */
 
 /*
- * Sits inside the hero band, so it is on the guaranteed-dark --brand-panel
- * ground rather than on the visitor's theme surface. That matters: the shot's
- * own frame is drawn from theme tokens, and putting it here means the dark app
- * imagery lands on a dark ground in both themes rather than a light card
- * floating on a dark band in one of them.
+ * Sits inside the hero. Since 21 Nov 2026 the hero is the theme's own ground
+ * (a shade off the page), and the shot's frame is drawn from the same theme
+ * tokens, so in either theme it is the app in that theme on a page in that
+ * theme. Until then the hero was the always-dark brand panel, and this
+ * comment explained why a dark picture on a dark band was the right pairing.
  */
 .home-shot {
   width: 100%;
