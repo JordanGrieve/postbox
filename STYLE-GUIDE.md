@@ -220,6 +220,19 @@ Transitions 160ms ease; sheet and drawer 220ms. Do not write your own
    width, and touch the things a thumb would touch. The harness cannot run a
    gesture; the sheet drag was "working" in it for a week.
 
+### The marketing product shots
+
+`components/marketing/ProductShot.tsx` is a DOM replica of the app in a macOS
+window, and `FeatureBento.tsx` describes features with scraps of real
+interface. Jordan, 21 Nov 2026: "always update the product shots". **When the
+inbox, the conversation, the sidebar or the composer changes, change these in
+the same piece of work.** Compare against the render harnesses, which render
+the real components. They had kept selling folders, labels, stars, snooze and
+a trash for days after the simple inbox removed them. Both read theme tokens
+only (the sidebar uses the `--nav` family), so they blend into the page in
+light and dark; the traffic lights are the one literal.
+`tests/marketing-site.test.ts` fails on the features known to be gone.
+
 ## 7. Things that look like rules and are not
 
 - `--tap-min` was 24px "because a mail client is dense". It is 44.

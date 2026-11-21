@@ -62,50 +62,56 @@ export default function FeatureBento() {
           have asked before.
         </p>
         <div className="pbento-art" aria-hidden>
+          {/* The About panel's own wording (components/mail/ContactRail). */}
           <div className="pbento-mini">
-            <span className="pbento-mini-k">First contact</span>
-            <span className="pbento-mini-v">20 Aug 2026</span>
-            <span className="pbento-mini-k">Tickets</span>
-            <span className="pbento-mini-v">3 in this workspace</span>
+            <span className="pbento-mini-k">First got in touch</span>
+            <span className="pbento-mini-v">27 Aug 2025</span>
+            <span className="pbento-mini-k">Conversations with you</span>
+            <span className="pbento-mini-v">7</span>
           </div>
         </div>
       </li>
 
+      {/*
+        Three cells replaced on 21 Nov 2026. They sold "Labels and stars",
+        "Snooze and archive" and a trash, which the simple inbox took out of
+        the interface on 18–19 Nov (Thread.tsx): the data is kept, but nobody
+        can use them. These are what the app does instead.
+      */}
       <li className="pbento-cell">
-        <h3 className="pbento-title">Labels and stars</h3>
+        <h3 className="pbento-title">To reply, then done</h3>
         <p className="pbento-body">
-          Sort the inbox the way your shop actually works, not the way a help
-          desk thinks it should.
+          Two lists, not eleven folders. Replying moves a conversation to Done,
+          and if the customer writes back it comes back to To reply.
         </p>
         <div className="pbento-art pbento-art--row" aria-hidden>
-          <span className="pbento-tag">Orders</span>
-          <span className="pbento-tag">Wholesale</span>
-          <span className="pbento-tag">Urgent</span>
+          <span className="pbento-tag">To reply &middot; 4</span>
+          <span className="pbento-tag">Done &middot; 12</span>
         </div>
       </li>
 
       <li className="pbento-cell">
-        <h3 className="pbento-title">Snooze and archive</h3>
+        <h3 className="pbento-title">Notes only your team sees</h3>
         <p className="pbento-body">
-          Put a thread out of sight until Tuesday. It comes back on its own, at
-          the time you asked for.
-        </p>
-        <div className="pbento-art" aria-hidden>
-          <div className="pbento-chip pbento-chip--accent">
-            Hidden until Tuesday, 9:00 am
-          </div>
-        </div>
-      </li>
-
-      <li className="pbento-cell">
-        <h3 className="pbento-title">Deleting is not losing</h3>
-        <p className="pbento-body">
-          Anything deleted sits in the trash for 30 days first. Customer
-          correspondence should not vanish to a stray click.
+          Allergies, the usual order, what was agreed on the phone — kept
+          beside the conversation and never shown to the customer.
         </p>
         <div className="pbento-art" aria-hidden>
           <div className="pbento-chip pbento-chip--muted">
-            In the trash &middot; 30 days left
+            Wholesale &middot; orders every Tuesday
+          </div>
+        </div>
+      </li>
+
+      <li className="pbento-cell">
+        <h3 className="pbento-title">Find any conversation</h3>
+        <p className="pbento-body">
+          Search by name, address or anything somebody wrote, across every
+          message your business has received.
+        </p>
+        <div className="pbento-art" aria-hidden>
+          <div className="pbento-chip pbento-chip--accent">
+            Search: &ldquo;sourdough&rdquo;
           </div>
         </div>
       </li>

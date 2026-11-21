@@ -124,17 +124,22 @@ export default function LandingPage() {
               <ProductShot
                 focus="inbox"
                 annotations={[
+                  /*
+                    Measured, not guessed (21 Nov 2026, after the shot was
+                    redrawn to match the app): each dot lands ~8px past the
+                    end of what it names — the "from contact form" line on
+                    the second card, and the list's "Inbox" title.
+                  */
                   {
-                    // Measured against the "Order" chip, not guessed.
                     text: "Where it came from",
-                    top: "71.6%",
-                    left: "60.9%",
+                    top: "61.4%",
+                    left: "72.5%",
                     from: "right",
                   },
                   {
                     text: "One list, every channel",
-                    top: "13%",
-                    left: "82%",
+                    top: "13.1%",
+                    left: "60.2%",
                     from: "right",
                   },
                 ]}
@@ -162,10 +167,11 @@ export default function LandingPage() {
                 focus="thread"
                 annotations={[
                   {
+                    // Points at "Delivered" in the reply's status line.
                     text: "Confirmed by the mail provider",
-                    top: "84%",
-                    left: "76%",
-                    from: "right",
+                    top: "56%",
+                    left: "44.8%",
+                    from: "left",
                   },
                 ]}
               />
@@ -194,9 +200,10 @@ export default function LandingPage() {
                 focus="newsletter"
                 annotations={[
                   {
+                    // Points at the email's "Unsubscribe" link.
                     text: "One-click unsubscribe, always",
-                    top: "70%",
-                    left: "30%",
+                    top: "75.8%",
+                    left: "34.6%",
                     from: "left",
                   },
                 ]}

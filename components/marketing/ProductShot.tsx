@@ -3,38 +3,40 @@ import "./product-shot.css";
 /**
  * The product, shown rather than described — built as DOM, not a screenshot.
  *
+ * ── KEEP IT THE PRODUCT AS IT IS TODAY ──
+ * Jordan, 21 Nov 2026: "always update the product shots". This is a replica,
+ * and a replica drifts: until that day it still showed the folders, labels and
+ * stars the simple inbox removed on 18–19 Nov (Thread.tsx, MailNavShell.tsx).
+ * WHEN THE INBOX, THE CONVERSATION OR THE COMPOSER CHANGES, CHANGE THIS TOO —
+ * compare it against the render harnesses (tests/mail-views-render,
+ * tests/dashboard-views-render "nav", tests/newsletter-views-render), which
+ * render the real components. What it shows today:
+ *   • the sidebar: workspace, Inbox with its count, Newsletter, Settings, and
+ *     the signed-in person at the foot (components/mail/MailNavShell.tsx);
+ *   • the list: "To reply" / "Done", search, cards with "from email" or "from
+ *     contact form" (InboxView);
+ *   • the conversation: "Mark as done", the customer's bubble and the reply
+ *     with its delivery status, the reply box (Thread.tsx);
+ *   • the composer: the email's fields beside its live preview.
+ *
+ * ── A MAC WINDOW ──
+ * Jordan, same day: "make them look like it was from a mac". Traffic lights
+ * and a centred title, a 12px corner and a soft window shadow. It is a picture
+ * of an app window, so it does not draw a browser address bar.
+ *
+ * ── IT BLENDS INTO THE PAGE ──
+ * Every colour is a theme token (product-shot.css), including the sidebar,
+ * which reads the --nav family as the real one does — light in light, dark in
+ * dark. It used to paint the always-dark --brand-panel in both.
+ *
  * ── WHY NOT AN ACTUAL SCREENSHOT ──
- * This started as a request for cropped, annotated screenshots, and four
- * things ruled a raster image out. Three are constraints; the fourth is the
- * one that would have bitten us later.
- *
- *  1. THEMES. Only the hero band is guaranteed dark — app/home.css says
- *     so, and everything below it inherits the visitor's theme. A screenshot
- *     is one fixed palette, so a dark capture sitting in a section that
- *     renders on a light surface looks wrong in the light theme. DOM
- *     reads the same tokens as everything around it and cannot disagree.
- *
- *  2. RESOLUTION. The capture tooling available here is capped at 1x, and a
- *     1x screenshot of a dense inbox is soft on every modern display and
- *     illegible at phone width — which is where most of a small business
- *     owner's browsing happens.
- *
- *  3. CUSTOMER DATA. A screenshot of a real inbox publishes whatever is in it.
- *     DOM sidesteps the question entirely, because the names below are written here in the open where anybody can see they are
- *     invented.
- *
- *  4. IT GOES STALE SILENTLY. A screenshot keeps showing the product as it was
- *     the day somebody captured it. Nothing fails, no test goes red, and the
- *     marketing page quietly starts lying about the interface. This replica
- *     drifts too — it is a replica, not the real component — but it is drawn
- *     with the same tokens, so a palette change carries through, and it lives
- *     in the repo where it is edited alongside the thing it depicts.
+ *  1. THEMES. A screenshot is one palette; this reads the visitor's.
+ *  2. RESOLUTION. Text stays sharp at every size and on every display.
+ *  3. CUSTOMER DATA. Every name here is written in the open and invented.
  *
  * ── IT IS DECORATIVE, AND MARKED AS SUCH ──
- * The whole shot is aria-hidden and every string in it is invented. A screen
- * reader gets the real prose in the section beside it instead of being read a
- * fake inbox. That means nothing here may carry information the page states
- * nowhere else.
+ * The body is aria-hidden; the prose beside each shot carries the meaning, so
+ * nothing here may carry information the page states nowhere else.
  */
 
 export type Annotation = {
@@ -47,72 +49,83 @@ export type Annotation = {
   from?: "left" | "right";
 };
 
-/** One row of the ticket list. All invented; see the note above. */
-const ROWS = [
-  {
-    name: "Priya Raman",
-    subject: "Do you cater for gluten-free events?",
-    preview: "Hi! I'm organising a team lunch for 25 people on the…",
-    tags: ["Contact form", "Sales"],
-    when: "8h",
-  },
-  {
-    name: "Tom Whitfield",
-    subject: "Invoice 3391 — wrong VAT rate?",
-    preview: "Perfect, no rush — I'll hold off paying until I hear…",
-    tags: ["Email", "Billing"],
-    when: "9h",
-  },
+/** The list's cards. All invented; see the note above. */
+const CARDS = [
   {
     name: "Marcus Bell",
-    subject: "ORD-4821 arrived damaged",
-    preview: "Order ORD-4821 turned up this morning and two of the…",
-    tags: ["Order", "Urgent"],
-    when: "9h",
+    when: "9m",
+    preview: "Order 4821 turned up this morning and two of the boxes were crushed.",
+    source: "from email",
     active: true,
   },
   {
+    name: "Priya Raman",
+    when: "1h",
+    preview: "Do you cater for gluten-free events? It would be a team lunch for 25.",
+    source: "from contact form",
+  },
+  {
+    name: "Tom Whitfield",
+    when: "3h",
+    preview: "Invoice 3391 has the wrong VAT rate, I think. No rush at all.",
+    source: "from email",
+  },
+  {
     name: "Daniel Foss",
-    subject: "Is the Tuesday class still running?",
-    preview: "Thanks for getting in touch — your message has…",
-    tags: ["Contact form"],
-    when: "12h",
+    when: "5h",
+    preview: "Is the Tuesday class still running next week?",
+    source: "from contact form",
   },
 ];
 
-const FOLDERS = [
-  { label: "All mail", count: 8 },
-  { label: "Unread", count: 2 },
-  { label: "Awaiting reply", count: 4 },
-  { label: "Open", count: 6, active: true },
-  { label: "Snoozed", count: 1 },
-  { label: "Archived", count: 1 },
-];
-
-/**
- * Which part of the app the shot shows.
- *
- * "full" is for the hero and is about RECOGNITION — a visitor should think
- * "oh, it's an email client" without reading anything in it. The cropped
- * variants are for the feature sections and are about MEANING: one idea per
- * image, scaled up so the UI text inside stays legible instead of shrinking to
- * an unreadable 8px when the whole app is squeezed into half a column.
- *
- * That split is the single most consistent thing across the product pages
- * worth copying — one full shot for shape, single-idea crops for everything
- * that has to be understood.
- */
 export type ShotFocus = "full" | "inbox" | "thread" | "newsletter";
 
-/**
- * The mail scene and the newsletter scene are different DOM, not the same DOM
- * with panes hidden.
- *
- * The three mail variants really are crops of one screen, so they share a
- * tree. The newsletter composer is a different screen entirely, and pretending
- * otherwise would mean shipping an inbox to every visitor who only ever sees
- * the newsletter section.
- */
+const TITLES: Record<ShotFocus, string> = {
+  full: "Inbox — Postbox",
+  inbox: "Inbox — Postbox",
+  thread: "Marcus Bell — Postbox",
+  newsletter: "New campaign — Postbox",
+};
+
+/* Small line icons, drawn like the app's own (components/mail/icons.tsx). */
+const icon = {
+  width: 12,
+  height: 12,
+  viewBox: "0 0 24 24",
+  fill: "none",
+  stroke: "currentColor",
+  strokeWidth: 2,
+  strokeLinecap: "round" as const,
+  strokeLinejoin: "round" as const,
+};
+
+function InboxIcon() {
+  return (
+    <svg {...icon}>
+      <rect x="3" y="5" width="18" height="14" rx="2" />
+      <path d="m3 7 9 6 9-6" />
+    </svg>
+  );
+}
+
+function NewsletterIcon() {
+  return (
+    <svg {...icon}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M8 9h8M8 13h8M8 17h5" />
+    </svg>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <svg {...icon}>
+      <circle cx="12" cy="12" r="3" />
+      <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6 7 7M17 17l1.4 1.4M5.6 18.4 7 17M17 7l1.4-1.4" />
+    </svg>
+  );
+}
+
 export default function ProductShot({
   annotations = [],
   focus = "full",
@@ -131,148 +144,164 @@ export default function ProductShot({
       // search engine. data-nosnippet keeps them out of search results.
       data-nosnippet=""
     >
-      {/*
-        A window bar rather than full browser chrome with a fake URL. A drawn
-        address bar invites the reader to check whether the URL is real, and
-        ours would not be — this is not a photograph of a page that exists at
-        an address. Three dots say "application window" and claim nothing.
-      */}
+      {/* The macOS title bar: close, minimise, zoom, and the window title. */}
       <div className="pshot-bar" aria-hidden>
-        <span className="pshot-dot" />
-        <span className="pshot-dot" />
-        <span className="pshot-dot" />
+        <span className="pshot-lights">
+          <span className="pshot-light pshot-light--close" />
+          <span className="pshot-light pshot-light--min" />
+          <span className="pshot-light pshot-light--zoom" />
+        </span>
+        <span className="pshot-title">{TITLES[focus]}</span>
       </div>
 
       {focus === "newsletter" ? (
         <div className="pshot-body" aria-hidden data-focus="newsletter">
           {/*
-            The composer beside its live preview.
-
-            This shows the ONE thing the newsletter section claims and prose
-            cannot demonstrate: that a Postbox campaign carries a working
-            unsubscribe link and the sender's postal address, because the
-            preview is rendered by the same function the send path calls. A
-            paragraph saying "we handle compliance" is a promise; showing the
-            footer is evidence.
+            The composer beside its live preview, as /newsletters/write lays
+            it out. The preview is the point: it is rendered by the same
+            function the send path calls, so the unsubscribe link and postal
+            address in it are the real ones.
           */}
           <div className="pshot-compose">
+            <p className="pshot-pane-title">The email</p>
             <p className="pshot-field-label">Subject line</p>
             <div className="pshot-input">This week: sourdough is back</div>
 
-            <p className="pshot-field-label">Sending to</p>
-            <div className="pshot-input pshot-input--quiet">
-              Everyone who confirmed &middot; 47 people
-            </div>
-
             <p className="pshot-field-label">Layout</p>
             <div className="pshot-input pshot-input--quiet">
-              Plain &mdash; text on white
+              Plain &mdash; like a personal email
             </div>
           </div>
 
           <div className="pshot-preview">
-            <p className="pshot-field-label">Preview</p>
+            <div className="pshot-preview-head">
+              <p className="pshot-pane-title">Preview</p>
+              <span className="pshot-seg">
+                <span className="pshot-seg-on">Desktop</span>
+                <span>Mobile</span>
+              </span>
+            </div>
             <div className="pshot-email">
+              <p className="pshot-email-body">Hi Sam,</p>
               <p className="pshot-email-body">
-                Morning! The rye starter is finally behaving, so sourdough is
-                back on the shelf from Thursday.
+                The rye starter is finally behaving, so sourdough is back on the
+                shelf from Thursday.
               </p>
-              <p className="pshot-email-body">See you at the counter,<br />Emma</p>
+              <p className="pshot-email-body">Thanks, Emma</p>
               <div className="pshot-email-foot">
                 <p>
                   Don&rsquo;t want these emails?{" "}
                   <span className="pshot-email-link">Unsubscribe</span>.
                 </p>
-                {/* Obviously invented (21 Nov 2026). The old street,
-                    town and postcode read as a real address. */}
+                {/* Obviously invented (21 Nov 2026). */}
                 <p>Open Door Bakery, 1 Example Street, Anytown</p>
               </div>
             </div>
           </div>
         </div>
       ) : (
-      <div className="pshot-body" aria-hidden data-focus={focus}>
-        {/* A div, not <aside>: this is a picture of a sidebar, not one, and
-            three of them on the homepage were three extra landmarks. */}
-        <div className="pshot-side">
-          <div className="pshot-brand">
-            <span className="pshot-brand-mark" />
-            <span className="pshot-brand-name">Open Door Bakery</span>
-          </div>
-          <ul className="pshot-folders">
-            {FOLDERS.map((f) => (
-              <li
-                key={f.label}
-                className="pshot-folder"
-                data-active={f.active || undefined}
-              >
-                <span className="pshot-folder-label">{f.label}</span>
-                <span className="pshot-folder-count">{f.count}</span>
+        <div className="pshot-body" aria-hidden data-focus={focus}>
+          {/* A div, not <aside>: a picture of a sidebar, not one. */}
+          <div className="pshot-side">
+            <div className="pshot-brand">
+              <span className="pshot-brand-mark">
+                <InboxIcon />
+              </span>
+              <span className="pshot-brand-name">Open Door Bakery</span>
+            </div>
+            <ul className="pshot-nav">
+              <li className="pshot-nav-item" data-active>
+                <InboxIcon />
+                <span className="pshot-nav-label">Inbox</span>
+                <span className="pshot-nav-badge">4</span>
               </li>
+              <li className="pshot-nav-item">
+                <NewsletterIcon />
+                <span className="pshot-nav-label">Newsletter</span>
+              </li>
+              <li className="pshot-nav-item">
+                <SettingsIcon />
+                <span className="pshot-nav-label">Settings</span>
+              </li>
+            </ul>
+            <div className="pshot-me">
+              <span className="pshot-me-face">E</span>
+              <span className="pshot-me-text">
+                <span className="pshot-me-name">emma@opendoor…</span>
+                <span className="pshot-me-role">Owner</span>
+              </span>
+            </div>
+          </div>
+
+          <div className="pshot-list">
+            <p className="pshot-list-title">Inbox</p>
+            <div className="pshot-tabs">
+              <span className="pshot-tab" data-on>
+                To reply <b>4</b>
+              </span>
+              <span className="pshot-tab">
+                Done <b>12</b>
+              </span>
+            </div>
+            <div className="pshot-search">Search messages&hellip;</div>
+            {CARDS.map((c) => (
+              <article
+                key={c.name}
+                className="pshot-card"
+                data-active={c.active || undefined}
+              >
+                <div className="pshot-card-top">
+                  <span className="pshot-card-name">{c.name}</span>
+                  <span className="pshot-card-when">{c.when}</span>
+                </div>
+                <p className="pshot-card-preview">{c.preview}</p>
+                <p className="pshot-card-source">{c.source}</p>
+              </article>
             ))}
-          </ul>
-        </div>
-
-        <div className="pshot-list">
-          {ROWS.map((r) => (
-            <article
-              key={r.name}
-              className="pshot-row"
-              data-active={r.active || undefined}
-            >
-              <div className="pshot-row-top">
-                <span className="pshot-row-name">{r.name}</span>
-                <span className="pshot-row-when">{r.when}</span>
-              </div>
-              <p className="pshot-row-subject">{r.subject}</p>
-              <p className="pshot-row-preview">{r.preview}</p>
-              <div className="pshot-row-tags">
-                {r.tags.map((t) => (
-                  <span className="pshot-tag" key={t}>
-                    {t}
-                  </span>
-                ))}
-              </div>
-            </article>
-          ))}
-        </div>
-
-        <div className="pshot-thread">
-          <div className="pshot-thread-head">
-            <span className="pshot-thread-name">Marcus Bell</span>
-            <span className="pshot-thread-sub">ORD-4821 arrived damaged</span>
           </div>
 
-          <div className="pshot-bubbles">
-            <div className="pshot-bubble">
-              Order ORD-4821 turned up this morning and two of the large boxes
-              were crushed. Is it too late to swap them?
+          <div className="pshot-thread">
+            <div className="pshot-thread-head">
+              <span className="pshot-thread-who">
+                <span className="pshot-thread-name">Marcus Bell</span>
+                <span className="pshot-thread-sub">marcus.bell@example.com</span>
+              </span>
+              <span className="pshot-done">&#10003; Mark as done</span>
             </div>
-            <p className="pshot-meta">Yesterday, 8:55 am · via order form</p>
 
-            <div className="pshot-bubble pshot-bubble--out">
-              Caught it just in time — the order hadn&rsquo;t gone to packing
-              yet. I&rsquo;ve put two fresh boxes on it.
+            <div className="pshot-bubbles">
+              <p className="pshot-meta">Marcus &middot; 9:41 am</p>
+              <div className="pshot-bubble">
+                Order 4821 turned up this morning and two of the boxes were
+                crushed. Is it too late to swap them?
+              </div>
+
+              <p className="pshot-meta pshot-meta--out">
+                You &middot; 9:50 am &middot;{" "}
+                {/* The label doing real work: a delivery the provider
+                    confirmed, not just "sent". */}
+                <span className="pshot-meta-ok">Delivered</span>
+              </p>
+              <div className="pshot-bubble pshot-bubble--out">
+                Caught it just in time — it hadn&rsquo;t gone to packing yet.
+                Two fresh boxes are on their way.
+              </div>
             </div>
-            {/*
-              "Delivered" is the one label in this shot doing real work: it is
-              the claim the product can now back, and the reason the delivery
-              webhook was built. It is styled to be read, not skimmed past.
-            */}
-            <p className="pshot-meta pshot-meta--ok">
-              Yesterday, 9:55 am · Delivered
-            </p>
+
+            <div className="pshot-reply">
+              <span className="pshot-reply-label">Reply to Marcus</span>
+              <span className="pshot-reply-hint">Write your reply&hellip;</span>
+              <span className="pshot-send">Send</span>
+            </div>
           </div>
         </div>
-      </div>
       )}
 
       {/*
         Callouts sit OUTSIDE the aria-hidden body so their text is still read,
         and are positioned in percentages so they follow what they point at as
-        the shot scales. They are hidden below the mobile breakpoint, where the
-        shot is cropped to the thread and there is no room for them — the
-        section's own prose carries the same points.
+        the shot scales. Hidden below 860px, where the section's prose carries
+        the same points.
       */}
       {annotations.map((a) => (
         <span

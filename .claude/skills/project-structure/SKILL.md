@@ -65,5 +65,9 @@ closest existing feature and mirror it. Never invent a new top-level directory.
   delegates, and shapes the response.
 - **One concern per `lib/` file.** If a file needs a second noun in its name
   to describe what you're adding, it's a new file.
+- **A change to the inbox, conversation, sidebar or composer also updates
+  the homepage's product shots** (`components/marketing/ProductShot.tsx`,
+  `FeatureBento.tsx`) in the same piece of work — STYLE-GUIDE.md, "The
+  marketing product shots".
 - **Components never contain colours or px font-sizes** — tokens and rem
   only (STYLE-GUIDE.md; CI enforces both).

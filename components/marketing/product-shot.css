@@ -1,251 +1,428 @@
 /*
- * The product shot: a DOM replica of the Postbox inbox, used on the marketing
- * page in place of a screenshot. See ProductShot.tsx for why it is not a PNG.
+ * The product shot: a DOM replica of the Postbox app in a macOS window, used
+ * on the marketing page in place of a screenshot. See ProductShot.tsx for why
+ * it is not a PNG, and for the rule that it is kept matching the real app.
  *
- * ── EVERY COLOUR HERE IS A TOKEN, AND THAT IS THE WHOLE POINT ──
- * The design research this was built from assumed a page that is dark all the
- * way down and prescribed literal hex values. This page is not that: app/
- * home.css guarantees only the HERO is dark, and everything below it inherits
- * whichever theme the visitor has. Hardcoding the researched palette would
- * have looked right in one theme and wrong in the other.
- *
- * So the techniques are taken and the values are not:
- *   • depth from a gradient hairline border and an ambient accent glow, never
- *     a heavy drop shadow — a shadow needs something darker to fall onto, and
- *     on a near-black ground it just reads as grime;
- *   • a surface elevation ladder (page → frame → panes) rather than one flat
- *     fill, which is what actually stops a dark page looking muddy;
- *   • annotation pills that carry their own background, so their contrast
- *     never depends on what is behind them.
+ * ── EVERY COLOUR IS A THEME TOKEN, BAR THE TRAFFIC LIGHTS ──
+ * So the shot blends into the page in light and dark alike (Jordan, 21 Nov
+ * 2026: "make the product shots blend in too"). The sidebar reads the --nav
+ * family exactly as the real MailNav does; the panes read --surface and
+ * friends. The one exception is the window's three buttons: macOS's own red,
+ * amber and green, which are what make it read as a Mac window, and which are
+ * the same in both of the system's own appearances.
  */
+
+/* ── the window ──────────────────────────────────────────────── */
 
 .pshot-frame {
   position: relative;
   container-type: inline-size;
-  border-radius: 20px;
-  /* The 1px gradient border: brightest at the top, fading to nothing, so it
-     reads as a light source above the screen rather than as a drawn outline. */
-  padding: 1px;
-  background: linear-gradient(
-    180deg,
-    var(--border-strong),
-    var(--border-soft) 60%,
-    transparent
-  );
-  /* Huge radius, low opacity. A tight bright glow looks like a gaming site. */
-  box-shadow: 0 0 120px -30px var(--accent-soft);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  /* A Mac window's shadow: soft, wide and below, plus a hairline of contact
+     shadow. Theme tokens, so it is gentle on light and deeper on dark. */
+  box-shadow:
+    0 1px 2px var(--shadow),
+    0 24px 60px -18px var(--shadow-2);
 }
 
 .pshot-bar {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 10px 14px;
-  border-radius: 19px 19px 0 0;
+  justify-content: center;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 11px 11px 0 0;
   background: var(--surface-2);
   border-bottom: 1px solid var(--border-soft);
 }
-.pshot-dot {
-  width: 9px;
-  height: 9px;
+
+.pshot-lights {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  gap: 8px;
+}
+
+.pshot-light {
+  width: 12px;
+  height: 12px;
   border-radius: 50%;
-  background: var(--border-strong);
+  /* The hairline ring macOS draws round each button. */
+  box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.18);
+}
+
+/* macOS's close, minimise and zoom colours — the only literals in the shot. */
+.pshot-light--close {
+  background: #ff5f57;
+}
+.pshot-light--min {
+  background: #febc2e;
+}
+.pshot-light--zoom {
+  background: #28c840;
+}
+
+.pshot-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 60%;
 }
 
 .pshot-body {
   display: grid;
-  /* Sidebar / list / thread, at roughly the proportions the real app uses. */
-  grid-template-columns: 150px 200px 1fr;
-  background: var(--surface);
-  border-radius: 0 0 19px 19px;
+  /* Sidebar / list / conversation, at roughly the real app's proportions. */
+  grid-template-columns: 168px 210px 1fr;
+  background: var(--app-bg);
+  border-radius: 0 0 11px 11px;
   overflow: hidden;
   font-size: 0.6875rem;
   line-height: 1.4;
 }
 
-/* ── sidebar ─────────────────────────────────────────────────── */
+/* ── sidebar (the real one: MailNavShell, --nav tokens) ───────── */
 
 .pshot-side {
-  background: var(--brand-panel);
-  padding: 12px 10px;
-  /* --nav is guaranteed a near-black indigo in every theme, so the light
-     foregrounds below are safe here without consulting the theme. This is the
-     same exemption app/home.css claims for the hero, and for the same reason. */
-  color: #fff;
+  background: var(--nav);
+  color: var(--nav-fg);
+  padding: 12px 8px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--nav-line);
 }
+
 .pshot-brand {
   display: flex;
   align-items: center;
   gap: 7px;
-  margin-bottom: 14px;
+  padding: 0 4px;
+  margin-bottom: 12px;
 }
+
 .pshot-brand-mark {
-  width: 20px;
-  height: 20px;
-  border-radius: 6px;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 7px;
   background: var(--accent-grad);
+  color: var(--on-accent);
   flex: none;
 }
+
 .pshot-brand-name {
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.71875rem;
-  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.pshot-folders {
+
+.pshot-nav {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 }
-.pshot-folder {
+
+.pshot-nav-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 5px 8px;
-  border-radius: 7px;
-  color: rgba(255, 255, 255, 0.66);
-}
-.pshot-folder[data-active] {
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  gap: 7px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  color: var(--nav-muted);
   font-weight: 600;
 }
-.pshot-folder-count {
-  font-variant-numeric: tabular-nums;
-  opacity: 0.75;
-}
 
-/* ── ticket list ─────────────────────────────────────────────── */
-
-.pshot-list {
-  border-right: 1px solid var(--border-soft);
-  overflow: hidden;
-}
-.pshot-row {
-  padding: 9px 10px;
-  border-bottom: 1px solid var(--border-soft);
-}
-.pshot-row[data-active] {
-  background: var(--sel);
-}
-.pshot-row-top {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-}
-.pshot-row-name {
+.pshot-nav-item[data-active] {
+  background: var(--nav-active-bg);
+  color: var(--nav-active-fg);
   font-weight: 700;
-  color: var(--text);
+}
+
+.pshot-nav-label {
+  flex: 1;
+}
+
+.pshot-nav-badge {
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: var(--nav-badge-on);
+  color: var(--nav-badge-fg);
+  font-weight: 800;
   font-size: 0.6875rem;
 }
-.pshot-row-when {
-  color: var(--muted);
+
+.pshot-me {
+  margin-top: auto;
+  padding: 18px 4px 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.pshot-me-face {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--nav-active-bg);
+  color: var(--nav-active-fg);
+  font-weight: 800;
   font-size: 0.6875rem;
   flex: none;
 }
-.pshot-row-subject {
-  margin: 2px 0 0;
-  color: var(--text-2);
-  font-weight: 600;
-  font-size: 0.6875rem;
+
+.pshot-me-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
-.pshot-row-preview {
-  margin: 1px 0 0;
-  color: var(--muted);
-  font-size: 0.6875rem;
-  /* One line only. Two lines of preview at this scale is grey noise. */
+
+.pshot-me-name {
+  font-weight: 700;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.pshot-row-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 6px;
-}
-.pshot-tag {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent-text);
-  white-space: nowrap;
+
+.pshot-me-role {
+  color: var(--nav-muted);
 }
 
-/* ── thread ──────────────────────────────────────────────────── */
+/* ── the list (InboxView) ─────────────────────────────────────── */
+
+.pshot-list {
+  padding: 12px 10px;
+  border-right: 1px solid var(--border-soft);
+  overflow: hidden;
+}
+
+.pshot-list-title {
+  /* Hugs its word, so "One list, every channel" can point at it. */
+  display: table;
+  margin: 0 0 8px;
+  font-size: 0.8125rem;
+  font-weight: 800;
+  color: var(--text);
+}
+
+.pshot-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--surface-3);
+  margin-bottom: 8px;
+}
+
+.pshot-tab {
+  padding: 4px 0;
+  border-radius: 6px;
+  text-align: center;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+.pshot-tab[data-on] {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 1px 2px var(--shadow);
+}
+
+.pshot-search {
+  padding: 5px 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.pshot-card {
+  padding: 7px 6px;
+  border-radius: 8px;
+}
+
+.pshot-card[data-active] {
+  background: var(--surface);
+  box-shadow: 0 1px 2px var(--shadow);
+}
+
+.pshot-card-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pshot-card-name {
+  font-weight: 800;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pshot-card-when {
+  color: var(--muted);
+  font-weight: 700;
+  flex: none;
+}
+
+.pshot-card-preview {
+  margin: 2px 0 0;
+  color: var(--text-2);
+  line-height: 1.5;
+  /* One line with an ellipsis. The real card shows two, but a two-line clamp
+     hides text when a reader raises letter and word spacing (1.4.12), and the
+     probes caught it; one ellipsised line reads the same in a picture. */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pshot-card-source {
+  /* Hugs its words, so a callout can point at the end of them. */
+  display: inline-block;
+  margin: 3px 0 0;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
+/* ── the conversation (Thread) ───────────────────────────────── */
 
 .pshot-thread {
-  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding: 12px 14px;
+  background: var(--surface);
   min-width: 0;
 }
+
 .pshot-thread-head {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
   padding-bottom: 9px;
   border-bottom: 1px solid var(--border-soft);
 }
+
+.pshot-thread-who {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .pshot-thread-name {
-  font-weight: 700;
+  font-weight: 800;
   color: var(--text);
   font-size: 0.75rem;
 }
+
 .pshot-thread-sub {
   color: var(--muted);
-  font-size: 0.6875rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
+
+.pshot-done {
+  flex: none;
+  padding: 4px 9px;
+  border-radius: 8px;
+  border: 1px solid var(--border-strong);
+  background: var(--surface-3);
+  color: var(--text);
+  font-weight: 700;
+}
+
 .pshot-bubbles {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
+  flex: 1;
 }
+
+.pshot-meta {
+  margin: 4px 0 0;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.pshot-meta--out {
+  text-align: right;
+  margin-top: 8px;
+}
+
+/* The one label doing real work: a confirmed delivery. */
+.pshot-meta-ok {
+  color: var(--ok-fg);
+}
+
 .pshot-bubble {
   max-width: 78%;
   padding: 8px 10px;
   border-radius: 12px;
   background: var(--surface-3);
   color: var(--text-2);
-  font-size: 0.6875rem;
 }
+
 .pshot-bubble--out {
   align-self: flex-end;
   background: var(--accent-grad);
   color: var(--on-accent);
 }
-.pshot-meta {
-  margin: 3px 0 10px;
-  font-size: 0.6875rem;
+
+.pshot-reply {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 2px 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface);
+}
+
+.pshot-reply-label {
+  grid-column: 1 / -1;
   font-weight: 700;
+  color: var(--text-2);
+}
+
+.pshot-reply-hint {
   color: var(--muted);
 }
-.pshot-bubble--out + .pshot-meta {
-  text-align: right;
-}
-/* The one label in the shot doing real work. */
-.pshot-meta--ok {
-  color: var(--ok-fg);
+
+.pshot-send {
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--accent-grad);
+  color: var(--on-accent);
+  font-weight: 700;
 }
 
 /* ── annotations ─────────────────────────────────────────────── */
 
 /*
  * A pill that carries its own background and border, so its legibility never
- * depends on the busy UI behind it — the research was explicit that you must
- * never rely on the screenshot for contrast.
- *
- * The dot is the pointing; the pill is the explaining. Keeping those two jobs
- * separate is what stops a page full of callouts turning into a diagram.
+ * depends on the UI behind it. The dot is the pointing; the pill is the
+ * explaining.
  */
 .pshot-note {
   position: absolute;
@@ -261,8 +438,6 @@
   line-height: 1.25;
   color: var(--text);
   white-space: nowrap;
-  /* Larger than the 10–11px UI inside the shot and smaller than body copy, so
-     it reads as a layer above the product rather than part of it. */
 }
 .pshot-note::after {
   content: "";
@@ -282,82 +457,30 @@
   left: -13px;
 }
 
-/*
- * Below the breakpoint the shot is too small to carry floating labels without
- * covering the thing they name, so they go — and the section's own prose says
- * the same things. The alternative, shrinking them, produces 9px text on the
- * screen size where legibility matters most.
- */
-@media (max-width: 860px) {
-  .pshot-note {
-    display: none;
-  }
-  .pshot-body {
-    /* Drop the sidebar: at this width three panes leaves the thread too narrow
-       to read, and the list plus one open thread is the recognisable shape. */
-    grid-template-columns: 170px 1fr;
-  }
-  .pshot-side {
-    display: none;
-  }
-}
-
-@media (max-width: 560px) {
-  .pshot-body {
-    /* One pane. A three-pane app at 360px is an illegible strip. */
-    grid-template-columns: 1fr;
-  }
-  .pshot-list {
-    display: none;
-  }
-}
-
-
 /* ── focused crops ───────────────────────────────────────────── */
 
 /*
- * A crop is not the full shot made smaller — that is the mistake that produces
- * 8px UI text in a half-width column. Each variant drops the panes it does not
- * need AND scales the type up, so the app text inside a crop lands in the same
- * legible range as the app text in the hero.
+ * A crop is not the full shot made smaller: each drops the panes it does not
+ * need AND scales its type up, so the text in a crop is READ (12px floor),
+ * where the hero's is texture for recognition.
  */
-
 .pshot-body[data-focus="inbox"] {
-  /* Sidebar and list only: "everything lands in one place" is a statement
-     about the LIST, and the open thread beside it is just competition. */
   grid-template-columns: 170px 1fr;
-  font-size: 0.78125rem;
+  font-size: 0.75rem;
 }
 .pshot-body[data-focus="inbox"] .pshot-thread {
   display: none;
 }
 .pshot-body[data-focus="inbox"] .pshot-list {
   border-right: 0;
+  padding: 14px 14px;
 }
-.pshot-body[data-focus="inbox"] .pshot-row {
-  padding: 12px 14px;
-}
-.pshot-body[data-focus="inbox"] .pshot-row-name {
-  font-size: 0.78125rem;
-}
-.pshot-body[data-focus="inbox"] .pshot-row-subject {
-  font-size: 0.75rem;
-}
-.pshot-body[data-focus="inbox"] .pshot-row-preview {
-  font-size: 0.71875rem;
-}
-/*
- * 12px, not 10. These chips are the thing the "Where it came from" callout
- * points at — the entire claim of that section is that you can see at a glance
- * which channel a message arrived through. A callout aimed at text too small
- * to read is a callout aimed at nothing.
- */
-.pshot-body[data-focus="inbox"] .pshot-tag {
+.pshot-body[data-focus="inbox"] .pshot-nav-badge,
+.pshot-body[data-focus="inbox"] .pshot-me-face {
   font-size: 0.75rem;
 }
 
 .pshot-body[data-focus="thread"] {
-  /* One conversation, full width. */
   grid-template-columns: 1fr;
   font-size: 0.8125rem;
 }
@@ -371,152 +494,56 @@
 .pshot-body[data-focus="thread"] .pshot-thread-name {
   font-size: 0.875rem;
 }
-.pshot-body[data-focus="thread"] .pshot-thread-sub {
-  font-size: 0.78125rem;
-}
 .pshot-body[data-focus="thread"] .pshot-bubble {
-  font-size: 0.8125rem;
   padding: 11px 14px;
   border-radius: 14px;
-  max-width: 72%;
-}
-.pshot-body[data-focus="thread"] .pshot-meta {
-  font-size: 0.6875rem;
-}
-
-/*
- * The mobile rules above collapse panes by width. For an already-cropped
- * variant that would collapse it to nothing, so they are undone here — a
- * "thread" crop is already one pane and must keep showing it.
- */
-@media (max-width: 860px) {
-  .pshot-body[data-focus="inbox"] {
-    grid-template-columns: 1fr;
-  }
-  .pshot-body[data-focus="inbox"] .pshot-side {
-    display: none;
-  }
-  .pshot-body[data-focus="inbox"] .pshot-list {
-    display: block;
-  }
-  .pshot-body[data-focus="thread"] .pshot-thread {
-    display: flex;
-  }
-}
-@media (max-width: 560px) {
-  .pshot-body[data-focus="inbox"] .pshot-list {
-    display: block;
-  }
-}
-
-/*
- * ── LEGIBILITY FLOOR ON SMALL SCREENS ──
- *
- * The tag chips rendered at 8.5px on a phone. That is below the point where
- * UI text in a product image is readable at all, and illegible micro-text is
- * one of the reliable tells that a page was assembled rather than designed.
- *
- * There is room to fix it because the panes collapse: at this width the shot
- * shows ONE pane in the space three were sharing, so everything can grow. The
- * preview line goes instead — it is the least informative thing in a row (a
- * truncated fragment of a message) and dropping it buys the vertical space the
- * larger type needs.
- *
- * Placed last so it wins over the focus-variant sizes above.
- */
-@media (max-width: 560px) {
-  .pshot-body,
-  .pshot-body[data-focus="inbox"],
-  .pshot-body[data-focus="thread"] {
-    font-size: 0.8125rem;
-  }
-  .pshot-row-preview {
-    display: none;
-  }
-  .pshot-body .pshot-row-name,
-  .pshot-body[data-focus="inbox"] .pshot-row-name {
-    font-size: 0.8125rem;
-  }
-  .pshot-body .pshot-row-subject,
-  .pshot-body[data-focus="inbox"] .pshot-row-subject {
-    font-size: 0.78125rem;
-  }
-  .pshot-body .pshot-tag,
-  .pshot-body[data-focus="inbox"] .pshot-tag {
-    font-size: 0.75rem;
-  }
-  .pshot-body .pshot-row-when {
-    font-size: 0.75rem;
-  }
-  .pshot-body .pshot-bubble,
-  .pshot-body[data-focus="thread"] .pshot-bubble {
-    font-size: 0.8125rem;
-  }
-  .pshot-body .pshot-meta,
-  .pshot-body[data-focus="thread"] .pshot-meta {
-    font-size: 0.75rem;
-  }
-  .pshot-body .pshot-thread-name {
-    font-size: 0.875rem;
-  }
-  .pshot-body .pshot-thread-sub {
-    font-size: 0.78125rem;
-  }
-  .pshot-folder {
-    font-size: 0.78125rem;
-  }
-  .pshot-brand-name {
-    font-size: 0.78125rem;
-  }
-}
-
-/*
- * ── THE FLOOR, ENFORCED ON THE CROPS ──
- *
- * The crops exist to be READ, so nothing in them may fall below 12px. The
- * first pass raised the obvious things and missed two — the "8h" timestamp in
- * a list row and the "via order form" line under a bubble — which were left at
- * 10px and 11px. Both were found by measuring the rendered page rather than by
- * looking at it, which is the only way this kind of miss surfaces.
- *
- * The HERO is deliberately exempt. Its job is recognition, not reading: a
- * visitor should see the shape of a mail client in half a second without
- * reading anything inside it. The tags there stay small as texture — but not
- * so small that they read as a rendering fault, hence 10px rather than 8.5.
- */
-.pshot-body[data-focus="inbox"] .pshot-row-when,
-.pshot-body[data-focus="inbox"] .pshot-meta {
-  font-size: 0.75rem;
-}
-.pshot-body[data-focus="thread"] .pshot-meta {
-  font-size: 0.75rem;
-}
-.pshot-body[data-focus="thread"] .pshot-row-when {
-  font-size: 0.75rem;
-}
-/* Hero texture: small, but above the point where it looks broken. */
-.pshot-body[data-focus="full"] .pshot-tag {
-  font-size: 0.6875rem;
+  max-width: 74%;
 }
 
 /* ── the newsletter scene ────────────────────────────────────── */
 
-/*
- * A different screen, so different DOM — not the inbox with panes hidden. Two
- * columns: what you write on the left, what the recipient gets on the right.
- */
 .pshot-body[data-focus="newsletter"] {
   grid-template-columns: 1fr 1fr;
-  gap: 0;
   font-size: 0.78125rem;
 }
 .pshot-compose,
 .pshot-preview {
   padding: 16px 18px;
   min-width: 0;
+  background: var(--surface);
 }
 .pshot-compose {
   border-right: 1px solid var(--border-soft);
+}
+.pshot-pane-title {
+  margin: 0 0 10px;
+  font-weight: 800;
+  color: var(--text);
+}
+.pshot-preview-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pshot-seg {
+  display: inline-flex;
+  gap: 2px;
+  margin-bottom: 10px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--surface-3);
+  color: var(--text-2);
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+.pshot-seg > span {
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.pshot-seg-on {
+  background: var(--surface);
+  color: var(--text);
 }
 .pshot-field-label {
   margin: 0 0 6px;
@@ -524,29 +551,25 @@
   font-weight: 700;
   color: var(--text-2);
 }
-.pshot-compose .pshot-field-label:not(:first-child) {
-  margin-top: 14px;
+.pshot-compose .pshot-field-label:not(:nth-child(2)) {
+  margin-top: 12px;
 }
 .pshot-input {
   padding: 9px 11px;
   border-radius: 9px;
-  background: var(--surface-3);
-  border: 1px solid var(--border-soft);
+  background: var(--surface);
+  border: 1px solid var(--border);
   color: var(--text);
-  font-size: 0.78125rem;
 }
-/* Fields that are showing a choice rather than typed text. */
 .pshot-input--quiet {
-  color: var(--muted);
+  color: var(--text-2);
 }
 
 /*
- * The rendered email, deliberately on WHITE in every theme.
- *
- * This is not a theming oversight. The preview shows what lands in the
- * recipient's mail client, and that is a white email regardless of which
- * theme the sender happens to be using — painting it in theme colours would
- * misrepresent the one thing this pane exists to show.
+ * The rendered email, deliberately on WHITE in every theme: it shows what
+ * lands in the recipient's mail client, which is a white email whatever the
+ * sender's theme. Literal inks for the same reason, retuned for AAA on
+ * 8 Sep 2026 (7.6:1 and 7.2:1).
  */
 .pshot-email {
   background: #fff;
@@ -557,15 +580,12 @@
 }
 .pshot-email-body {
   margin: 0 0 9px;
-  font-size: 0.78125rem;
   line-height: 1.5;
 }
 .pshot-email-foot {
   margin-top: 14px;
   padding-top: 10px;
   border-top: 1px solid #e6e4ee;
-  /* Literals, because the mock email is always a white panel whatever the
-     page's theme. Both retuned for AAA on 8 Sep 2026: 7.6:1 and 7.2:1. */
   color: #55526a;
   font-size: 0.75rem;
   line-height: 1.5;
@@ -578,30 +598,49 @@
   text-decoration: underline;
 }
 
+/* ── narrow screens ──────────────────────────────────────────── */
+
+/*
+ * Below 860px the floating labels go (they would cover what they name) and
+ * the full shot drops its sidebar; below 560px it is one pane. The crops keep
+ * the pane they exist to show.
+ */
+@media (max-width: 860px) {
+  .pshot-note {
+    display: none;
+  }
+  .pshot-body {
+    grid-template-columns: 190px 1fr;
+  }
+  .pshot-side {
+    display: none;
+  }
+  .pshot-body[data-focus="inbox"] {
+    grid-template-columns: 1fr;
+  }
+  .pshot-body[data-focus="thread"] .pshot-thread {
+    display: flex;
+  }
+}
+
 @media (max-width: 560px) {
+  .pshot-body {
+    grid-template-columns: 1fr;
+    font-size: 0.8125rem;
+  }
+  .pshot-list {
+    display: none;
+  }
+  .pshot-body[data-focus="inbox"] .pshot-list {
+    display: block;
+  }
   .pshot-body[data-focus="newsletter"] {
-    /* The composer goes; the rendered email is the half that carries the
-       point, and two columns at this width leaves neither readable. */
     grid-template-columns: 1fr;
   }
   .pshot-compose {
     display: none;
   }
-}
-
-/*
-  The selected row's muted text.
-
-  --sel is a lighter ground than the panel the other rows sit on, so the same
-  --muted that measures 4.54:1 elsewhere drops to 4.15:1 here — under the 4.5
-  AA floor, on the one row a reader's eye is drawn to.
-
-  Fixed with --text-4 rather than a new colour: it is already in every palette,
-  already one step brighter than --muted, and measures 5.91:1 on --sel. A
-  bespoke hex would have been a fifth value to keep in step across five themes
-  for no gain.
-*/
-.pshot-row[data-active] .pshot-row-preview,
-.pshot-row[data-active] .pshot-row-when {
-  color: var(--text-4);
+  .pshot-title {
+    max-width: 50%;
+  }
 }

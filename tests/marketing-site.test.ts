@@ -120,6 +120,45 @@ describe("links inside sentences are underlined", () => {
   });
 });
 
+/*
+  Jordan, 21 Nov 2026: "always update the product shots". The shot and the
+  feature tiles had kept selling folders, labels, stars, snooze and a trash
+  for days after the simple inbox removed them from the interface (18–19
+  Nov). This cannot prove the replica matches the app, but it does fail on
+  the features known to be gone, and on the shots leaving the theme.
+*/
+describe("the product shots and tiles show the app as it is", () => {
+  const SHOT = read("components/marketing/ProductShot.tsx").toString();
+  const SHOT_CSS = read("components/marketing/product-shot.css").toString();
+  const BENTO = read("components/marketing/FeatureBento.tsx").toString();
+  const code = (s: string) => s.replace(/\/\*[\s\S]*?\*\/|\/\/.*$|\{\/\*[\s\S]*?\*\/\}/gm, "");
+
+  it("sell nothing the inbox no longer has", () => {
+    for (const [name, src] of [["ProductShot", SHOT], ["FeatureBento", BENTO]] as const) {
+      const visible = code(src);
+      for (const gone of [/Snooze/, /Labels and stars/, /\bStarred\b/, /In the trash/, /Awaiting reply/, /All mail/]) {
+        expect(visible, `${name} still shows ${gone}`).not.toMatch(gone);
+      }
+    }
+  });
+
+  it("show the simple inbox: To reply / Done, Inbox, Newsletter, Settings", () => {
+    for (const shown of ["To reply", "Done", "Newsletter", "Settings", "Mark as done", "from contact form"]) {
+      expect(SHOT, shown).toContain(shown);
+    }
+  });
+
+  it("follow the theme, sidebar included (no fixed dark panel)", () => {
+    expect(code(SHOT_CSS)).not.toContain("--brand-panel");
+    expect(SHOT_CSS).toMatch(/\.pshot-side \{[^}]*background: var\(--nav\)/);
+  });
+
+  it("are drawn as a Mac window", () => {
+    expect(SHOT).toContain("pshot-light--close");
+    expect(SHOT_CSS).toMatch(/\.pshot-light--close \{\s*background: #ff5f57/);
+  });
+});
+
 describe("the homepage can be served from the CDN", () => {
   it("does not read the session itself", () => {
     // Its header comment explains why it no longer calls auth(); only the code counts.
