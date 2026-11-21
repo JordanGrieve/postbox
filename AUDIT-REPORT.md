@@ -99,8 +99,8 @@ to fail with its fix reverted, except where noted:
 - **Provider error text** stays in server logs; billing routes 401 when
   signed out; every numeric id goes through `lib/ids.ts` `parseId`.
 - **CSP**: sent as `Content-Security-Policy-Report-Only` (`lib/csp.ts`),
-  reporting to Sentry when a DSN is set. Not enforcing: switch it once real
-  pages have reported clean for a while.
+  reporting to Sentry. No violations reached Sentry, and it was made
+  enforcing the same day (Jordan's call). It still reports to Sentry.
 - **Duplicated helpers** each have one home (`lib/email-address.ts`,
   `lib/merge-tags.ts`, `lib/request-fields.ts`, `lib/utc-time.ts`); the two
   `formatDateTime`s differ on purpose and say so.

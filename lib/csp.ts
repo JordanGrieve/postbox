@@ -1,14 +1,22 @@
 /**
- * The Content-Security-Policy, sent REPORT-ONLY.
+ * The Content-Security-Policy, ENFORCED.
  *
- * ── WHY REPORT-ONLY ──
+ * ── HOW IT GOT HERE ──
  * Until 21 Nov 2026 the only CSP was `frame-ancestors 'self'` (AUDIT-REPORT.md,
  * "Left for later"). An enforced policy that misses one origin breaks sign-in
- * (Clerk), error reporting or the newsletter previews in production, and the
- * only way to know a policy is complete is to watch what real pages load. So
- * this one is sent as Content-Security-Policy-Report-Only: the browser reports
- * what it WOULD have blocked and blocks nothing. Once the reports are quiet it
- * can be promoted to an enforcing header; that is a decision, not a default.
+ * (Clerk), error reporting or the newsletter previews in production, so this
+ * one went out as Content-Security-Policy-Report-Only first. Sentry received
+ * no violations, and it was made enforcing the same day (Jordan's call).
+ *
+ * ── ADDING AN ORIGIN ──
+ * A new third-party script, API, frame or font is BLOCKED until it is listed
+ * below. The symptom is a feature that silently does nothing in production and
+ * a "Refused to load" line in the browser console; the report-uri sends the
+ * same to Sentry as a CSP issue.
+ *
+ * The newsletter and welcome previews are srcdoc iframes, which INHERIT this
+ * policy: an email that loaded a web font or a script would be blocked in the
+ * preview. Images are allowed from any https origin for that reason.
  *
  * ── WHAT IT ALLOWS, AND WHY ──
  *   script-src   'unsafe-inline': Next's inline bootstrap scripts, with no
@@ -70,7 +78,7 @@ export function sentryCspReportUri(dsn: string | undefined): string | null {
   return `${url.protocol}//${url.host}/api/${project}/security/?sentry_key=${url.username}`;
 }
 
-export function buildReportOnlyCsp(input: {
+export function buildCsp(input: {
   clerkPublishableKey?: string;
   sentryDsn?: string;
   isDev: boolean;

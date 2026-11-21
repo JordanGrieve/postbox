@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs/config";
-import { buildReportOnlyCsp } from "./lib/csp";
+import { buildCsp } from "./lib/csp";
 
 /*
   Security headers on every response.
@@ -15,18 +15,16 @@ import { buildReportOnlyCsp } from "./lib/csp";
   runner in tests/audit-runner.html loads pages in same-origin iframes, and
   DENY would blank every pane of it.
 
-  The enforced CSP is still only frame-ancestors, the one directive that
-  matters here and cannot break a page. A full policy is sent alongside it as
-  Content-Security-Policy-Report-Only from 21 Nov 2026 (lib/csp.ts): browsers
-  report what it would block and block nothing, so it can be checked against
-  real traffic before anyone makes it enforcing.
+  The full Content-Security-Policy (lib/csp.ts) is enforced from 21 Nov 2026.
+  It ran report-only first and Sentry received no violations; it still
+  reports to Sentry, so a blocked origin shows up there as well as in the
+  browser console.
 */
 const SECURITY_HEADERS = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
-  { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
   {
-    key: "Content-Security-Policy-Report-Only",
-    value: buildReportOnlyCsp({
+    key: "Content-Security-Policy",
+    value: buildCsp({
       clerkPublishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
       sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN ?? process.env.SENTRY_DSN,
       isDev: process.env.NODE_ENV === "development",
