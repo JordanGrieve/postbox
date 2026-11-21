@@ -34,9 +34,12 @@ yarn-error.log*
 .env*
 !.env.example
 
-# agent skills (reproducible from skills-lock.json via `npx skills add`)
+# Installed agent skills (reproducible from skills-lock.json via
+# `npx skills add`). The clerk* entries under .claude/skills are symlinks
+# into .agents/ with absolute paths, so they stay ignored. The rest of
+# .claude/skills is this project's own skills, and is committed.
 /.agents/
-/.claude/skills/
+/.claude/skills/clerk*
 
 # vercel
 .vercel

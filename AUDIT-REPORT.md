@@ -152,9 +152,9 @@ The original table, for reference:
 `.claude/skills/project-structure` and `.claude/skills/reuse-first` exist and
 were updated from this audit: `proxy.ts` is the middleware (Next 16), page-level
 auth, the `components/` → `app/` breaks, and a table of the helpers that have
-one home. **`.claude/skills/` is gitignored** (`.gitignore:39`), so they are not
-on this branch and nobody cloning the repo gets them. Un-ignore that path if
-they should be shared.
+one home. They were gitignored with the installed Clerk skills; since
+21 Nov 2026 they are committed (Jordan's call), and only the `clerk*`
+symlinks into `.agents/` stay ignored.
 
 ## Decent level?
 
