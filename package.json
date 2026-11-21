@@ -23,7 +23,7 @@
   "dependencies": {
     "@clerk/nextjs": "^7.9.6",
     "@neondatabase/serverless": "^1.1.0",
-    "@sentry/nextjs": "^10.75.3",
+    "@sentry/nextjs": "^11.16.0",
     "drizzle-orm": "^0.45.3",
     "next": "16.4.6",
     "react": "19.2.4",
@@ -53,7 +53,6 @@
   },
   "allowScripts": {
     "esbuild@0.25.12": true,
-    "@sentry/cli@2.58.6": true,
     "esbuild@0.28.1": true,
     "unrs-resolver@1.12.2": true
   }

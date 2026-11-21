@@ -1,5 +1,6 @@
 import * as Sentry from "@sentry/nextjs";
 import { scrubEvent } from "./lib/sentry-scrub";
+import { SENTRY_DATA_COLLECTION } from "./lib/sentry-data-collection";
 
 /**
  * Browser runtime. Runs after document load, before React hydration.
@@ -7,12 +8,13 @@ import { scrubEvent } from "./lib/sentry-scrub";
  * Errors + tracing only for now — Session Replay and Logs are deliberately
  * deferred: replay would record agents reading real customer support threads,
  * which needs a privacy-policy decision first (see HUMAN_ACTIONS.md).
- *
- * No `dataCollection` object is passed, so the SDK stays on its conservative
- * default (sendDefaultPii = false).
  */
 Sentry.init({
   dsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
+
+  // Sentry 11 collects everything personal when this is left out; see
+  // lib/sentry-data-collection.ts.
+  dataCollection: SENTRY_DATA_COLLECTION,
 
   // 100% in dev, 10% in production
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
@@ -21,8 +23,10 @@ Sentry.init({
 
   // The browser sees the most token URLs (/u/<token>, /s/confirm?t=…) as page
   // loads and navigations. lib/sentry-scrub.ts takes them out.
+  // Spans, not transactions: Sentry 11 streams spans and never builds a
+  // transaction, so a transaction hook would never run.
   beforeSend: (event) => scrubEvent(event),
-  beforeSendTransaction: (event) => scrubEvent(event),
+  beforeSendSpan: (span) => scrubEvent(span),
   beforeBreadcrumb: (crumb) => scrubEvent(crumb),
 });
 

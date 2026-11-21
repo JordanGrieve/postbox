@@ -184,7 +184,7 @@ describe("no customer content leaves the building", () => {
       sendingCampaigns: [campaign()],
     });
     const blob = JSON.stringify(r);
-    // The SDK's sendDefaultPii=false protects captured CONTEXT, not strings we
+    // The SDK's dataCollection settings protect captured CONTEXT, not strings we
     // chose to put in a title. This is the source-level guard.
     expect(blob).not.toMatch(/@/); // no email addresses anywhere
     expect(blob).not.toMatch(/Avonbank|subject|body/i);

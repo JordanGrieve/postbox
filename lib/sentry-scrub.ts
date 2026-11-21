@@ -88,11 +88,15 @@ type Scrubbable = {
   extra?: unknown;
   data?: unknown;
   description?: unknown;
+  // A streamed span (Sentry 11's default): its URL is in the name, and the
+  // url.* and http.* attributes.
+  name?: unknown;
+  attributes?: unknown;
   exception?: { values?: { value?: unknown }[] } | undefined;
 };
 
 /**
- * Scrub an error event, a transaction event, a breadcrumb or a span, in
+ * Scrub an error event, a breadcrumb or a streamed span, in
  * place, and return it. Typed generically so each Sentry hook keeps its own
  * type: `beforeSend: (e) => scrubEvent(e)`.
  */
@@ -116,6 +120,8 @@ export function scrubEvent<T>(event: T): T {
     "extra",
     "data",
     "description",
+    "name",
+    "attributes",
   ] as const) {
     if (e[key] !== undefined) e[key] = scrubDeep(e[key]);
   }

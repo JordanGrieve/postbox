@@ -24,12 +24,17 @@ probes (`tests/audit-probes.js`) were run alongside axe.
 | `npm run lint` | ✅ 0 errors, 2 warnings | ✅ 0 errors, 0 warnings (21 Nov) |
 | `npm test` | ✅ 122 files, 1734 passed, 1 expected fail | ✅ 153 files, 1907 passed, 1 expected fail (21 Nov) |
 | `npm run build` | ✅ pass | ✅ pass |
-| `npm audit --omit=dev` | ❌ 7 moderate | ⚠️ 6 moderate, all `@sentry/nextjs`'s build plugin (21 Nov) |
-| `npm audit` (incl. dev) | ❌ 15 moderate, 2 high | ⚠️ the same 6 moderate, 0 high (21 Nov) |
+| `npm audit --omit=dev` | ❌ 7 moderate | ✅ 0 (21 Nov, Sentry 11) |
+| `npm audit` (incl. dev) | ❌ 15 moderate, 2 high | ✅ 0 (21 Nov, Sentry 11) |
 
-The remaining six are glob/minimatch inside `@sentry/bundler-plugin-core`,
-which runs at build time only. The fix is Sentry 11, a major upgrade of the
-SDK and its config, not done here.
+The last six (glob/minimatch inside Sentry's build plugin) went with the
+upgrade to `@sentry/nextjs` 11 on 21 Nov 2026. Sentry 11 reverses two
+defaults this product relied on. An unset `dataCollection` now collects user
+info, cookies, headers, bodies and locals, so all three configs pass
+`SENTRY_DATA_COLLECTION` (`lib/sentry-data-collection.ts`) with every field
+off. Spans are streamed and `beforeSendTransaction` never runs, so the URL
+scrubber moved to `beforeSendSpan` and reads a span's `name` and
+`attributes`. Both are guarded in `tests/sentry-scrub.test.ts`.
 
 ## Fixed
 
@@ -70,8 +75,8 @@ to fail with its fix reverted, except where noted:
   now written with npm 11 and CI installs npm 11 before `npm ci` (Jordan's
   call). Only the vulnerable packages were updated on the existing lockfile;
   happy-dom went to 21. `allowScripts` in package.json approves the same
-  install scripts npm 10 used to run. Left: the six in Sentry's build plugin
-  (needs Sentry 11).
+  install scripts npm 10 used to run. The six left in Sentry's build plugin
+  went with Sentry 11 the same day (see the table at the top).
 - **Stripe webhook** applies an event only to the workspace that has no
   subscription or this exact one (`tests/stripe-webhook-ownership.test.ts`).
 - **Inbound** de-duplicates per workspace, and a message addressed to two
