@@ -49,6 +49,14 @@ export function MarketingNavSkeleton() {
   );
 }
 
+/**
+ * One line of hero text: a bar 6px short of the line box with the 6px below
+ * it, so n bars are exactly n lines tall and still read as separate lines.
+ * (A 6px top margin on full-height bars made the six-line lede 30px taller
+ * than the real one at 375px.)
+ */
+const LINE = { height: "calc(1lh - 6px)", marginBottom: 6 } as const;
+
 export default function MarketingSkeleton({
   label,
   lines = 3,
@@ -72,34 +80,37 @@ export default function MarketingSkeleton({
                 &nbsp;
               </div>
               {/* On a phone the real headline wraps to three lines and the
-                  lede to two more than on desktop, so the narrow-only bars
+                  lede to six (three on desktop), so the narrow-only bars
                   add them there and the wide-only ones keep desktop's short
                   last line (skeleton.css, 21 Nov 2026). */}
-              <div className="home-h1" style={{ marginBottom: 20 }}>
-                <div className="pbk-text" style={{ width: "92%" }}>
+              {/* flow-root keeps the last bar's bottom margin inside the box,
+                  or it collapses through and the block is 6px short. */}
+              <div className="home-h1" style={{ marginBottom: 20, display: "flow-root" }}>
+                <div className="pbk-text" style={{ ...LINE, width: "92%" }}>
                   &nbsp;
                 </div>
-                <div className="pbk-text pbk-wide-only" style={{ width: "64%", marginTop: 6 }}>
+                <div className="pbk-text pbk-wide-only" style={{ ...LINE, width: "64%" }}>
                   &nbsp;
                 </div>
-                <div className="pbk-text pbk-narrow-only" style={{ width: "100%", marginTop: 6 }}>
+                <div className="pbk-text pbk-narrow-only" style={{ ...LINE, width: "100%" }}>
                   &nbsp;
                 </div>
-                <div className="pbk-text pbk-narrow-only" style={{ width: "60%", marginTop: 6 }}>
+                <div className="pbk-text pbk-narrow-only" style={{ ...LINE, width: "60%" }}>
                   &nbsp;
                 </div>
               </div>
-              <div className="home-lede">
+              <div className="home-lede" style={{ display: "flow-root" }}>
                 {Array.from({ length: lines - 1 }, (_, i) => (
-                  <div key={i} className="pbk-text" style={{ width: "100%", marginTop: i ? 6 : 0 }}>
+                  <div key={i} className="pbk-text" style={{ ...LINE, width: "100%" }}>
                     &nbsp;
                   </div>
                 ))}
-                <div className="pbk-text pbk-wide-only" style={{ width: "58%", marginTop: 6 }}>
+                <div className="pbk-text pbk-wide-only" style={{ ...LINE, width: "58%" }}>
                   &nbsp;
                 </div>
-                {["100%", "100%", "58%"].map((w, i) => (
-                  <div key={i} className="pbk-text pbk-narrow-only" style={{ width: w, marginTop: 6 }}>
+                {/* Six lines in all on a phone, as the real lede wraps at 375px. */}
+                {["100%", "100%", "100%", "58%"].map((w, i) => (
+                  <div key={i} className="pbk-text pbk-narrow-only" style={{ ...LINE, width: w }}>
                     &nbsp;
                   </div>
                 ))}
