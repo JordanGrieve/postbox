@@ -1,5 +1,7 @@
 import "../../newsletter.css";
 import "../../skeleton.css";
+import { Suspense } from "react";
+import OverviewRowsSkeleton, { CampaignRows } from "./OverviewRowsSkeleton";
 
 /**
  * /newsletters — the overview (19 Nov 2026).
@@ -8,6 +10,11 @@ import "../../skeleton.css";
  * paints a fill over it, so the column, the tiles, the tabs and the row
  * padding are declared once, in app/newsletter.css, and this cannot drift
  * from the page it stands in for. Only bar widths are inline.
+ *
+ * It draws the default tab's newsletter rows. On ?tab=people (and on
+ * /subscribers, which redirects there) the rows below the tabs are people
+ * instead. A server loading.tsx is not given the query string, so the rows
+ * come from OverviewRowsSkeleton, a client piece that reads it.
  */
 export default function NewslettersLoading() {
   return (
@@ -39,21 +46,9 @@ export default function NewslettersLoading() {
           <span className="pbm-tab">&nbsp;</span>
         </div>
 
-        <ul className="nl-ov-list" aria-hidden>
-          {[180, 220, 150, 200].map((w, i) => (
-            <li className="nl-ov-row" key={i}>
-              <div className="nl-ov-row-text">
-                <div className="nl-ov-row-name pbk-text" style={{ width: w, maxWidth: "100%" }}>
-                  &nbsp;
-                </div>
-                <div className="nl-ov-row-meta pbk-text" style={{ width: w - 40 }}>
-                  &nbsp;
-                </div>
-              </div>
-              <div className="pbk-fill nl-ov-act" style={{ width: 96, height: 44, borderRadius: 10 }} />
-            </li>
-          ))}
-        </ul>
+        <Suspense fallback={<CampaignRows />}>
+          <OverviewRowsSkeleton />
+        </Suspense>
       </div>
     </div>
   );

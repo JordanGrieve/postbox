@@ -3,12 +3,11 @@ import "../../skeleton.css";
 /**
  * The hosted signup form, while its workspace is being looked up.
  *
- * ── WHY THIS PAGE HAS ONE AND MOST PUBLIC PAGES DO NOT ──
- * A loading.tsx only ever renders if the segment actually suspends. Nearly
- * every other public page here is either prerendered (/pricing, /privacy,
- * /terms, /s/done) or "dynamic" only because it awaits searchParams, which
- * costs nothing — a skeleton on those would be dead code at best and a
- * one-frame flash at worst.
+ * ── WHY THIS ONE MATTERS MORE THAN THE OTHERS ──
+ * Every public page has a loading.tsx now (tests/skeletons.test.tsx requires
+ * one), but most are prerendered (/pricing, /privacy, /terms, /s/done) or
+ * dynamic only because they await searchParams, so theirs only show during a
+ * client-side navigation — see components/skeletons/CardSkeleton.tsx.
  *
  * This one is different: it awaits getWorkspaceByApiKey, a real database round
  * trip over neon-http, before it can render anything at all. And it is the

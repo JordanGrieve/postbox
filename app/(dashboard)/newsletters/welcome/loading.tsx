@@ -9,7 +9,8 @@ import "../../../newsletter.css";
  * and the bar at the bottom are declared once, in app/newsletter.css, and
  * this cannot drift from the screen it stands in for. Only bar widths and
  * the heights of boxes with no fixed height (the message, the preview) are
- * inline.
+ * inline. The products editor and the bar were missing until 21 Nov 2026,
+ * although this comment already claimed the bar.
  */
 export default function WelcomeNewsletterLoading() {
   return (
@@ -36,25 +37,51 @@ export default function WelcomeNewsletterLoading() {
 
         <div className="nw-body">
           <div className="nw-form">
-            {[44, 180].map((h, i) => (
-              <div className="nw-field" key={i}>
-                <span className="nw-label pbk-text" style={{ width: i ? 72 : 60 }}>
-                  &nbsp;
-                </span>
-                <span className="pbk-fill" style={{ height: h, borderRadius: 10 }} />
+            {/* Heights measured off the welcome harness at 1280px, 21 Nov 2026. */}
+            <div className="nw-field">
+              <span className="nw-label pbk-text" style={{ width: 60 }}>
+                &nbsp;
+              </span>
+              <span className="pbk-fill" style={{ height: 44, borderRadius: 10 }} />
+            </div>
+            <div className="nw-field">
+              <span className="nw-label pbk-text" style={{ width: 72 }}>
+                &nbsp;
+              </span>
+              <span className="pbk-fill" style={{ height: 246, borderRadius: 10 }} />
+              {/* "Insert:" and its two merge-tag chips. */}
+              <div className="nw-insert">
+                {[120, 128].map((w, i) => (
+                  <span key={i} className="pbk-fill" style={{ width: w, height: 32, borderRadius: 10 }} />
+                ))}
               </div>
-            ))}
+            </div>
             <div className="nw-field">
               <span className="nw-label pbk-text" style={{ width: 40 }}>
                 &nbsp;
               </span>
               <div className="nw-looks">
                 {[0, 1, 2].map((i) => (
-                  <span key={i} className="pbk-fill" style={{ height: 124, borderRadius: 14 }} />
+                  <span key={i} className="pbk-fill" style={{ height: 156, borderRadius: 14 }} />
                 ))}
               </div>
             </div>
-            <span className="pbk-fill" style={{ height: 96, borderRadius: 14 }} />
+            {/* The picture box, then the products editor: label and add button. */}
+            <div className="nw-field">
+              <span className="nw-label pbk-text" style={{ width: 96 }}>
+                &nbsp;
+              </span>
+              <span className="pbk-fill" style={{ height: 132, borderRadius: 14 }} />
+            </div>
+            <div className="nw-products">
+              <span className="pbk-text" style={{ width: 120, marginBottom: 8 }}>
+                &nbsp;
+              </span>
+              <span
+                className="stg-button stg-button--secondary pbk-fill"
+                style={{ display: "block", width: 120 }}
+              />
+            </div>
           </div>
 
           <div className="nw-preview">
@@ -67,6 +94,17 @@ export default function WelcomeNewsletterLoading() {
             <span className="pbk-fill" style={{ display: "block", height: 700, borderRadius: 16 }} />
           </div>
         </div>
+
+        {/* The sticky bar: a status line, then Send me a test and Save. */}
+        <footer className="nw-bar">
+          <span className="nw-bar-status pbk-text" style={{ width: 180 }}>
+            &nbsp;
+          </span>
+          <div className="nw-bar-actions">
+            <span className="stg-button stg-button--secondary pbk-fill" style={{ width: 136 }} />
+            <span className="stg-button pbk-fill" style={{ width: 120 }} />
+          </div>
+        </footer>
       </div>
     </div>
   );

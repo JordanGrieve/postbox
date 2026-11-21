@@ -4,19 +4,17 @@ import "./forms.css";
 /**
  * /settings/forms.
  *
- * Same story as labels/loading.tsx: it fell through to the General tab's
- * theme grid. The shapes here are the page's own — the quiet workspace-key
- * card, the "new form" row, and the list of form cards — all in the real
- * .pbf-* classes so nothing shifts when the page swaps in.
+ * It once fell through to the General tab's theme grid. The shapes here are
+ * the page's own — the title, the quiet workspace-key card, the "new form"
+ * row, and the list of form cards — all in the real .pbf-* classes so nothing
+ * shifts when the page swaps in. The page has no subtitle, so neither does
+ * this (it drew one until 21 Nov 2026).
  */
 export default function FormsLoading() {
   return (
     <div className="stg-wrap pbk" aria-busy="true" aria-label="Loading forms">
       <header className="stg-head" aria-hidden>
         <div className="stg-title pbk-text" style={{ width: 76 }}>
-          &nbsp;
-        </div>
-        <div className="stg-sub pbk-text" style={{ width: "80%" }}>
           &nbsp;
         </div>
       </header>

@@ -1,5 +1,11 @@
 // @vitest-environment happy-dom
-import { describe, it, expect, afterEach } from "vitest";
+import { describe, it, expect, afterEach, vi } from "vitest";
+
+const nav = vi.hoisted(() => ({ pathname: "/", search: "" }));
+vi.mock("next/navigation", () => ({
+  usePathname: () => nav.pathname,
+  useSearchParams: () => new URLSearchParams(nav.search),
+}));
 import { render, screen, cleanup } from "@testing-library/react";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -7,6 +13,8 @@ import CardSkeleton from "../components/skeletons/CardSkeleton";
 import ProseSkeleton from "../components/skeletons/ProseSkeleton";
 import CentredSkeleton from "../components/skeletons/CentredSkeleton";
 import MarketingSkeleton from "../components/skeletons/MarketingSkeleton";
+import RootLoading from "../app/loading";
+import NewslettersLoading from "../app/(dashboard)/newsletters/loading";
 
 /**
  * Every page has a skeleton, and every skeleton renders.
@@ -65,7 +73,8 @@ describe("every route has a skeleton", () => {
     before, and it is worth the extra few lines to avoid it.
 
     So it asserts the NEAREST one instead. The root file draws the marketing
-    skeleton — a nav, a hero and a product shot. A dashboard or legal route
+    skeleton on "/" — a nav, a hero and a product shot — and only a blank
+    ground anywhere else (see "the root boundary" below). A dashboard or legal route
     that fell through to it would render a placeholder for a completely
     different page and then swap the whole screen, which is worse than no
     skeleton at all. Only the homepage may use it.
@@ -120,12 +129,77 @@ describe("the shared skeletons render", () => {
     expect(box.querySelectorAll(".pbk-fill").length).toBeGreaterThan(1);
   });
 
-  it("MarketingSkeleton, for the public pages", () => {
+  it("MarketingSkeleton, for the homepage", () => {
     render(<MarketingSkeleton label="Loading Postbox" lines={3} block={280} />);
     const box = screen.getByLabelText("Loading Postbox");
-    // Wears the real nav and wrap classes, so it lands where the page will.
+    // Wears the real nav and hero-band classes, so it lands where the page
+    // will. (It drew plain bars in .home-wrap with no band until 21 Nov 2026.)
     expect(box.querySelector(".home-nav")).toBeTruthy();
-    expect(box.querySelector(".home-wrap")).toBeTruthy();
+    expect(box.querySelector(".home-hero .home-hero-inner")).toBeTruthy();
+    expect(box.querySelector(".home-shot")).toBeTruthy();
+  });
+});
+
+/*
+  ── THE ROOT BOUNDARY COVERS THE APP'S LAYOUTS, NOT ONLY "/" ──
+  A loading.tsx does not wrap the layout in its own folder, so nothing under
+  (dashboard) or (admin) can cover those layouts while they await the viewer.
+  app/loading.tsx is the boundary that shows then. Until 21 Nov 2026 it drew
+  the marketing homepage for every path, so a cold /inbox flashed the public
+  nav and hero first.
+*/
+describe("the root boundary", () => {
+  it("draws the homepage on /", () => {
+    nav.pathname = "/";
+    render(<RootLoading />);
+    const box = screen.getByLabelText("Loading Postbox");
+    expect(box.querySelector(".home-nav")).toBeTruthy();
+    expect(box.querySelector(".home-hero")).toBeTruthy();
+  });
+
+  for (const path of ["/inbox", "/tickets/5", "/admin", "/settings/team"]) {
+    it(`draws no marketing chrome on ${path}`, () => {
+      nav.pathname = path;
+      const { container } = render(<RootLoading />);
+      expect(container.querySelector("[aria-busy='true']")).toBeTruthy();
+      expect(container.querySelector(".home-nav")).toBeNull();
+      expect(container.querySelector(".home-hero")).toBeNull();
+    });
+  }
+});
+
+/*
+  /newsletters has two tabs with different rows, and a server loading.tsx is
+  not given the query string. Until 21 Nov 2026 ?tab=people loaded with
+  newsletter rows; the rows now come from a client piece that reads it.
+*/
+describe("the newsletters skeleton follows the tab", () => {
+  it("draws newsletter rows by default", () => {
+    nav.search = "";
+    const { container } = render(<NewslettersLoading />);
+    expect(container.querySelector(".nl-ov-list")).toBeTruthy();
+    expect(container.querySelector(".psb-list")).toBeNull();
+  });
+
+  it("draws the People filters and person rows on ?tab=people", () => {
+    nav.search = "tab=people";
+    const { container } = render(<NewslettersLoading />);
+    expect(container.querySelector(".psb-filters")).toBeTruthy();
+    expect(container.querySelectorAll(".psb-row").length).toBeGreaterThan(0);
+    expect(container.querySelector(".nl-ov-list")).toBeNull();
+    nav.search = "";
+  });
+});
+
+describe("CentredSkeleton's message shape, for /no-access", () => {
+  it("draws a heading, a paragraph and a button, and no card", () => {
+    render(<CentredSkeleton label="Loading" message />);
+    const box = screen.getByLabelText("Loading");
+    // Lockup mark and the button are the only filled boxes; no 200px card.
+    const fills = [...box.querySelectorAll<HTMLElement>(".pbk-fill")];
+    expect(fills.length).toBe(2);
+    expect(box.querySelector(".stg-button")).toBeTruthy();
+    expect(box.querySelectorAll(".pbk-text").length).toBeGreaterThanOrEqual(5);
   });
 });
 

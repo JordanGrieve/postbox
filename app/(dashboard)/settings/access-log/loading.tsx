@@ -11,13 +11,14 @@ import "../../../skeleton.css";
 export default function AccessLogLoading() {
   return (
     <div className="stg-wrap pbk" aria-busy="true" aria-label="Loading the access log">
-      <header className="stg-head" aria-hidden>
+      {/* Title with "What this log covers" beside it, as the page draws it.
+          A subtitle bar stood here until 21 Nov 2026; that text moved into
+          the button's modal on 17 Nov. */}
+      <header className="stg-head stg-head--action" aria-hidden>
         <div className="stg-title pbk-text" style={{ width: 118 }}>
           &nbsp;
         </div>
-        <div className="stg-sub pbk-text" style={{ width: "78%" }}>
-          &nbsp;
-        </div>
+        <span className="stg-button pbk-fill" style={{ width: 170 }} />
       </header>
 
       <section className="stg-section" aria-hidden>

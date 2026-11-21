@@ -14,8 +14,8 @@ import "../../../skeleton.css";
  * full width the moment the real page arrived. A section was deleted the next
  * day and it still drew five.
  *
- * So it reuses the real .sti-* classes now, the way the contacts skeleton
- * reuses .stc-*. settings.css is imported by the settings layout, which this
+ * So it reuses the real .sti-* classes now, the way the team skeleton reuses
+ * .stc-*. settings.css is imported by the settings layout, which this
  * renders inside, so the classes are already there. The column width, page
  * padding, section radius/padding/margin and every line-height come from the
  * stylesheet exactly once and cannot drift again.

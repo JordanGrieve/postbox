@@ -18,10 +18,11 @@ import "../../skeleton.css";
  * card radius, the 13px card padding and the 6px row gap all come from
  * mail.css and cannot drift from the real list.
  *
- * The right-hand pane is deliberately EMPTY. On /inbox the real thread pane is
- * a static "No thread open" message, not data — it is centred in the pane, so
- * it costs no layout shift when it appears, and a shimmering fake of it would
- * only be inventing content that was never loading in the first place.
+ * The right-hand pane is deliberately EMPTY. On /inbox it is either a static
+ * "No thread open" message or, while setup is unfinished, the onboarding
+ * checklist (inbox/page.tsx). Which one is not known until the page runs, so
+ * a shimmering fake of either would be a guess that is wrong half the time;
+ * an empty pane is right for both.
  */
 export default function DashboardLoading() {
   return (

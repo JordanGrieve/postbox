@@ -5,8 +5,13 @@ import "../skeleton.css";
  * of /tickets/[id].
  *
  * Every other route under (dashboard) ships its own closer loading.tsx —
- * /inbox and each of the three settings tabs — so this file is reached only
- * when someone opens a ticket URL directly, or refreshes on one.
+ * /inbox, /search, /newsletters, /subscribers and every settings page — so
+ * this file is reached only when someone opens a ticket URL directly, or
+ * refreshes on one.
+ *
+ * It sits INSIDE the (dashboard) layout, so it only shows once that layout has
+ * resolved the viewer and the mail counts. Before then the nearest boundary is
+ * the root app/loading.tsx.
  *
  * WHY IT IS NOT REACHED ON NAVIGATION
  *
@@ -20,7 +25,7 @@ import "../skeleton.css";
  *
  * WHY IT MIRRORS THE THREAD ROUTE AND NOT THE INBOX
  *
- * On a cold /tickets/5 the boundary that resolves first is this one, and the
+ * On a cold /tickets/5, once the layout is in, this is the boundary shown, and the
  * thread route is a three-column flex row: 336px list, conversation, 290px
  * rail. Drawing only two of the three here, or leaving the list visible on a
  * phone, would mean a jump the moment the real panes land.
@@ -141,11 +146,12 @@ function MailListSkeleton() {
  * 13.5px/1.55 line box.
  */
 const NBSP = " ";
-const BUBBLES: { out: boolean; lines: number; width: string }[] = [
-  { out: false, lines: 3, width: "64%" },
-  { out: true, lines: 2, width: "56%" },
-  { out: false, lines: 2, width: "70%" },
-  { out: true, lines: 4, width: "62%" },
+// px on the BUBBLE, not % on the wrap: see tickets/[id]/@thread/loading.tsx.
+const BUBBLES: { out: boolean; lines: number; width: number }[] = [
+  { out: false, lines: 3, width: 420 },
+  { out: true, lines: 2, width: 340 },
+  { out: false, lines: 2, width: 460 },
+  { out: true, lines: 4, width: 380 },
 ];
 
 function ThreadSkeleton() {
@@ -157,6 +163,8 @@ function ThreadSkeleton() {
     >
       {/* 74px, fixed in mail.css — this header cannot shift. */}
       <header className="pbm-thread-head" aria-hidden>
+        {/* The phone's back button; .pbm-back hides it on desktop. */}
+        <span className="pbm-icon-btn pbm-back pbk-fill" />
         <div className="pbm-thread-who">
           <p className="pbm-thread-name pbk-text" style={{ width: 168 }}>
             &nbsp;
@@ -172,38 +180,43 @@ function ThreadSkeleton() {
         </div>
       </header>
 
-      <div className="pbm-thread-subject" aria-hidden>
-        <div className="pbm-subject pbk-text" style={{ width: "58%" }}>
-          &nbsp;
-        </div>
-      </div>
-
+      {/* No subject row: the thread dropped it on 19 Nov 2026 (Thread.tsx). */}
       <div className="pbm-transcript" aria-hidden>
         {BUBBLES.map((b, i) => (
           <div key={i} className="pbm-bubble-row" data-out={b.out || undefined}>
-            <div className="pbm-bubble-wrap" style={{ width: b.width }}>
-              <div className="pbm-bubble pbk-fill">
-                {Array.from({ length: b.lines }, () => NBSP).join("\n")}
-              </div>
-              <p className="pbm-bubble-foot pbk-text" style={{ width: 104 }}>
+            <div className="pbm-bubble-wrap">
+              {/* Who and when sit ABOVE the bubble, as in Thread.tsx. */}
+              <p
+                className="pbm-bubble-meta pbk-text"
+                style={{ width: 132, marginLeft: b.out ? "auto" : undefined }}
+              >
                 &nbsp;
               </p>
+              <div className="pbm-bubble pbk-fill" style={{ width: b.width, maxWidth: "100%" }}>
+                {Array.from({ length: b.lines }, () => NBSP).join("\n")}
+              </div>
             </div>
           </div>
         ))}
       </div>
 
-      {/* The composer is real chrome, not data — but it arrives with the rest
-          of the pane, so its box has to be reserved or the transcript would
-          grow by ~90px when it lands. */}
+      {/* The reply card is real chrome, not data, but it arrives with the
+          rest of the pane, so its box is reserved here or the transcript would
+          jump when it lands: the "Reply to …" label, the 72px writing box,
+          then the note and Send along its foot (Thread.tsx, 19 Nov 2026). */}
       <div className="pbm-composer-wrap" aria-hidden>
-        <div className="pbm-composer">
-          <span className="pbm-composer-input pbk-text">&nbsp;</span>
-          <span className="pbm-send pbk-fill" style={{ width: 89 }} />
+        <div className="pbm-composer pbm-reply-card">
+          <span className="pbm-reply-label pbk-text" style={{ width: 96 }}>
+            &nbsp;
+          </span>
+          <div className="pbm-composer-input" />
+          <div className="pbm-reply-foot">
+            <p className="pbm-composer-foot pbk-text" style={{ maxWidth: 360 }}>
+              &nbsp;
+            </p>
+            <span className="pbm-send pbk-fill" style={{ width: 89 }} />
+          </div>
         </div>
-        <p className="pbm-composer-foot pbk-text" style={{ width: "62%" }}>
-          &nbsp;
-        </p>
       </div>
     </section>
   );
@@ -246,10 +259,17 @@ function RailSkeleton() {
       >
         &nbsp;
       </span>
-      <div className="pbm-rail-card pbm-rail-card--empty" aria-hidden>
-        <p className="pbm-rail-void pbk-text" style={{ width: "88%" }}>
-          &nbsp;
-        </p>
+      {/* ContactNotes: the add-note box first, then the list, which for most
+          customers is the "nothing noted yet" paragraph. */}
+      <div className="pbn-form" aria-hidden>
+        <div className="pbn-input pbk-fill" />
+      </div>
+      <div aria-hidden>
+        {["100%", "92%", "60%"].map((w, i) => (
+          <p key={i} className="pbm-rail-void pbk-text" style={{ width: w, margin: "0 0 4px" }}>
+            &nbsp;
+          </p>
+        ))}
       </div>
     </aside>
   );

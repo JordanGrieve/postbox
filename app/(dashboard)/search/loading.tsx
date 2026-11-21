@@ -10,11 +10,13 @@ import "../../skeleton.css";
  * Every box carries its real class, so the padding, radii and row gap come
  * from mail.css and cannot drift from the real results.
  *
- * The search box itself is NOT skeletoned — it is a fixed 42px shell that is
- * about to be filled with the query the user already typed, so shimmering it
- * would only hide a control that is genuinely ready. Group headers are left
- * out too: how many groups come back is exactly what we do not know yet, and
- * inventing three of them would be inventing a shape of result.
+ * The search box is drawn as its fixed 42px shell, so the results below it
+ * start where the real ones will. Group headers are left out: how many groups
+ * come back is exactly what we do not know yet, and inventing three of them
+ * would be inventing a shape of result.
+ *
+ * Each result is the ticket shape, the first group the page renders: title
+ * and time, who it is from, then the chips row (source, reference).
  */
 export default function SearchLoading() {
   return (
@@ -37,14 +39,14 @@ export default function SearchLoading() {
         </p>
       </div>
 
-      <div className="pbm-results-scroll">
+      <div className="pbm-results-scroll pb-scroll">
         <div className="pbm-group">
           <div className="pbm-group-body" aria-hidden>
             {[
-              { title: "62%", line: "38%", snippet: "88%" },
-              { title: "48%", line: "44%", snippet: "72%" },
-              { title: "71%", line: "31%", snippet: "80%" },
-              { title: "55%", line: "40%", snippet: "66%" },
+              { title: "62%", line: "38%" },
+              { title: "48%", line: "44%" },
+              { title: "71%", line: "31%" },
+              { title: "55%", line: "40%" },
             ].map((r, i) => (
               <div className="pbm-result" key={i}>
                 <div className="pbm-result-top">
@@ -61,9 +63,17 @@ export default function SearchLoading() {
                 <div className="pbm-result-line pbk-text" style={{ width: r.line }}>
                   &nbsp;
                 </div>
-                <p className="pbm-result-snippet pbk-text" style={{ width: r.snippet }}>
-                  &nbsp;
-                </p>
+                <div className="pbm-result-chips">
+                  {[64, 58].map((w, j) => (
+                    <span
+                      key={j}
+                      className="pbm-tag pbk-text pbk-text--fixed"
+                      style={{ width: w }}
+                    >
+                      &nbsp;
+                    </span>
+                  ))}
+                </div>
               </div>
             ))}
           </div>

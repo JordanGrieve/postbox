@@ -36,6 +36,12 @@
      .pbm-send's accent gradient — whichever stylesheet the bundler emits
      first. Nothing here needs an !important.
 
+     One real rule is stronger: .pbm-bubble-row[data-out] .pbm-bubble (0,3,0)
+     paints your own messages in the accent, and it won until 21 Nov 2026, so
+     the thread skeleton's outgoing bubbles were solid green blocks. It is
+     named below at (0,4,0). Any other compound selector that paints a
+     component's background needs the same treatment.
+
   4. THE MOTION IS OPTIONAL. Under prefers-reduced-motion the sweep is removed
      entirely and the blocks sit flat, which is the whole point: a full-screen
      pulse is exactly the motion that hurts people.
@@ -56,7 +62,8 @@
 }
 
 .pbk .pbk-fill,
-.pbk .pbk-text {
+.pbk .pbk-text,
+.pbk .pbm-bubble-row[data-out] .pbk-fill {
   background-color: var(--surface-3);
   background-image: linear-gradient(
     90deg,
@@ -98,9 +105,40 @@
   flex: none;
 }
 
+/* On the homepage's always-dark brand band, --surface-3 bars are light grey
+   on near-black in the light theme and glare. A faint wash of the band's own
+   ink reads as placeholder text there instead. (0,3,0) beats the fill. */
+.pbk .home-hero .pbk-fill,
+.pbk .home-hero .pbk-text {
+  background-color: color-mix(in srgb, var(--brand-panel-fg) 12%, transparent);
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--brand-panel-fg) 10%, transparent) 46%,
+    color-mix(in srgb, var(--brand-panel-fg) 10%, transparent) 54%,
+    transparent 100%
+  );
+}
+
+/* Bars for text that wraps to more lines on a phone (the homepage hero).
+   720px is home.css's phone breakpoint for the hero. */
+.pbk .pbk-narrow-only {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .pbk .pbk-narrow-only {
+    display: block;
+  }
+  .pbk .pbk-wide-only {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .pbk .pbk-fill,
-  .pbk .pbk-text {
+  .pbk .pbk-text,
+  .pbk .pbm-bubble-row[data-out] .pbk-fill {
     animation: none;
     /* Flat, not mid-sweep: without the gradient the block is a plain
        --surface-3 rectangle. */
