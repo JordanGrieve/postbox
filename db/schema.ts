@@ -10,6 +10,7 @@ import {
   index,
   primaryKey,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 /**
  * Multi-tenant schema. Every tenant-owned row carries `workspaceId`.
@@ -1741,7 +1742,62 @@ export type AdminActionKind =
    */
   | "operator_replied"
   | "operator_campaign_sent"
-  | "operator_settings_changed";
+  | "operator_settings_changed"
+  /*
+   * An operator turned down somebody's request for access (access_requests,
+   * below). Approving one is "workspace_created", because that is what it
+   * does; the row's detail names the request.
+   */
+  | "access_request_declined";
+
+/**
+ * Somebody signed in with no workspace asked for one.
+ *
+ * Postbox is invite-only: a sign-in whose email matches no invite lands on
+ * /no-access. From 21 Nov 2026 that page has a "Send request" button (Jordan:
+ * "they should be prompted with a send message button that sends me a message
+ * to my admin dashboard where I can approve them"), and the request waits
+ * here until an operator approves or declines it in the console's Requests
+ * pane.
+ *
+ * Keyed on the Clerk user id, not the email: approving creates the workspace
+ * with that id already on its agent row, so the requester is connected the
+ * moment they next load a page, with no invite to claim and no email match
+ * to get wrong. The email is the verified primary address at the time of
+ * asking, kept for the operator to read and for the approval email.
+ *
+ * At most one PENDING request per person (the partial unique index), so a
+ * double-click or a reload cannot queue the same person twice. A declined
+ * request stays declined: the page says so rather than offering the button
+ * again.
+ */
+export const accessRequests = pgTable(
+  "access_requests",
+  {
+    id: serial("id").primaryKey(),
+    clerkUserId: text("clerk_user_id").notNull(),
+    email: text("email").notNull(),
+    businessName: text("business_name").notNull(),
+    /** Optional note from the requester. Shown as text, never as HTML. */
+    message: text("message"),
+    status: text("status").$type<AccessRequestStatus>().notNull().default("pending"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    decidedAt: timestamp("decided_at", { withTimezone: true }),
+    /** The operator who decided. Not a foreign key: revoking an admin must not erase it. */
+    decidedByAdminId: integer("decided_by_admin_id"),
+    /** The workspace an approval created. */
+    workspaceId: integer("workspace_id"),
+  },
+  (t) => [
+    uniqueIndex("access_requests_one_pending_idx")
+      .on(t.clerkUserId)
+      .where(sql`${t.status} = 'pending'`),
+    index("access_requests_status_idx").on(t.status, t.createdAt),
+  ],
+);
+
+export type AccessRequestStatus = "pending" | "approved" | "declined";
+export type AccessRequest = typeof accessRequests.$inferSelect;
 
 /**
  * WHICH client records an operator actually opened, during an impersonation.

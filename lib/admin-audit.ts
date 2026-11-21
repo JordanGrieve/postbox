@@ -340,6 +340,8 @@ export function describeAdminAction(action: AdminActionKind): string {
       return "Scheduled or sent a newsletter";
     case "operator_settings_changed":
       return "Changed a client setting";
+    case "access_request_declined":
+      return "Declined a request for access";
   }
 }
 

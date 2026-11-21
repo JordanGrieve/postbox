@@ -13,6 +13,11 @@ import { stripeConfigured, stripePriceId } from "@/lib/stripe";
 import { PLANS } from "@/lib/pricing";
 import { deliveryModeFromEnv, isLiveDeliveryMode } from "@/lib/deliver";
 import {
+  countPendingAccessRequests,
+  listPendingAccessRequests,
+} from "@/lib/access-requests";
+import { RequestsSection } from "./requests-section";
+import {
   agentCountsByWorkspace,
   campaignDeliveryTotals,
   providerAllowance,
@@ -62,6 +67,9 @@ const PANE: Record<Section, { title: string }> = {
   accounts: {
     title: "Accounts",
   },
+  requests: {
+    title: "Requests",
+  },
   overview: {
     title: "Overview",
   },
@@ -109,6 +117,8 @@ export default async function AdminHomePage({
     rotated?: string;
     optin?: string;
     key?: string;
+    approved?: string;
+    declined?: string;
   }>;
 }) {
   // The layout's requireAdmin() is not enough on its own. Layouts are skipped
@@ -121,7 +131,7 @@ export default async function AdminHomePage({
   // every console render makes, and dropping it here would change more than
   // the sign-out card.
   await resolveViewer();
-  const [accounts, rejections, drops, usage] = await Promise.all([
+  const [accounts, rejections, drops, usage, pendingRequests] = await Promise.all([
     listWorkspaceSummaries(),
     // Fetched for every section rather than only Deliverability: it is three
     // aggregated rows, and a conditional read here would mean the console's
@@ -135,9 +145,14 @@ export default async function AdminHomePage({
     // needs it on Billing, and a conditional read would make the console's
     // data shape depend on the tab.
     listWorkspaceUsage(),
+    // The menu shows how many are waiting on every pane, so somebody asking
+    // for access is noticed from wherever the console is open.
+    countPendingAccessRequests(),
   ]);
 
   const section = parseSection(params.section);
+  const requests =
+    section === "requests" ? await listPendingAccessRequests() : [];
   const filter = parseFilter(params.filter);
   const q = (params.q ?? "").trim();
 
@@ -278,6 +293,12 @@ export default async function AdminHomePage({
               label="Accounts"
               count={accounts.length}
             />
+            <NavRow
+              query={query}
+              to="requests"
+              label="Requests"
+              count={pendingRequests > 0 ? pendingRequests : undefined}
+            />
             <NavRow query={query} to="billing" label="Billing" />
             <NavRow query={query} to="deliverability" label="Deliverability" />
           </div>
@@ -344,6 +365,7 @@ export default async function AdminHomePage({
                   only operator. Admins are still rows in the admins table and
                   the viewer still reads them; there is just no screen for
                   adding or removing one. */}
+              {section === "requests" && <RequestsSection requests={requests} />}
               {section === "overview" && (
                 <OverviewSection accounts={accounts} gates={gates} />
               )}
@@ -411,13 +433,47 @@ function Banners({
     rotated?: string;
     optin?: string;
     key?: string;
+    approved?: string;
+    declined?: string;
   };
 }) {
-  const { error, created, emailed, self, deleted, removed, rotated, key, optin } =
-    params;
+  const {
+    error,
+    created,
+    emailed,
+    self,
+    deleted,
+    removed,
+    rotated,
+    key,
+    optin,
+    approved,
+    declined,
+  } = params;
   return (
     <>
       {error && <div className="pba-banner pba-banner-err">{error}</div>}
+      {approved && (
+        <div className="pba-banner pba-banner-ok">
+          {emailed === "1" ? (
+            <>
+              <b>{approved}</b> is ready, and we&rsquo;ve emailed them to say
+              so. Their next sign-in opens their inbox.
+            </>
+          ) : (
+            <>
+              <b>{approved}</b> is ready, but the email telling them couldn&rsquo;t
+              be sent. Their next sign-in opens their inbox; let them know.
+            </>
+          )}
+        </div>
+      )}
+      {declined && (
+        <div className="pba-banner pba-banner-ok">
+          The request from <b>{declined}</b> was declined. They weren&rsquo;t
+          emailed; their page now says it wasn&rsquo;t approved.
+        </div>
+      )}
       {deleted && (
         <div className="pba-banner pba-banner-ok">
           <b>{deleted}</b> and all of its data has been permanently deleted.

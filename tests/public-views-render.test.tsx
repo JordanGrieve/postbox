@@ -81,7 +81,22 @@ vi.mock("next/navigation", () => ({
   page -- which is the point of stubbing it that way.
 */
 vi.mock("@/lib/viewer", () => ({
-  resolveViewer: async () => ({ isAdmin: false, workspace: null }),
+  resolveViewer: async () => ({
+    isAdmin: false,
+    email: "owner@example.com",
+    workspace: null,
+  }),
+}));
+
+/*
+  /no-access also shows the visitor's own request for access, if they sent
+  one (21 Nov 2026). The constants are the real ones; only the read is
+  stood in for, so each state can be rendered on purpose.
+*/
+const { latestRequestMock } = vi.hoisted(() => ({ latestRequestMock: vi.fn() }));
+vi.mock("@/lib/access-requests", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("../lib/access-requests")>()),
+  latestAccessRequestFor: latestRequestMock,
 }));
 
 import { writeFileSync, mkdirSync, copyFileSync } from "node:fs";
@@ -93,6 +108,7 @@ import Privacy from "../app/(legal)/privacy/page";
 import Terms from "../app/(legal)/terms/page";
 import LegalLayout from "../app/(legal)/layout";
 import NoAccess from "../app/no-access/page";
+import type { AccessRequest } from "../db/schema";
 import NotFound from "../app/not-found";
 import SubscribeLayout from "../app/s/layout";
 import CheckInbox from "../app/s/check/page";
@@ -110,6 +126,7 @@ const SHEETS = [
   "app/contact/contact.css",
   "app/s/subscribe.css",
   "app/u/unsubscribe.css",
+  "app/no-access/no-access.css",
   "components/marketing/feature-bento.css",
   "components/marketing/product-shot.css",
   "components/marketing/theme-row.css",
@@ -241,9 +258,60 @@ describe("the pages a stranger can reach render, and can be measured", () => {
   });
 
   it("the two dead ends a signed-in stranger can hit", async () => {
-    record("no-access", await render(NoAccess()));
+    authMock.mockResolvedValue({ userId: "user_stranger" });
+    latestRequestMock.mockResolvedValue(null);
+    const html = record(
+      "no-access",
+      await render(NoAccess({ searchParams: Promise.resolve({}) })),
+    );
+    // The way out of the dead end: the request form, labelled.
+    expect(html).toContain("Send request");
+    expect(html).toContain('name="businessName"');
+    expect(html).toContain("Business name");
     record("not-found", await render(<NotFound />));
     expect(rendered.find(([n]) => n === "not-found")![1].length).toBeGreaterThan(300);
+  });
+
+  it("/no-access in each state of a request for access", async () => {
+    authMock.mockResolvedValue({ userId: "user_stranger" });
+    const request = {
+      id: 7,
+      clerkUserId: "user_stranger",
+      email: "owner@example.com",
+      businessName: "Open Door Bakery",
+      message: "We get about ten emails a day.",
+      status: "pending",
+      createdAt: new Date("2026-11-21T10:00:00Z"),
+      decidedAt: null,
+      decidedByAdminId: null,
+      workspaceId: null,
+    } satisfies AccessRequest;
+
+    latestRequestMock.mockResolvedValue(null);
+    const withError = record(
+      "no-access-error",
+      await render(NoAccess({ searchParams: Promise.resolve({ error: "Add your business name." }) })),
+    );
+    expect(withError).toContain('role="alert"');
+    expect(withError).toContain("Add your business name.");
+
+    latestRequestMock.mockResolvedValue(request);
+    const pending = record(
+      "no-access-pending",
+      await render(NoAccess({ searchParams: Promise.resolve({}) })),
+    );
+    expect(pending).toContain("Request sent");
+    expect(pending).toContain("Open Door Bakery");
+    // Asked already: no second form.
+    expect(pending).not.toContain("Send request");
+
+    latestRequestMock.mockResolvedValue({ ...request, status: "declined" });
+    const declined = record(
+      "no-access-declined",
+      await render(NoAccess({ searchParams: Promise.resolve({}) })),
+    );
+    expect(declined).toContain("Request not approved");
+    expect(declined).not.toContain("Send request");
   });
 
   it("writes the browser harness when asked", () => {

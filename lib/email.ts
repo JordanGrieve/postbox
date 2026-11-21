@@ -231,14 +231,31 @@ function inviteHtml(input: {
   businessName: string;
   to: string;
   signUpUrl: string;
+  approved?: boolean;
 }): string {
   const business = escapeHtml(input.businessName);
   const email = escapeHtml(input.to);
   const url = escapeHtml(input.signUpUrl);
+  // An approved request: they already have a login, so the steps are "sign
+  // in", not "sign up". Same layout and colours as the invite.
+  const preheader = input.approved
+    ? `Your request was approved — your ${business} support inbox is ready.`
+    : `Your ${business} support inbox is ready — sign up to start replying to customers.`;
+  const intro = input.approved
+    ? `Your request for Postbox has been approved, and a support inbox has been set up for <b style="color:#26221d;">${business}</b> &mdash;
+              a simple place where your website&rsquo;s contact-form messages and customer emails
+              become tickets you can reply to.`
+    : `A support inbox has been set up for <b style="color:#26221d;">${business}</b> on Postbox —
+              a simple place where your website&rsquo;s contact-form messages and customer emails
+              become tickets you can reply to.`;
+  const step = input.approved
+    ? `Sign in with <b>the same email address</b> you used to ask:`
+    : `Sign up using <b>this email address</b> — that&rsquo;s how your account connects to your inbox:`;
+  const cta = input.approved ? "Open your inbox" : "Set up your inbox";
   return `<!doctype html>
 <html>
   <body style="margin:0;padding:0;background:#faf8f4;">
-    <div style="display:none;max-height:0;overflow:hidden;">Your ${business} support inbox is ready — sign up to start replying to customers.</div>
+    <div style="display:none;max-height:0;overflow:hidden;">${preheader}</div>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#faf8f4;padding:32px 16px;">
       <tr><td align="center">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;">
@@ -251,19 +268,17 @@ function inviteHtml(input: {
           <tr><td style="background:#ffffff;border:1px solid #e7e1d7;border-radius:16px;padding:32px;">
             <h1 style="margin:0 0 14px;font:700 21px/1.35 Arial,sans-serif;color:#26221d;">Your ${business} support inbox is ready</h1>
             <p style="margin:0 0 18px;font:400 14.5px/1.65 Arial,sans-serif;color:#5f594f;">
-              A support inbox has been set up for <b style="color:#26221d;">${business}</b> on Postbox —
-              a simple place where your website&rsquo;s contact-form messages and customer emails
-              become tickets you can reply to.
+              ${intro}
             </p>
             <p style="margin:0 0 8px;font:400 14.5px/1.65 Arial,sans-serif;color:#5f594f;">
-              Sign up using <b>this email address</b> — that&rsquo;s how your account connects to your inbox:
+              ${step}
             </p>
             <p style="margin:0 0 24px;">
               <span style="display:inline-block;background:#f9e7de;border:1px solid #f1dacd;border-radius:8px;padding:8px 14px;font:600 14px Arial,sans-serif;color:#ab441f;">${email}</span>
             </p>
             <table role="presentation" cellpadding="0" cellspacing="0"><tr>
               <td style="background:#c14d2a;border-radius:10px;">
-                <a href="${url}" style="display:inline-block;padding:13px 26px;font:600 15px Arial,sans-serif;color:#ffffff;text-decoration:none;">Set up your inbox &rarr;</a>
+                <a href="${url}" style="display:inline-block;padding:13px 26px;font:600 15px Arial,sans-serif;color:#ffffff;text-decoration:none;">${cta} &rarr;</a>
               </td>
             </tr></table>
             <p style="margin:26px 0 0;font:400 13px/1.6 Arial,sans-serif;color:#746d61;">
@@ -291,6 +306,12 @@ export async function sendInviteEmail(input: {
   signUpUrl: string;
   from: string;
   inviterEmail: string;
+  /**
+   * The person asked for access from /no-access and an operator approved it
+   * (21 Nov 2026). They already have a login, so the copy says sign in, and
+   * signUpUrl should be the inbox.
+   */
+  approved?: boolean;
 }): Promise<SendResult> {
   if (!hasKey()) {
     console.warn("[email] RESEND_API_KEY not configured — skipping invite.");
@@ -301,10 +322,22 @@ export async function sendInviteEmail(input: {
   const { data, error } = await resend.emails.send({
     from: `Postbox <${input.from}>`,
     to: [input.to],
-    subject: `Your ${input.businessName} support inbox is ready`,
+    subject: input.approved
+      ? `You're in: your ${input.businessName} support inbox is ready`
+      : `Your ${input.businessName} support inbox is ready`,
     html: inviteHtml(input),
     // Plain-text fallback for clients that don't render HTML.
-    text: `Hi,
+    text: input.approved
+      ? `Hi,
+
+Your request for Postbox has been approved, and a support inbox has been set up for ${input.businessName}.
+
+Open it at ${input.signUpUrl}, signed in with this email address (${input.to}).
+
+Any questions, just reply to this email.
+
+— Postbox`
+      : `Hi,
 
 A support inbox has been set up for ${input.businessName} on Postbox — a simple place where your website's contact-form messages and customer emails become tickets you can reply to.
 

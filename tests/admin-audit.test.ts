@@ -100,6 +100,7 @@ const EVERY_KIND = {
   operator_replied: true,
   operator_campaign_sent: true,
   operator_settings_changed: true,
+  access_request_declined: true,
 } satisfies Record<AdminActionKind, true>;
 
 const ALL = Object.keys(EVERY_KIND) as AdminActionKind[];

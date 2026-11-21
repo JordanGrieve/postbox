@@ -892,6 +892,29 @@
   margin: 0 0 12px;
 }
 
+/* ── Access requests (requests-section.tsx) ───────────────────────────── */
+
+/* The requester's own words. Text, never HTML; pre-wrap keeps their line
+   breaks, and break-word stops a pasted URL from widening the card. */
+.pba-request-message {
+  background: var(--surface-2);
+  border-radius: 12px;
+  color: var(--text-2);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  margin: 0 0 14px;
+  max-width: 54ch;
+  overflow-wrap: break-word;
+  padding: 10px 12px;
+  white-space: pre-wrap;
+}
+
+/* Decline sits under Approve, not beside it: next to each other they are
+   one slip of the thumb apart on a phone. */
+.pba-request-decline {
+  margin-top: 12px;
+}
+
 /* ── Section spacing ──────────────────────────────────────────────────── */
 
 .pba-stack {

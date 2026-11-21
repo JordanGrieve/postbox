@@ -18,9 +18,9 @@ import "../../app/skeleton.css";
  * two different loading states in sequence.
  *
  * `message`: /no-access, which has no card at all — the lockup, a heading, a
- * paragraph and a Sign out button, centred on --surface-2 at 420px. It drew
- * the sign-in block until 21 Nov 2026, so a 200px card turned into a
- * paragraph when the page arrived.
+ * paragraph, the request-for-access form and a Sign out button, centred on
+ * --surface-2 at 420px. It drew the sign-in block until 21 Nov 2026, so a
+ * 200px card turned into a paragraph when the page arrived.
  */
 export default function CentredSkeleton({
   label,
@@ -89,9 +89,26 @@ export default function CentredSkeleton({
                 &nbsp;
               </div>
             ))}
+            {/* The request form (21 Nov 2026): two labelled fields and the
+                full-width Send request, then Sign out. Most people who land
+                here have not asked yet, so this is the shape they see. */}
+            <div style={{ marginTop: 24, display: "flex", flexDirection: "column", gap: 14 }}>
+              {[44, 96].map((h) => (
+                <div key={h}>
+                  <div
+                    className="pbk-text"
+                    style={{ width: 120, fontSize: "0.8125rem", marginBottom: 6 }}
+                  >
+                    &nbsp;
+                  </div>
+                  <div className="pbk-fill" style={{ height: h, borderRadius: 10 }} />
+                </div>
+              ))}
+              <div className="pbk-fill" style={{ height: 48, borderRadius: 10 }} />
+            </div>
             <div
               className="stg-button pbk-fill"
-              style={{ display: "flex", width: 96, margin: "26px auto 0" }}
+              style={{ display: "flex", width: 96, margin: "22px auto 0" }}
             />
           </>
         ) : (

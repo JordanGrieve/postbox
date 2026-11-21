@@ -26,6 +26,134 @@ import { provisionWorkspace, generateApiKey, ownerClerkId } from "@/lib/workspac
 import { sendInviteEmail } from "@/lib/email";
 import { APP_URL, EMAIL_FROM_ADDRESS } from "@/lib/config";
 import { isValidEmail } from "@/lib/http";
+import {
+  decideAccessRequest,
+  getAccessRequest,
+  linkAccessRequestWorkspace,
+  MAX_BUSINESS_NAME,
+  reopenAccessRequest,
+} from "@/lib/access-requests";
+
+const REQUESTS = "/admin?section=requests";
+
+function requestsError(message: string): never {
+  redirect(`${REQUESTS}&error=${encodeURIComponent(message)}`);
+}
+
+/**
+ * Approve a request for access from /no-access: create the requester's
+ * workspace on their own login, and email them.
+ *
+ * The workspace's agent row carries the requester's real Clerk id rather than
+ * an INVITE_ placeholder. They are already signed up, so there is nothing to
+ * claim: the next page they load finds their workspace and sends them to the
+ * inbox.
+ *
+ * Logged first and fail-closed, like createClientAction, and as the same
+ * action ("workspace_created") because that is what it does. Then the
+ * request is moved out of pending only if it is still pending, so a
+ * double-click or a second operator cannot create two workspaces. If creating
+ * the workspace fails after that, the request goes back to pending rather
+ * than reading as approved with nothing behind it.
+ */
+export async function approveAccessRequestAction(formData: FormData): Promise<void> {
+  const actor = await requireAdminRow();
+
+  const id = parseId(formData.get("requestId"));
+  if (id === null) requestsError("Invalid request.");
+
+  // The operator may correct the name before approving; it starts as what the
+  // requester typed.
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) requestsError("A business name is required.");
+  if (name.length > MAX_BUSINESS_NAME) {
+    requestsError(`Keep the business name under ${MAX_BUSINESS_NAME} characters.`);
+  }
+
+  const request = await getAccessRequest(id);
+  if (!request || request.status !== "pending") {
+    requestsError("That request has already been dealt with.");
+  }
+  // One email, one workspace — the rule createClientAction keeps. They may
+  // have been invited by hand since asking.
+  if (await getAgentByEmail(request.email)) {
+    requestsError(
+      `${request.email} is already linked to a workspace. Decline the request instead.`,
+    );
+  }
+
+  await recordAdminAction({
+    action: "workspace_created",
+    actorAdminId: actor.id,
+    actorEmail: actor.email,
+    targetLabel: name,
+    detail: `owner ${request.email}, from access request #${request.id}`,
+  });
+
+  const decided = await decideAccessRequest(id, "approved", actor.id);
+  if (!decided) requestsError("That request has already been dealt with.");
+
+  let workspaceId: number;
+  try {
+    const created = await provisionWorkspace({
+      name,
+      ownerEmail: request.email,
+      clerkUserId: request.clerkUserId,
+    });
+    workspaceId = created.workspace.id;
+  } catch (err) {
+    await reopenAccessRequest(id);
+    throw err;
+  }
+  await linkAccessRequestWorkspace(id, workspaceId);
+
+  // Best effort, as for an invite: the workspace exists either way, and the
+  // banner says whether they were told.
+  const email = await sendInviteEmail({
+    to: request.email,
+    businessName: name,
+    signUpUrl: `${APP_URL}/inbox`,
+    from: EMAIL_FROM_ADDRESS,
+    inviterEmail: actor.email,
+    approved: true,
+  });
+
+  revalidatePath("/admin");
+  redirect(
+    `${REQUESTS}&approved=${encodeURIComponent(name)}&emailed=${email.sent ? "1" : "0"}`,
+  );
+}
+
+/**
+ * Turn a request down. Nothing is deleted: the request stays, marked
+ * declined, and the requester's /no-access page says it was not approved
+ * instead of offering the form again. No email is sent.
+ */
+export async function declineAccessRequestAction(formData: FormData): Promise<void> {
+  const actor = await requireAdminRow();
+
+  const id = parseId(formData.get("requestId"));
+  if (id === null) requestsError("Invalid request.");
+
+  const request = await getAccessRequest(id);
+  if (!request || request.status !== "pending") {
+    requestsError("That request has already been dealt with.");
+  }
+
+  await recordAdminAction({
+    action: "access_request_declined",
+    actorAdminId: actor.id,
+    actorEmail: actor.email,
+    targetLabel: request.email,
+    detail: `${request.businessName}, access request #${request.id}`,
+  });
+
+  const decided = await decideAccessRequest(id, "declined", actor.id);
+  if (!decided) requestsError("That request has already been dealt with.");
+
+  revalidatePath("/admin");
+  redirect(`${REQUESTS}&declined=${encodeURIComponent(request.email)}`);
+}
 
 /**
  * Server Actions run as untrusted POST endpoints, so every one re-checks the

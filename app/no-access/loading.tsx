@@ -8,8 +8,8 @@ import CentredSkeleton from "@/components/skeletons/CentredSkeleton";
  * signed in and is about to be told they have no access should not watch a
  * blank screen while that is decided.
  *
- * The `message` shape: the page is a lockup, a heading, a paragraph and a
- * Sign out button with no card around them.
+ * The `message` shape: the page is a lockup, a heading, a paragraph, the
+ * request-for-access form and a Sign out button with no card around them.
  */
 export default function Loading() {
   return <CentredSkeleton label="Loading" message />;

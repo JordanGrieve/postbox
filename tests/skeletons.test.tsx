@@ -192,14 +192,17 @@ describe("the newsletters skeleton follows the tab", () => {
 });
 
 describe("CentredSkeleton's message shape, for /no-access", () => {
-  it("draws a heading, a paragraph and a button, and no card", () => {
+  it("draws a heading, a paragraph, the request form and a button, and no card", () => {
     render(<CentredSkeleton label="Loading" message />);
     const box = screen.getByLabelText("Loading");
-    // Lockup mark and the button are the only filled boxes; no 200px card.
+    // Lockup mark, the form's two fields and its Send request, and Sign out:
+    // five filled boxes, none of them the old 200px card.
     const fills = [...box.querySelectorAll<HTMLElement>(".pbk-fill")];
-    expect(fills.length).toBe(2);
+    expect(fills.length).toBe(5);
+    expect(fills.every((f) => parseFloat(f.style.height || "0") <= 96)).toBe(true);
     expect(box.querySelector(".stg-button")).toBeTruthy();
-    expect(box.querySelectorAll(".pbk-text").length).toBeGreaterThanOrEqual(5);
+    // Heading, four paragraph lines, two field labels and the wordmark.
+    expect(box.querySelectorAll(".pbk-text").length).toBeGreaterThanOrEqual(8);
   });
 });
 

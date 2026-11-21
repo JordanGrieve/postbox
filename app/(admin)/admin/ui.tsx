@@ -15,6 +15,8 @@ import { formatDate, formatDateTime, formatDuration } from "@/lib/utc-time";
 
 export const SECTIONS = [
   "accounts",
+  // People who signed in with no workspace and asked for one (21 Nov 2026).
+  "requests",
   "overview",
   "billing",
   "deliverability",

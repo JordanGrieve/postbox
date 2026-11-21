@@ -21,6 +21,8 @@ import {
   DeliverabilitySection,
   OverviewSection,
 } from "../app/(admin)/admin/sections";
+import { RequestsSection } from "../app/(admin)/admin/requests-section";
+import type { AccessRequest } from "../db/schema";
 
 /**
  * Every pane of the admin console renders.
@@ -346,6 +348,41 @@ const panes: Record<string, React.ReactElement> = {
           </div>
         </dialog>
       ),
+      // Two requests: one with a note (long, with a line break and a URL, the
+      // shapes that widen a card) and one without.
+      requests: (
+        <RequestsSection
+          requests={
+            [
+              {
+                id: 7,
+                clerkUserId: "user_a",
+                email: "owner@opendoorbakery.co.uk",
+                businessName: "Open Door Bakery",
+                message:
+                  "We get about ten emails a day through the website.\nOur current form is at https://opendoorbakery.co.uk/contact-us-for-orders-and-enquiries",
+                status: "pending",
+                createdAt: ago(30),
+                decidedAt: null,
+                decidedByAdminId: null,
+                workspaceId: null,
+              },
+              {
+                id: 8,
+                clerkUserId: "user_b",
+                email: "hello@amoria.example",
+                businessName: "AMORIA",
+                message: null,
+                status: "pending",
+                createdAt: ago(2),
+                decidedAt: null,
+                decidedByAdminId: null,
+                workspaceId: null,
+              },
+            ] satisfies AccessRequest[]
+          }
+        />
+      ),
       overview: <OverviewSection accounts={accounts} gates={gates} />,
       billing: <BillingSection accounts={accounts} usage={usage} gates={gates} />,
       deliverability: (
@@ -393,6 +430,24 @@ const panes: Record<string, React.ReactElement> = {
         />
       ),
 };
+
+describe("the Requests pane", () => {
+  // Short on purpose, so it is checked here rather than against the
+  // every-pane 400-character floor below.
+  it("says plainly when nothing is waiting", () => {
+    const html = renderToStaticMarkup(<RequestsSection requests={[]} />);
+    expect(html).toContain("No requests waiting");
+    expect(html).not.toContain("Approve");
+  });
+
+  it("names each request's Approve and Decline, and shows the note as text", () => {
+    const html = renderToStaticMarkup(panes.requests);
+    expect(html.match(/>Approve</g)).toHaveLength(2);
+    expect(html).toContain('aria-label="Decline the request from owner@opendoorbakery.co.uk"');
+    expect(html).toContain('aria-label="Workspace name for hello@amoria.example"');
+    expect(html).toContain("We get about ten emails a day");
+  });
+});
 
 describe("every admin pane renders", () => {
   const rendered: Record<string, string> = {};

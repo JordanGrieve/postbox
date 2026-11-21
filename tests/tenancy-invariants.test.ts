@@ -438,6 +438,13 @@ const NON_TENANT_TABLES = [
    * one workspace — so there is no query shape here that could span tenants.
    */
   "impersonation_reads",
+  /*
+   * access_requests are from people who have NO workspace yet: that is what
+   * a request is. Its workspace_id is only filled in after an approval, as a
+   * note of what the approval created. Requesters read only their own row,
+   * keyed on their Clerk id; operators read the pending queue.
+   */
+  "access_requests",
   "workspaces",
   "admins",
   "impersonation_sessions",
