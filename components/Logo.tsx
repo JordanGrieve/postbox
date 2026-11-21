@@ -85,7 +85,6 @@ export function PostboxLockup({
   colors = TOKEN_COLORS,
   color,
   className,
-  wordmarkClassName,
 }: {
   size?: number;
   /*
@@ -99,8 +98,6 @@ export function PostboxLockup({
   /** Wordmark colour. Inherits from the surrounding text when omitted. */
   color?: string;
   className?: string;
-  /** A class on the "Postbox" text alone, e.g. to hide it on a narrow nav. */
-  wordmarkClassName?: string;
 }) {
   return (
     <span
@@ -108,10 +105,7 @@ export function PostboxLockup({
       className={className}
     >
       <PostboxMark size={size} colors={colors} />
-      <span
-        className={wordmarkClassName}
-        style={{ fontSize, fontWeight: 700, letterSpacing: "-0.01em", color }}
-      >
+      <span style={{ fontSize, fontWeight: 700, letterSpacing: "-0.01em", color }}>
         Postbox
       </span>
     </span>

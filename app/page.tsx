@@ -63,8 +63,6 @@ export default function LandingPage() {
       <main style={{ flex: 1 }}>
         <section className="home-hero">
           <div className="home-hero-inner">
-            <p className="home-eyebrow">For small businesses</p>
-
             <h1 className="home-h1">
               Every customer email in <em>one shared inbox</em>
             </h1>

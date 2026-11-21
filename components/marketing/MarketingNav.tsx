@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { PostboxLockup } from "@/components/Logo";
 import { TRIAL_CTA, TRIAL_HREF } from "@/lib/marketing-copy";
+import MarketingMenu from "./MarketingMenu";
 
 /**
  * The public site's nav bar. ONE definition, used by every marketing page.
@@ -37,7 +38,7 @@ export default function MarketingNav({
   return (
     <header className="home-nav">
       <Link href="/" aria-label="Postbox home">
-        <PostboxLockup wordmarkClassName="home-nav-wordmark" />
+        <PostboxLockup />
       </Link>
       {/* Named, because the footer has a nav too ("Footer"): two unnamed
           navigation landmarks read as the same one twice. */}
@@ -76,6 +77,9 @@ export default function MarketingNav({
           </Link>
         </div>
       </nav>
+      {/* Up to 720px the nav above is hidden and this burger takes its place:
+          the same links and both buttons, in a full-width menu. */}
+      <MarketingMenu current={current} trialHref={TRIAL_HREF} trialLabel={TRIAL_CTA} />
     </header>
   );
 }

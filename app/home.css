@@ -46,7 +46,14 @@
   position: sticky;
   top: 0;
   z-index: 30;
-  background: var(--glass);
+  /*
+    The page's own ground, slightly see-through, not --glass. --glass is a
+    surface a step lighter than the page in dark, so the bar read as a slab
+    in a box of its own (Jordan, 21 Nov 2026: "the background colour should
+    almost blend in"). The blur still stops content sliding under it as a
+    jumble.
+  */
+  background: color-mix(in srgb, var(--app-bg) 88%, transparent);
   backdrop-filter: blur(12px);
   display: flex;
   align-items: center;
@@ -74,9 +81,8 @@
   stop matching the moment either label or the font size changed. 44px tall,
   the product's tap size (--tap-min); they were 38.
 
-  Below 480px the equal pair no longer fits beside the logo (two 124px
-  buttons on a 358px row), so there they fall back to their own widths, at
-  the same height.
+  On a phone they are not in the bar at all: they sit at the bottom of the
+  menu (MarketingMenu.tsx), full width.
 */
 .home-nav-actions {
   display: grid;
@@ -88,20 +94,100 @@
   height: var(--tap-min, 44px);
 }
 
-@media (max-width: 479px) {
-  .home-nav-actions {
-    display: flex;
-    gap: 8px;
+/* ── the phone menu (components/marketing/MarketingMenu.tsx) ─────── */
+
+/*
+  Jordan, 21 Nov 2026: "how are people supposed to get to the other pages on
+  mobile? there needs to be a burger menu, and move the buttons that are on
+  the nav bar into there at the bottom, make it take 100vw."
+
+  Up to 720px — the width where the bar's links already hid — the bar is the
+  logo and a burger. The menu is the full viewport width and height, opened
+  under the sticky bar (which stays on top, so the burger becomes the close
+  button in the same place): Features, Pricing and Contact as large rows,
+  Sign in and Start free trial pinned to the bottom.
+*/
+.home-burger {
+  display: none;
+}
+
+.home-menu {
+  position: fixed;
+  inset: 0;
+  z-index: 29;
+  width: 100vw;
+  height: 100dvh;
+  box-sizing: border-box;
+  /* Clears the bar: 44px burger plus its 20px padding above and below. */
+  padding: 84px 16px 24px;
+  background: var(--app-bg);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.home-menu[hidden] {
+  display: none;
+}
+
+.home-menu-links {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-soft);
+}
+
+.home-menu-link {
+  display: flex;
+  align-items: center;
+  min-height: 56px;
+  padding: 0 4px;
+  border-bottom: 1px solid var(--border-soft);
+  color: var(--text);
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.home-menu-link[aria-current="page"] {
+  color: var(--accent-text);
+}
+
+.home-menu-actions {
+  margin-top: auto;
+  padding-top: 24px;
+  display: grid;
+  gap: 10px;
+}
+
+.home-menu-actions .home-btn {
+  width: 100%;
+  height: 48px;
+}
+
+@media (max-width: 720px) {
+  .home-burger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--tap-min, 44px);
+    height: var(--tap-min, 44px);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+  }
+
+  /* The bar's whole nav moves into the menu: links and both buttons. Hidden
+     as one, so a phone does not carry an empty "Main" landmark. */
+  .home-nav-links {
+    display: none;
   }
 }
 
-/*
-  Under 400px the logo's "Postbox" text goes and the mark stays. With both
-  buttons the row was 365px on a 320px screen and the whole page scrolled
-  sideways (1.4.10). The link keeps its accessible name, "Postbox home".
-*/
-@media (max-width: 399px) {
-  .home-nav-wordmark {
+@media (min-width: 721px) {
+  /* A menu left open when the window widens is closed by the component; this
+     makes sure it can never cover the desktop page in the meantime. */
+  .home-menu {
     display: none;
   }
 }
@@ -207,26 +293,34 @@
 }
 
 
+/*
+  In dark, the hero almost blends into the page (Jordan, 21 Nov 2026: "the
+  background colour should almost blend in"): a ground a shade off the page
+  and a faint edge, instead of a lighter panel. In light the band stays the
+  dark --brand-panel — its ink is fixed light, and a light band would need
+  every colour inside it re-chosen.
+
+  Both spellings of "dark": the public pages carry no data-theme and follow
+  the system; a page that sets one (the harness) uses the attribute.
+*/
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .home-hero {
+    background: color-mix(in srgb, var(--brand-panel) 40%, var(--app-bg));
+    border: 1px solid var(--border-soft);
+  }
+}
+
+:root[data-theme="dark"] .home-hero {
+  background: color-mix(in srgb, var(--brand-panel) 40%, var(--app-bg));
+  border: 1px solid var(--border-soft);
+}
+
 .home-hero-inner {
   position: relative;
   z-index: 1;
   max-width: 720px;
 }
 
-.home-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.8125rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--brand-panel-pill-fg);
-  background: var(--brand-panel-pill-bg);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 6px 14px;
-  border-radius: 999px;
-  margin: 0 0 22px;
-}
 
 .home-h1 {
   font-size: clamp(2.375rem, 6.4vw, 4rem);

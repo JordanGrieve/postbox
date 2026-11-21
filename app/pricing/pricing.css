@@ -160,10 +160,12 @@
  *
  * One column, so the questions read as a list somebody scans for their own.
  */
+/* Full column width, like the plan cards above it (Jordan, 21 Nov 2026: it
+   should "take up the same width as the other elements"). The ANSWERS keep
+   their reading width (.prc-faq-a, 68ch); only the rows and rules span. */
 .prc-faq {
   display: flex;
   flex-direction: column;
-  max-width: 760px;
   border-top: 1px solid var(--border-soft);
 }
 
