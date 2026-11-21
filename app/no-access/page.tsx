@@ -72,7 +72,8 @@ export default async function NoAccessPage({
               <p className="pbx-text" role="status">
                 We&rsquo;ve got your request for <b>{request.businessName}</b>,
                 sent {formatDate(request.createdAt)}. We&rsquo;ll email{" "}
-                <b>{request.email}</b> when your inbox is ready.
+                <b>{request.email}</b> when your inbox is ready, usually within
+                a day.
               </p>
             </>
           ) : request?.status === "declined" ? (
@@ -86,12 +87,13 @@ export default async function NoAccessPage({
             </>
           ) : (
             <>
-              <h1 className="pbx-title">Postbox is invite-only</h1>
+              <h1 className="pbx-title">One more step</h1>
               <p className="pbx-text">
-                You&rsquo;re signed in as <b>{viewer.email || "an unverified address"}</b>,
-                but there&rsquo;s no workspace linked to that email. If you were
-                invited, sign in with the email the invitation went to. Or ask
-                us for access below.
+                You&rsquo;re signed in as <b>{viewer.email || "an unverified address"}</b>.
+                We set up each business by hand, so tell us yours and
+                we&rsquo;ll email you when your inbox is ready, usually within a
+                day. If you were invited instead, sign in with the email the
+                invitation went to.
               </p>
 
               {error && (

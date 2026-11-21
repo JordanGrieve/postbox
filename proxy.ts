@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
 
 /**
  * Auth boundary (Next.js "proxy" convention — formerly middleware).
@@ -73,6 +74,20 @@ const isPublicRoute = createRouteMatcher([
 
 export default clerkMiddleware(
   async (auth, req) => {
+    /*
+      A signed-in visitor to the homepage goes to their inbox.
+
+      This lived in app/page.tsx as `await auth()`, which made the homepage —
+      the busiest page on the site — render on every request with no-store:
+      never cached, a slower first byte, no back/forward cache (measured on
+      the live site, 21 Nov 2026). Deciding here, before the page, lets the
+      page itself be prerendered and served from the CDN.
+    */
+    if (req.nextUrl.pathname === "/") {
+      const { userId } = await auth();
+      if (userId) return NextResponse.redirect(new URL("/inbox", req.url));
+      return;
+    }
     if (!isPublicRoute(req)) {
       await auth.protect();
     }

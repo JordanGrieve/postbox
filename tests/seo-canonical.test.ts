@@ -56,7 +56,10 @@ function publicPages(): { route: string; file: string; source: string }[] {
   return found;
 }
 
-const declaresCanonical = (s: string) => /alternates:\s*\{[^}]*canonical/.test(s);
+// Either spelled out, or through lib/page-metadata.ts, whose `path` becomes the
+// canonical (21 Nov 2026).
+const declaresCanonical = (s: string) =>
+  /alternates:\s*\{[^}]*canonical/.test(s) || /pageMetadata\(\{\s*path:\s*"\//.test(s);
 const declaresNoindex = (s: string) =>
   /robots:\s*\{[^}]*index:\s*false/.test(s);
 
@@ -69,18 +72,20 @@ describe("canonical URLs", () => {
     expect(pages.map((p) => p.route)).toContain("/pricing");
   });
 
-  it("the root layout declares a canonical, which is what makes this matter", () => {
+  /*
+    From 21 Nov 2026 the root layout declares NO canonical. Pages that
+    declared none still inherited "/" from it — /sign-in and /sign-up told
+    crawlers they were the homepage while saying noindex (found on the live
+    site). Every page now names its own, the homepage included.
+  */
+  it("the root layout declares no canonical for pages to inherit", () => {
     const layout = readFileSync(join(ROOT, "app/layout.tsx"), "utf8");
-    expect(declaresCanonical(layout)).toBe(true);
-    // metadataBase is what lets a relative canonical resolve at all.
+    expect(declaresCanonical(layout)).toBe(false);
+    // metadataBase is what lets each page's relative canonical resolve at all.
     expect(layout).toContain("metadataBase");
   });
 
   for (const page of publicPages()) {
-    // The homepage IS the URL the root layout's canonical names, so it is the
-    // one page that may correctly inherit it.
-    if (page.route === "/") continue;
-
     it(`${page.route} declares its own canonical or is noindex`, () => {
       const ok = declaresCanonical(page.source) || declaresNoindex(page.source);
       expect(

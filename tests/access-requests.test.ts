@@ -83,13 +83,21 @@ vi.mock("@/lib/data", () => ({
   setSignupConfirmation: vi.fn(),
 }));
 
-const { inviteMock } = vi.hoisted(() => ({ inviteMock: vi.fn() }));
-vi.mock("@/lib/email", () => ({ sendInviteEmail: inviteMock }));
+const { inviteMock, alertMock, listAdminsMock } = vi.hoisted(() => ({
+  inviteMock: vi.fn(),
+  alertMock: vi.fn(),
+  listAdminsMock: vi.fn(),
+}));
+vi.mock("@/lib/email", () => ({
+  sendInviteEmail: inviteMock,
+  sendAccessRequestAlert: alertMock,
+}));
 vi.mock("@/lib/admin", () => ({
   addAdmin: vi.fn(),
   findAdminByEmail: vi.fn(),
   getAdminById: vi.fn(),
   removeAdmin: vi.fn(),
+  listAdmins: listAdminsMock,
 }));
 vi.mock("@/lib/impersonation", () => ({
   ADMIN_IMP_COOKIE: "pb_admin_imp",
@@ -168,6 +176,8 @@ beforeEach(() => {
   });
   agentByEmailMock.mockResolvedValue(null);
   inviteMock.mockResolvedValue({ sent: true });
+  alertMock.mockResolvedValue({ sent: true });
+  listAdminsMock.mockResolvedValue([admin]);
 });
 
 describe("readAccessRequestFields", () => {
@@ -229,6 +239,33 @@ describe("Send request", () => {
     } satisfies Viewer);
     expect(await landing(requestAccessAction(form({ businessName: "Bakery" })))).toBe("/admin");
     expect(store.createAccessRequest).not.toHaveBeenCalled();
+  });
+
+  it("emails the operators about a new request, with the requester as Reply-To", async () => {
+    await landing(requestAccessAction(form({ businessName: "Open Door Bakery", message: "Hi" })));
+    expect(alertMock).toHaveBeenCalledTimes(1);
+    expect(alertMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        to: ["operator@postbox.help"],
+        requesterEmail: "owner@opendoorbakery.co.uk",
+        businessName: "Open Door Bakery",
+        message: "Hi",
+      }),
+    );
+    expect(alertMock.mock.calls[0]![0].consoleUrl).toMatch(/\/admin\?section=requests$/);
+  });
+
+  it("does not email again for a request that was already waiting", async () => {
+    store.createAccessRequest.mockResolvedValue(false);
+    await landing(requestAccessAction(form({ businessName: "Open Door Bakery" })));
+    expect(alertMock).not.toHaveBeenCalled();
+  });
+
+  it("still files the request when the alert cannot be sent", async () => {
+    alertMock.mockRejectedValue(new Error("provider down"));
+    const to = await landing(requestAccessAction(form({ businessName: "Open Door Bakery" })));
+    expect(to).toBe("/no-access");
+    expect(store.createAccessRequest).toHaveBeenCalled();
   });
 
   it("refuses a missing business name", async () => {

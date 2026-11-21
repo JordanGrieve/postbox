@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/page-metadata";
+import { OPERATOR_LOCATION, OPERATOR_TRADING_AS, PUBLIC_CONTACT_EMAIL } from "@/lib/config";
 
-// canonical and openGraph.url are inherited from the root layout when absent,
-// which had this page declaring itself a duplicate of the homepage. See the
-// note in app/pricing/page.tsx.
-export const metadata: Metadata = {
+// Its own canonical, description and share preview: see lib/page-metadata.ts.
+export const metadata: Metadata = pageMetadata({
+  path: "/privacy",
   title: "Privacy Policy",
-  alternates: { canonical: "/privacy" },
-  openGraph: { url: "/privacy", title: "Privacy Policy", type: "website" },
-};
+  description:
+    "How Postbox handles personal data: who controls it, what we store, which providers process it, where it is hosted and how to use your rights.",
+});
 
 export default function PrivacyPage() {
   return (
@@ -16,7 +17,15 @@ export default function PrivacyPage() {
         Privacy Policy
       </h1>
       <p style={{ color: "var(--muted)", marginTop: 0 }}>
-        Last updated: 11 November 2026
+        Last updated: 21 November 2026
+      </p>
+
+      <h2 style={h2}>Who we are</h2>
+      <p>
+        Postbox is run by {OPERATOR_TRADING_AS}, a sole trader based in{" "}
+        {OPERATOR_LOCATION}. &ldquo;We&rdquo; and &ldquo;us&rdquo; in this
+        policy means Jordan Grieve. You can reach us about anything in it at{" "}
+        <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>.
       </p>
 
       <h2 style={h2}>Who is responsible for what</h2>
@@ -414,10 +423,17 @@ export default function PrivacyPage() {
       <p>
         Depending on your jurisdiction (including under UK/EU GDPR) you may
         have rights to access, correct, export, or erase personal data, and to
-        object to direct marketing at any time. To exercise them, reply to any
-        Postbox email or contact your account provider. Where we hold the data
-        as a processor we will pass the request to the client who controls it
-        and assist them in answering it.
+        object to direct marketing at any time. To exercise them, email{" "}
+        <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>.
+        Where we hold the data as a processor we will pass the request to the
+        client who controls it and assist them in answering it.
+      </p>
+      <p>
+        If you are unhappy with how we have handled your data, you can complain
+        to the Information Commissioner&rsquo;s Office, the UK regulator, at{" "}
+        <a href="https://ico.org.uk/make-a-complaint/">ico.org.uk/make-a-complaint</a>.
+        We would appreciate the chance to put it right first, so please tell us
+        too.
       </p>
       <p>
         On export, specifically: clients can download their workspace data as a

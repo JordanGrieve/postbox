@@ -75,10 +75,11 @@ describe("the contact page stays honest when the key is missing", () => {
     expect(contact).toMatch(/isn&rsquo;t connected yet/);
   });
 
-  it("is rendered per request, so setting the key needs no rebuild", () => {
-    // Statically prerendered, this would bake in whatever the key was at BUILD
-    // time — so somebody could set it, see no change, and have nothing to
-    // explain why.
-    expect(contact).toContain('export const dynamic = "force-dynamic"');
+  it("is prerendered, because rendering per request bought nothing in production", () => {
+    // It was force-dynamic so a key set without rebuilding would show. On
+    // Vercel no code sees a changed variable until a redeploy anyway, and
+    // `next dev` renders per request regardless; meanwhile the live page was
+    // uncacheable (no-store). Reversed 21 Nov 2026.
+    expect(contact).not.toContain('export const dynamic = "force-dynamic"');
   });
 });

@@ -29,6 +29,9 @@ vi.mock("@/db", () => ({
 vi.mock("@/lib/config", () => ({
   EMAIL_FROM_ADDRESS: "replies@postbox.test",
   INBOUND_DOMAIN: "inbound.test",
+  // Read by lib/inbound-address.ts (hello@ goes to Postbox's own workspace).
+  PUBLIC_CONTACT_LOCAL_PART: "hello",
+  POSTBOX_CONTACT_KEY: null,
 }));
 vi.mock("@/lib/svix", () => ({ verifySvixSignature: vi.fn(() => false) }));
 vi.mock("@/lib/rate-limit-store", () => ({ rateLimitDurable: vi.fn() }));

@@ -129,7 +129,7 @@ const SHEETS = [
   "app/no-access/no-access.css",
   "components/marketing/feature-bento.css",
   "components/marketing/product-shot.css",
-  "components/marketing/theme-row.css",
+  "components/marketing/marketing-footer.css",
 ];
 
 /*

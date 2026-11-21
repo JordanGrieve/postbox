@@ -1,29 +1,31 @@
 import Link from "next/link";
 import MarketingNav from "@/components/marketing/MarketingNav";
+import MarketingFooter from "@/components/marketing/MarketingFooter";
+import JsonLd from "@/components/marketing/JsonLd";
 import type { Metadata } from "next";
-import { OPEN_SIGNUP } from "@/lib/config";
+import { OPERATOR_LOCATION, OPERATOR_NAME, PUBLIC_CONTACT_EMAIL } from "@/lib/config";
 import { PLANS, TRIAL_DAYS, TRIAL_LIMITS, formatPrice } from "@/lib/pricing";
+import { pageMetadata } from "@/lib/page-metadata";
+import { faqJsonLd, softwareJsonLd } from "@/lib/structured-data";
+import { TRIAL_CTA, TRIAL_HREF, TRIAL_NOTE } from "@/lib/marketing-copy";
 import "../home.css";
 import "./pricing.css";
 
-export const metadata: Metadata = {
-  title: "Pricing",
-  description:
-    "What Postbox costs: a shared support inbox and confirmed opt-in newsletters for small businesses.",
-  /*
-    ── EVERY INDEXABLE PAGE MUST DECLARE ITS OWN ──
-    `alternates.canonical` and `openGraph.url` are INHERITED from the root
-    layout when a page does not set them, and inheriting a canonical is not a
-    harmless default: it made this page tell Google it was a duplicate of the
-    homepage and should be dropped from the index. Worse than having no
-    canonical at all, and invisible on the page itself.
-
-    Guarded by tests/seo-canonical.test.ts so the next public page cannot be
-    added without one.
-  */
-  alternates: { canonical: "/pricing" },
-  openGraph: { url: "/pricing", title: "Pricing", type: "website" },
-};
+/*
+  ── EVERY INDEXABLE PAGE MUST DECLARE ITS OWN ──
+  An inherited canonical made this page tell Google it was a duplicate of the
+  homepage. tests/seo-canonical.test.ts guards it; lib/page-metadata.ts also
+  builds the full share preview, which a partial openGraph object here used
+  to wipe.
+*/
+// Prices from lib/pricing.ts, never typed here, so the snippet in search
+// results cannot disagree with the cards.
+const PRICES = PLANS.map((p) => formatPrice(p.price));
+export const metadata: Metadata = pageMetadata({
+  path: "/pricing",
+  title: `Pricing: shared inbox from ${PRICES[0]} a month`,
+  description: `${PLANS.length} plans for small businesses: ${PRICES.slice(0, -1).join(", ")} and ${PRICES.at(-1)} a month. Shared support inbox, auto-replies and confirmed opt-in newsletters. ${TRIAL_DAYS}-day free trial, no card.`,
+});
 
 /**
  * The pricing page.
@@ -35,22 +37,15 @@ export const metadata: Metadata = {
  * the enforcement disagreeing.
  *
  * ── NO CHECKOUT ON THIS PAGE ──
- * The buttons do not pretend to take money: with sign-up closed they go to
- * /contact, and with it open they start a trial. A "Buy now" that 404s costs
- * more trust than an honest "start a trial", and a checkout button that
- * silently does nothing is the single worst thing a pricing page can do.
+ * The buttons start a trial, not a payment: /sign-up, then (with sign-up
+ * closed) the request-for-access form and a hand approval. Payment happens
+ * later, in /settings/billing, once a workspace exists. See
+ * lib/marketing-copy.ts for why every button says the same thing.
  *
- * (Stripe IS wired up now — checkout, the customer portal and the webhook all
- * exist, and /settings/billing is where a signed-in workspace chooses a plan.
- * This page predates that and still routes to a conversation, which is right
- * while onboarding is one client at a time.)
- *
- * ── "GET IN TOUCH" USED TO GO TO /sign-in ──
- * Which is to say: the only call to action on the page sent a prospect, who by
- * definition has no account, to a Google sign-in wall. It was the single
- * conversion path here and it was a dead end. It now goes to /contact, which
- * is a real form posting into Postbox's own workspace through the same public
- * ingestion endpoint every client uses.
+ * ── THE BUTTONS USED TO SAY "GET IN TOUCH" ──
+ * And went to /contact (before that, to a sign-in wall). Until 21 Nov 2026
+ * there was no way to START from this page, only to write in and wait. The
+ * contact form is still linked from the band at the bottom, for questions.
  *
  * ── WHAT IS DELIBERATELY ABSENT ──
  * No annual toggle: annual pricing has not been decided, and a toggle that
@@ -70,10 +65,10 @@ export default function PricingPage() {
             One price, everything included at that size
           </h1>
           <p className="home-sub prc-sub">
-            {OPEN_SIGNUP
-              ? `Every plan starts with a ${TRIAL_DAYS}-day free trial — no card needed. Cancel whenever you like; there is no minimum term.`
-              : `Every plan starts with a ${TRIAL_DAYS}-day free trial. Postbox is onboarding businesses one at a time at the moment, so get in touch and we will set you up.`}
+            Every plan starts with a {TRIAL_DAYS}-day free trial, and there is
+            no minimum term. One flat price per workspace, not per person.
           </p>
+          <p className="home-sub prc-sub prc-note">{TRIAL_NOTE}</p>
         </section>
 
         <section className="home-wrap">
@@ -99,9 +94,12 @@ export default function PricingPage() {
                       ? "home-btn home-btn--primary prc-cta"
                       : "home-btn home-btn--quiet prc-cta"
                   }
-                  href={OPEN_SIGNUP ? "/sign-up" : "/contact"}
+                  href={TRIAL_HREF}
+                  // Three identical "Start free trial" buttons are three links
+                  // with the same name to a screen reader; the plan says which.
+                  aria-label={`${TRIAL_CTA} on ${plan.name}`}
                 >
-                  {OPEN_SIGNUP ? "Start free trial" : "Get in touch"}
+                  {TRIAL_CTA}
                 </Link>
 
                 <ul className="prc-features">
@@ -185,27 +183,22 @@ export default function PricingPage() {
                 The trial gives you {TRIAL_LIMITS.tickets} conversations and{" "}
                 {TRIAL_LIMITS.subscribers} subscribers over {TRIAL_DAYS} days,
                 which is enough to connect your form and see it working with
-                real customers.
+                real customers. Questions first?{" "}
+                <Link href="/contact">Get in touch</Link>.
               </p>
             </div>
-            <Link
-              className="home-btn home-btn--primary"
-              href={OPEN_SIGNUP ? "/sign-up" : "/contact"}
-            >
-              {OPEN_SIGNUP ? "Start free trial" : "Get in touch"}
+            <Link className="home-btn home-btn--primary" href={TRIAL_HREF}>
+              {TRIAL_CTA}
             </Link>
           </div>
         </section>
       </main>
 
-      <footer className="home-footer">
-        <span>© 2026 Postbox · postbox.help</span>
-        <span className="home-footer-links">
-          <Link href="/">Home</Link>
-          <Link href="/terms">Terms</Link>
-          <Link href="/privacy">Privacy</Link>
-        </span>
-      </footer>
+      <MarketingFooter />
+      {/* What the page says, for search engines: the product with its three
+          prices, and the questions above. Built from the same constants. */}
+      <JsonLd data={softwareJsonLd()} />
+      <JsonLd data={faqJsonLd(FAQ)} />
     </div>
   );
 }
@@ -233,7 +226,18 @@ const FAQ = [
     a: "No. The trial does not ask for one.",
   },
   {
-    q: "Can I send a newsletter to a list I already have?",
-    a: "Not by importing it. Everyone on a Postbox list has confirmed their own address by clicking a link we email them. That is the whole basis on which we are allowed to send, and it is why what you send actually arrives.",
+    q: "Can I bring the mailing list I already have?",
+    /*
+      Rewritten 21 Nov 2026. It used to stop at "Not by importing it", which
+      is true and loses the sale: anybody moving from another tool has a
+      list. The path below works today with nothing new built — the signup
+      form and its hosted page exist — and every address it brings over
+      arrives with its own consent record.
+    */
+    a: "Yes, by inviting them rather than importing them. Send your current list one last email from your old tool with a link to your Postbox signup page. Everyone who clicks and confirms joins your new list, with a record that they asked to — which is also why your newsletters land in inboxes rather than spam. Addresses are never imported, because nobody on a Postbox list can be there without having said yes.",
+  },
+  {
+    q: "Who is behind Postbox?",
+    a: `Postbox is run by ${OPERATOR_NAME} in ${OPERATOR_LOCATION}, and every business is set up personally. The app and its database are hosted in London. Questions go straight to ${OPERATOR_NAME} at ${PUBLIC_CONTACT_EMAIL}.`,
   },
 ];

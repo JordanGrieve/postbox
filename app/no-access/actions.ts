@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { resolveViewer } from "@/lib/viewer";
 import { createAccessRequest, readAccessRequestFields } from "@/lib/access-requests";
+import { listAdmins } from "@/lib/admin";
+import { sendAccessRequestAlert } from "@/lib/email";
+import { APP_URL, EMAIL_FROM_ADDRESS } from "@/lib/config";
 
 /**
  * "Send request" on /no-access: ask Postbox for a workspace.
@@ -36,12 +39,32 @@ export async function requestAccessAction(formData: FormData): Promise<void> {
   }
 
   // False means a request is already waiting; the page shows it either way.
-  await createAccessRequest({
+  const created = await createAccessRequest({
     clerkUserId: userId,
     email: viewer.email,
     businessName: fields.businessName,
     message: fields.message,
   });
+
+  // Tell the operators, so a request is seen the same day rather than when
+  // somebody next opens the console. Only for a new request (a reload must not
+  // send a second alert), and best effort: the request is saved either way,
+  // and a mail outage must not turn "Send request" into an error page.
+  if (created) {
+    try {
+      const admins = await listAdmins();
+      await sendAccessRequestAlert({
+        to: admins.map((a) => a.email),
+        from: EMAIL_FROM_ADDRESS,
+        requesterEmail: viewer.email,
+        businessName: fields.businessName,
+        message: fields.message,
+        consoleUrl: `${APP_URL}/admin?section=requests`,
+      });
+    } catch (err) {
+      console.error("[access-requests] could not alert the operators:", err);
+    }
+  }
 
   revalidatePath("/admin");
   redirect("/no-access");

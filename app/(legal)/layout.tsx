@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PostboxLockup } from "@/components/Logo";
+import MarketingFooter from "@/components/marketing/MarketingFooter";
 
 /** Shared chrome for the public legal pages. */
 export default function LegalLayout({
@@ -80,6 +81,8 @@ export default function LegalLayout({
         `}</style>
         {children}
       </main>
+      {/* Who runs Postbox and how to reach them, as on every public page. */}
+      <MarketingFooter />
     </div>
   );
 }

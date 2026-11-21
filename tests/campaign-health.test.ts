@@ -37,7 +37,7 @@ function input(over: Partial<CampaignHealthInput> = {}): CampaignHealthInput {
   return {
     status: "sending" as CampaignStatus,
     recipients: { ...NOBODY, queued: 10 },
-    postalAddress: "18 Avonbank Crescent, Hamilton, ML3 7PD",
+    postalAddress: "1 Example Street, Anytown",
     emailAllowance: { remaining: 5_000, allowance: 15_000 },
     env: HEALTHY_ENV,
     ...over,

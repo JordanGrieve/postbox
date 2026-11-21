@@ -1,35 +1,28 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import MarketingNav from "@/components/marketing/MarketingNav";
-import { POSTBOX_CONTACT_KEY } from "@/lib/config";
+import MarketingFooter from "@/components/marketing/MarketingFooter";
+import { POSTBOX_CONTACT_KEY, PUBLIC_CONTACT_EMAIL } from "@/lib/config";
 import { HONEYPOT_FIELDS } from "@/lib/subscribe";
+import { pageMetadata } from "@/lib/page-metadata";
 import "../home.css";
 import "./contact.css";
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
+  path: "/contact",
   title: "Contact",
   description:
-    "Get in touch with Postbox about a shared support inbox and confirmed opt-in newsletters for your business.",
-  alternates: { canonical: "/contact" },
-  openGraph: { url: "/contact", title: "Contact", type: "website" },
-};
+    "Talk to the person who runs Postbox about a shared support inbox and newsletters for your business. Email hello@postbox.help or use the form.",
+});
 
-/**
- * Rendered per request rather than prerendered.
- *
- * This page has no dynamic data, so Next statically prerenders it by default —
- * which BAKES IN whatever POSTBOX_CONTACT_KEY was at BUILD time. Found the
- * honest way: the variable was set locally, the server restarted with it
- * present, and the page still showed "not connected yet".
- *
- * On Vercel the variable is available during the build, so the static version
- * would usually be correct. What this removes is the confusing failure:
- * somebody sets the key, does not rebuild, and the page silently keeps saying
- * it is not configured with nothing to explain why. The whole point of this
- * page is that it works once the key is set, so it reads the key when somebody
- * asks for the page. It is a form and a paragraph; nothing here is worth
- * caching.
- */
-export const dynamic = "force-dynamic";
+/*
+  Prerendered, from 21 Nov 2026. It was force-dynamic so that setting
+  POSTBOX_CONTACT_KEY without rebuilding would still show the form. That only
+  ever helped locally: `next dev` renders per request anyway, and on Vercel a
+  changed environment variable needs a redeploy before ANY code sees it. In
+  production force-dynamic bought nothing and made the page uncacheable,
+  rendered on every visit (no-store, measured on the live site).
+*/
 
 /**
  * How anybody reaches Postbox.
@@ -68,9 +61,14 @@ export default function ContactPage() {
         <div className="ct-col">
           <h1 className="ct-title">Get in touch</h1>
           <p className="ct-lede">
-            Postbox is onboarding businesses one at a time. Tell us what you
-            answer email about and we&rsquo;ll reply properly &mdash; there is a
-            person on the other end of this, not a queue.
+            Questions about Postbox, or whether it suits your business? Write
+            here or email{" "}
+            <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>.
+            Jordan, who runs Postbox, reads and answers every message.
+          </p>
+          <p className="ct-lede">
+            Ready to try it? <Link href="/sign-up">Start a free trial</Link>{" "}
+            &mdash; no card needed.
           </p>
 
           {POSTBOX_CONTACT_KEY ? (
@@ -172,6 +170,7 @@ export default function ContactPage() {
           )}
         </div>
       </main>
+      <MarketingFooter />
     </div>
   );
 }

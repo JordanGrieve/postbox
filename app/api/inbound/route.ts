@@ -2,8 +2,8 @@ import { json } from "@/lib/http";
 import { verifySvixSignature } from "@/lib/svix";
 import { tokensEqual } from "@/lib/tokens";
 import { rateLimitDurable } from "@/lib/rate-limit-store";
+import { workspaceForInboundAddress } from "@/lib/inbound-address";
 import {
-  getWorkspaceByInboundEmail,
   getWorkspaceById,
   getTicket,
   createTicket,
@@ -179,7 +179,9 @@ export async function POST(req: Request) {
   let duplicate = false;
   let firstSource: string | null = null;
   for (const addr of recipients) {
-    const workspace = await getWorkspaceByInboundEmail(addr);
+    // A workspace's own address, or hello@ for Postbox's own workspace
+    // (lib/inbound-address.ts).
+    const workspace = await workspaceForInboundAddress(addr);
     if (workspace && !seen.has(workspace.id)) {
       seen.add(workspace.id);
       if (messageId && (await messageIdExists(messageId, workspace.id))) {

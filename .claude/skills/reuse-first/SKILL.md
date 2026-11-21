@@ -45,6 +45,11 @@ how the send path and the sweep path drift apart.
 | Show an audit timestamp | `formatDateTime` / `formatDate` / `formatDuration` in `lib/utc-time.ts` (absolute, UTC) | `lib/serialize.ts`'s `formatDateTime`, which is the RELATIVE local "Today, 9:24 AM" for threads — same name, different question |
 | Signed-token encode/decode | `b64url` / `fromB64url` / `signBody` / `verifySignedBody` in `lib/signed-token.ts` (shared by `lib/subscribe.ts` and `lib/welcome.ts` since 21 Nov 2026) | copying `b64url`/`sign` again |
 | Standalone HTML a customer sees | `lib/form-response-pages.ts` | inline HTML in a `route.ts` |
+| Metadata for a public page (title, description, canonical, full share preview) | `pageMetadata` in `lib/page-metadata.ts` | a partial `openGraph` object — it replaces the root's whole one and drops the image |
+| Structured data (JSON-LD) | `JsonLd` in `components/marketing/JsonLd.tsx` with builders in `lib/structured-data.ts` | another `dangerouslySetInnerHTML`; `JsonLd` is the one place it is escaped |
+| The public site's call to action | `TRIAL_CTA` / `TRIAL_HREF` / `TRIAL_NOTE` in `lib/marketing-copy.ts` | a per-page button reading `OPEN_SIGNUP` |
+| Public footer (who runs Postbox, contact) | `components/marketing/MarketingFooter.tsx`; the facts are `OPERATOR_*` and `PUBLIC_CONTACT_EMAIL` in `lib/config.ts` | a footer per page |
+| Which workspace an inbound address belongs to | `workspaceForInboundAddress` in `lib/inbound-address.ts` (routes hello@ to Postbox's own workspace) | calling `getWorkspaceByInboundEmail` directly from a route |
 
 ## If a near-match exists
 

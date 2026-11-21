@@ -1,0 +1,61 @@
+/*
+  The public footer (MarketingFooter.tsx). Tokens and rem only.
+
+  --muted, not --muted-2: this is the one place on the site that says who runs
+  it and how to reach them, and it is read, not glanced at.
+*/
+
+.mkt-footer {
+  border-top: 1px solid var(--border-soft);
+  margin: 12px auto 0;
+  max-width: 1080px;
+  width: 100%;
+  padding: 22px 24px 28px;
+  box-sizing: border-box;
+  color: var(--muted);
+  font-size: 0.8125rem;
+  line-height: 1.6;
+}
+
+.mkt-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px 24px;
+}
+
+.mkt-footer-line {
+  margin: 0;
+}
+
+.mkt-footer a {
+  color: var(--text-2);
+}
+
+.mkt-footer a:hover {
+  color: var(--text);
+}
+
+/* The email is a link on its own line, not in a sentence, so it is a target
+   (2.5.5): 44px tall, with the row kept visually where it was. */
+.mkt-footer-who a,
+.mkt-footer-links a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min, 44px);
+  padding-inline: 6px;
+  margin-inline: -6px;
+  border-radius: 8px;
+}
+
+.mkt-footer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 18px;
+}
+
+.mkt-footer-copy {
+  margin: 8px 0 0;
+  color: var(--muted);
+}

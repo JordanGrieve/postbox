@@ -123,7 +123,14 @@ export default function ProductShot({
   className?: string;
 }) {
   return (
-    <div className={`pshot-frame ${className}`.trim()} data-focus={focus}>
+    <div
+      className={`pshot-frame ${className}`.trim()}
+      data-focus={focus}
+      // The invented inbox appears three times on the homepage, and its
+      // made-up customer messages were a third of the page's words to a
+      // search engine. data-nosnippet keeps them out of search results.
+      data-nosnippet=""
+    >
       {/*
         A window bar rather than full browser chrome with a fake URL. A drawn
         address bar invites the reader to check whether the URL is real, and
@@ -176,7 +183,9 @@ export default function ProductShot({
                   Don&rsquo;t want these emails?{" "}
                   <span className="pshot-email-link">Unsubscribe</span>.
                 </p>
-                <p>Open Door Bakery, 18 Avonbank Crescent, Hamilton, ML3 7PD</p>
+                {/* Obviously invented (21 Nov 2026). The old street,
+                    town and postcode read as a real address. */}
+                <p>Open Door Bakery, 1 Example Street, Anytown</p>
               </div>
             </div>
           </div>

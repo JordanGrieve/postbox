@@ -80,6 +80,23 @@ export const INBOUND_DOMAIN = orDefault(
 export const EMAIL_FROM_ADDRESS =
   process.env.EMAIL_FROM_ADDRESS || "replies@postbox.help";
 
+/**
+ * The address Postbox gives out publicly: the footer of every marketing page,
+ * the privacy policy (UK GDPR asks for the controller's contact details) and
+ * the terms. Jordan's choice, 21 Nov 2026.
+ *
+ * Mail to it is filed as a ticket in Postbox's OWN workspace, the one
+ * POSTBOX_CONTACT_KEY names — see lib/inbound-address.ts. Without that, it
+ * reached the inbound webhook, matched no workspace, and was dropped.
+ */
+export const PUBLIC_CONTACT_LOCAL_PART = "hello";
+export const PUBLIC_CONTACT_EMAIL = `${PUBLIC_CONTACT_LOCAL_PART}@postbox.help`;
+
+/** Who runs Postbox, as the site and the privacy policy state it (Jordan, 21 Nov 2026). */
+export const OPERATOR_NAME = "Jordan Grieve";
+export const OPERATOR_TRADING_AS = "Jordan Grieve, trading as Postbox";
+export const OPERATOR_LOCATION = "Hamilton, Scotland";
+
 // Self-serve sign-up. False (default) = invite-only: signing in without an
 // admin-created invite (or existing workspace) shows /no-access instead of
 // auto-provisioning a workspace. Strangers must never get a workspace — it

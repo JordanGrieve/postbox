@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
+import { pageMetadata } from "@/lib/page-metadata";
+import { OPERATOR_TRADING_AS, PUBLIC_CONTACT_EMAIL } from "@/lib/config";
 
-// See the note in app/pricing/page.tsx — an inherited canonical made this page
-// claim to be a duplicate of the homepage.
-export const metadata: Metadata = {
+// Its own canonical, description and share preview: see lib/page-metadata.ts.
+export const metadata: Metadata = pageMetadata({
+  path: "/terms",
   title: "Terms of Service",
-  alternates: { canonical: "/terms" },
-  openGraph: { url: "/terms", title: "Terms of Service", type: "website" },
-};
+  description:
+    "The terms for using Postbox, the shared support inbox and newsletter service for small businesses.",
+});
 
 export default function TermsPage() {
   return (
@@ -15,7 +17,7 @@ export default function TermsPage() {
         Terms of Service
       </h1>
       <p style={{ color: "var(--muted)", marginTop: 0 }}>
-        Last updated: 11 November 2026
+        Last updated: 21 November 2026
       </p>
 
       <h2 style={h2}>1. The service</h2>
@@ -23,8 +25,8 @@ export default function TermsPage() {
         Postbox (&ldquo;the service&rdquo;, postbox.help) is a hosted support
         inbox: it receives messages from your website&rsquo;s contact form and
         forwarded email, stores them as tickets, and sends your replies as
-        email on your behalf. The service is currently provided on an
-        invite-only basis.
+        email on your behalf. New businesses are approved individually before
+        a workspace is created for them.
       </p>
       <p>
         Postbox is also a mailing-list product. It hosts a signup form for your
@@ -185,8 +187,9 @@ export default function TermsPage() {
 
       <h2 style={h2}>9. Contact</h2>
       <p>
-        Questions about these terms: reply to any Postbox email, or contact
-        your account provider.
+        Postbox is provided by {OPERATOR_TRADING_AS}. Questions about these
+        terms: email{" "}
+        <a href={`mailto:${PUBLIC_CONTACT_EMAIL}`}>{PUBLIC_CONTACT_EMAIL}</a>.
       </p>
     </article>
   );

@@ -203,6 +203,58 @@ ${input.ticketUrl}
   return { sent: true, id: data?.id };
 }
 
+/**
+ * Tell Postbox's operators that somebody asked for access (/no-access, 21 Nov
+ * 2026). Without it a request waits until somebody happens to open the
+ * console, and the requester has been told they will hear back.
+ *
+ * Plain text, to the operators only. The note is the requester's own words
+ * and goes in as text; Reply-To is the requester, so answering the email
+ * reaches them.
+ */
+export async function sendAccessRequestAlert(input: {
+  to: string[];
+  from: string;
+  requesterEmail: string;
+  businessName: string;
+  message: string | null;
+  consoleUrl: string;
+}): Promise<SendResult> {
+  if (!hasKey() || input.to.length === 0) {
+    return { sent: false, error: "Email sending is not configured." };
+  }
+
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const { data, error } = await resend.emails.send({
+    from: `Postbox <${input.from}>`,
+    to: input.to,
+    replyTo: input.requesterEmail,
+    subject: `Access request: ${input.businessName}`,
+    text: `${input.requesterEmail} asked for a Postbox workspace for ${input.businessName}.
+${input.message ? `\nTheir note:\n${input.message}\n` : ""}
+Approve or decline it here:
+${input.consoleUrl}
+
+Replying to this email reaches them.
+
+— Postbox`,
+  });
+
+  if (error) {
+    if (isProviderRateLimit(error)) {
+      console.error(
+        "[email] access-request alert REFUSED BY THE PROVIDER'S RATE LIMIT — every tenant's transactional mail is affected:",
+        error,
+      );
+    } else {
+      console.error("[email] access-request alert failed:", error);
+    }
+    return { sent: false, error: error.message };
+  }
+  for (let i = 0; i < input.to.length; i += 1) await recordTransactionalSend();
+  return { sent: true, id: data?.id };
+}
+
 
 /**
  * Branded HTML version of the invite (inline styles only — email clients).

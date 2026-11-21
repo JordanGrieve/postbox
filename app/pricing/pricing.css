@@ -21,6 +21,13 @@
   margin-right: auto;
 }
 
+/* What happens after "Start free trial" (lib/marketing-copy.ts): under the
+   promise, smaller, closer to it than the cards are. */
+.prc-sub.prc-note {
+  font-size: 0.875rem;
+  margin-top: -20px;
+}
+
 .prc-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(270px, 1fr));

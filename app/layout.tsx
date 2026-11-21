@@ -15,9 +15,15 @@ const splineMono = Spline_Sans_Mono({
   weight: ["400", "500"],
 });
 
-const TITLE = "Postbox — support tickets that feel like an inbox";
+/*
+  Defaults for pages that declare nothing. Every public page declares its own
+  through lib/page-metadata.ts; these mostly reach signed-in screens, which
+  are not indexed. Written for search, 21 Nov 2026: the old title ("support
+  tickets that feel like an inbox") contained nothing anybody searches for.
+*/
+const TITLE = "Postbox — shared inbox and newsletters for small businesses";
 const DESCRIPTION =
-  "Turn contact-form submissions and inbound email into a clean, threaded support inbox. One workspace, one API key.";
+  "Your website's contact form and support email in one shared inbox your team answers from, with newsletters sent from the same place.";
 
 export const metadata: Metadata = {
   /*
@@ -42,17 +48,18 @@ export const metadata: Metadata = {
   description: DESCRIPTION,
   applicationName: "Postbox",
 
-  // Self-referencing canonical on the homepage. Pages that live at one URL
-  // still benefit: it collapses ?utm_source=..., trailing slashes, and the
-  // http/https and www/apex pairs into a single indexed address.
-  alternates: { canonical: "/" },
+  /*
+    No canonical here. It used to be "/", and every page that declared none
+    inherited it: /sign-in and /sign-up told crawlers they were the homepage
+    while also saying noindex. Each public page sets its own canonical
+    (lib/page-metadata.ts); the homepage's is in app/page.tsx.
+  */
 
   openGraph: {
     type: "website",
     siteName: "Postbox",
     title: TITLE,
     description: DESCRIPTION,
-    url: "/",
     locale: "en_GB",
   },
   twitter: {

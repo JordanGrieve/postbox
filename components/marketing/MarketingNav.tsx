@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { PostboxLockup } from "@/components/Logo";
+import { TRIAL_CTA, TRIAL_HREF } from "@/lib/marketing-copy";
 
 /**
  * The public site's nav bar. ONE definition, used by every marketing page.
@@ -60,6 +61,12 @@ export default function MarketingNav({
         </Link>
         <Link className="home-btn home-btn--sm home-btn--quiet" href="/sign-in">
           Sign in
+        </Link>
+        {/* The way in, on every page and at every width (21 Nov 2026). The
+            nav only offered Sign in, which is for people who already have an
+            account. */}
+        <Link className="home-btn home-btn--sm home-btn--primary" href={TRIAL_HREF}>
+          {TRIAL_CTA}
         </Link>
       </nav>
     </header>

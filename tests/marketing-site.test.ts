@@ -1,0 +1,111 @@
+import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { pageMetadata } from "../lib/page-metadata";
+import { PUBLIC_CONTACT_EMAIL, OPERATOR_TRADING_AS } from "../lib/config";
+
+/**
+ * The public site after the 21 Nov 2026 rework (landing-page critique).
+ *
+ * Read from source because the pages are server components with Clerk and
+ * Next behind them; the render harness (tests/public-views-render) proves they
+ * render, this proves they say and link what they should.
+ */
+
+const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
+
+const PAGES = {
+  home: read("app/page.tsx"),
+  pricing: read("app/pricing/page.tsx"),
+  contact: read("app/contact/page.tsx"),
+};
+const LEGAL_LAYOUT = read("app/(legal)/layout.tsx");
+const NAV = read("components/marketing/MarketingNav.tsx");
+const FOOTER = read("components/marketing/MarketingFooter.tsx");
+const PRIVACY = read("app/(legal)/privacy/page.tsx");
+const TERMS = read("app/(legal)/terms/page.tsx");
+const PROXY = read("proxy.ts");
+
+describe("there is a way in", () => {
+  it("never tells a visitor to ask a provider they do not have", () => {
+    for (const [name, src] of Object.entries(PAGES)) {
+      // Comments may quote the old wording; the rendered strings may not.
+      const code = src.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+      expect(code, name).not.toMatch(/ask your provider/i);
+    }
+  });
+
+  it("offers the trial from the nav, the homepage and every pricing card", () => {
+    expect(NAV).toContain("href={TRIAL_HREF}");
+    // Hero and the closing band.
+    expect(PAGES.home.match(/href=\{TRIAL_HREF\}/g)?.length).toBeGreaterThanOrEqual(2);
+    // One per card (rendered in the map) and the closing band.
+    expect(PAGES.pricing.match(/href=\{TRIAL_HREF\}/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(PAGES.pricing).not.toMatch(/OPEN_SIGNUP \? "\/sign-up" : "\/contact"/);
+  });
+});
+
+describe("who runs it, on every public page", () => {
+  it("the footer names the operator and the public address", () => {
+    expect(FOOTER).toContain("OPERATOR_TRADING_AS");
+    expect(FOOTER).toContain("PUBLIC_CONTACT_EMAIL");
+    expect(PUBLIC_CONTACT_EMAIL).toBe("hello@postbox.help");
+    expect(OPERATOR_TRADING_AS).toBe("Jordan Grieve, trading as Postbox");
+  });
+
+  it("every public page carries it", () => {
+    for (const [name, src] of Object.entries(PAGES)) {
+      expect(src, name).toContain("<MarketingFooter />");
+    }
+    expect(LEGAL_LAYOUT).toContain("<MarketingFooter />");
+  });
+
+  it("the privacy policy names the controller, a contact and the ICO", () => {
+    expect(PRIVACY).toContain("Who we are");
+    expect(PRIVACY).toContain("OPERATOR_TRADING_AS");
+    expect(PRIVACY).toContain("PUBLIC_CONTACT_EMAIL");
+    expect(PRIVACY).toContain("ico.org.uk");
+    expect(PRIVACY).not.toMatch(/contact your account provider/);
+    expect(TERMS).not.toMatch(/contact\s+your account provider/);
+  });
+});
+
+describe("share previews and canonicals", () => {
+  const m = pageMetadata({ path: "/pricing", title: "Pricing", description: "D" });
+
+  it("builds the whole preview, not part of one", () => {
+    expect(m.alternates?.canonical).toBe("/pricing");
+    const og = m.openGraph as { images: { url: string }[]; siteName: string; locale: string; title: string };
+    expect(og.images[0]!.url).toBe("/opengraph-image");
+    expect(og.siteName).toBe("Postbox");
+    expect(og.locale).toBe("en_GB");
+    expect(og.title).toBe("Pricing — Postbox");
+    const tw = m.twitter as { title: string; card: string; images: string[] };
+    expect(tw.title).toBe("Pricing — Postbox");
+    expect(tw.card).toBe("summary_large_image");
+    expect(tw.images).toEqual(["/opengraph-image"]);
+  });
+
+  it("is used by every public page", () => {
+    for (const [name, src] of Object.entries(PAGES)) {
+      expect(src, name).toContain("pageMetadata(");
+    }
+    expect(PRIVACY).toContain("pageMetadata(");
+    expect(TERMS).toContain("pageMetadata(");
+  });
+});
+
+describe("the homepage can be served from the CDN", () => {
+  it("does not read the session itself", () => {
+    // Its header comment explains why it no longer calls auth(); only the code counts.
+    const code = PAGES.home.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, "");
+    expect(code).not.toMatch(/\bauth\(\)/);
+    expect(code).not.toContain("@clerk/nextjs/server");
+  });
+
+  it("the proxy sends a signed-in visitor on to the inbox instead", () => {
+    const branch = PROXY.slice(PROXY.indexOf('pathname === "/"'));
+    expect(branch).toContain("await auth()");
+    expect(branch).toContain('new URL("/inbox", req.url)');
+  });
+});

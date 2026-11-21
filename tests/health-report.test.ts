@@ -187,6 +187,6 @@ describe("no customer content leaves the building", () => {
     // The SDK's dataCollection settings protect captured CONTEXT, not strings we
     // chose to put in a title. This is the source-level guard.
     expect(blob).not.toMatch(/@/); // no email addresses anywhere
-    expect(blob).not.toMatch(/Avonbank|subject|body/i);
+    expect(blob).not.toMatch(/Example Street|Anytown|subject|body/i);
   });
 });
