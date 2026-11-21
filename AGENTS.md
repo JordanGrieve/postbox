@@ -188,7 +188,7 @@ target-size failure that did not exist.
 ## The rules these harnesses were built on
 
 - **A skeleton will pass every check you have.** This is the worst one, because
-  it reports success. Every route has a `loading.tsx`, React does not commit
+  it reports success. Every route that waits has a `loading.tsx`, React does not commit
   the swap while the document is hidden, and a browser pane driven by tooling
   is ALWAYS hidden — so probes measure placeholder bars, which have no text to
   fail a contrast check and no controls to fail a target check. A full sweep of

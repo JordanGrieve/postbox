@@ -64,6 +64,48 @@
   gap: 10px;
 }
 
+/*
+  Sign in and Start free trial, as one matched pair (Jordan, 21 Nov 2026:
+  "the sign in button and start free trial buttons are different size, scale
+  the sign in up").
+
+  Two equal grid columns, so both buttons take the width of the wider label
+  whatever it says and however large the text is set; a fixed min-width would
+  stop matching the moment either label or the font size changed. 44px tall,
+  the product's tap size (--tap-min); they were 38.
+
+  Below 480px the equal pair no longer fits beside the logo (two 124px
+  buttons on a 358px row), so there they fall back to their own widths, at
+  the same height.
+*/
+.home-nav-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.home-nav-actions .home-btn {
+  height: var(--tap-min, 44px);
+}
+
+@media (max-width: 479px) {
+  .home-nav-actions {
+    display: flex;
+    gap: 8px;
+  }
+}
+
+/*
+  Under 400px the logo's "Postbox" text goes and the mark stays. With both
+  buttons the row was 365px on a 320px screen and the whole page scrolled
+  sideways (1.4.10). The link keeps its accessible name, "Postbox home".
+*/
+@media (max-width: 399px) {
+  .home-nav-wordmark {
+    display: none;
+  }
+}
+
 .home-nav-link {
   color: var(--text-4);
   font-size: 0.875rem;
@@ -337,6 +379,14 @@
   color: rgba(244, 241, 255, 0.72);
   margin: 0;
   max-width: 440px;
+}
+
+/* A link inside a sentence is underlined. The accent alone is 1.16:1 against
+   the sentence's own ink, so colour was the only thing marking it as a link
+   (1.4.1; Lighthouse link-in-text-block, 21 Nov 2026). */
+.home-sub a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
 }
 
 /* A link in the band's sentence (pricing: "Questions first? Get in touch").

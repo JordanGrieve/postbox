@@ -19,7 +19,7 @@ import OverviewRowsSkeleton, { CampaignRows } from "./OverviewRowsSkeleton";
 export default function NewslettersLoading() {
   return (
     <div className="pbm-page pb-scroll">
-      <div className="nl-overview pbk" aria-busy="true" aria-label="Loading newsletters">
+      <div className="nl-overview pbk" role="status" aria-busy="true" aria-label="Loading newsletters">
         <header className="nl-ov-head" aria-hidden>
           <div>
             <div className="nl-ov-title pbk-text" style={{ width: 140 }}>

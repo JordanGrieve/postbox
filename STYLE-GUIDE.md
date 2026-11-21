@@ -201,8 +201,14 @@ Transitions 160ms ease; sheet and drawer 220ms. Do not write your own
 
 ## 6. Adding a page
 
-1. Every route gets a `loading.tsx` skeleton (`tests/skeletons.test.tsx`
-   requires it). Skeletons use the real classes so they lay out like the page.
+1. Every route that waits gets a `loading.tsx` skeleton
+   (`tests/skeletons.test.tsx` requires it). Skeletons use the real classes
+   so they lay out like the page. The exception, from 21 Nov 2026: a
+   prerendered public page (home, pricing, contact, privacy, terms,
+   `/s/done`) has NO `loading.tsx` above it, root included. A boundary over a
+   large static page makes React send the skeleton first and the page in a
+   hidden block revealed by script, which delays the main content. A new
+   static page goes in `STATIC_ROUTES` in that test.
 2. Add it to the matching render harness (`tests/*-views-render.test.tsx`) so
    it can be rendered with no login and swept by the probes.
 3. Run it through the runner at 375 and 1280, in **both** themes, passing

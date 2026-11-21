@@ -50,7 +50,7 @@ function ThreadSkeleton() {
   return (
     <section
       className="pbm-thread pbk"
-      aria-busy="true"
+      role="status" aria-busy="true"
       aria-label="Loading conversation"
     >
       {/* 74px, fixed in mail.css — this header cannot shift. */}

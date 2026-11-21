@@ -40,7 +40,7 @@ function Facts({ rows }: { rows: number }) {
 export default function SubscriberDetailLoading() {
   return (
     <div className="pbm-page pb-scroll">
-      <div className="psb-wrap pbk" aria-busy="true" aria-label="Loading subscriber">
+      <div className="psb-wrap pbk" role="status" aria-busy="true" aria-label="Loading subscriber">
         <div className="psb-col" aria-hidden>
           <span className="psb-back pbk-text" style={{ width: 118 }}>
             &nbsp;

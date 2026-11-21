@@ -32,9 +32,13 @@ closest existing feature and mirror it. Never invent a new top-level directory.
 
 ## Rules
 
-- **Every new route gets a `loading.tsx`** skeleton beside its `page.tsx`
-  (`tests/skeletons.test.tsx` fails without it) and an entry in the matching
-  render harness (`tests/*-views-render.test.tsx`).
+- **Every new route that waits gets a `loading.tsx`** skeleton beside its
+  `page.tsx` (`tests/skeletons.test.tsx` fails without it) and an entry in the
+  matching render harness (`tests/*-views-render.test.tsx`). A prerendered
+  public page is the exception: it gets NO boundary above it and goes in
+  `STATIC_ROUTES` in that test (STYLE-GUIDE.md §6). There is no root
+  `app/loading.tsx`; the (dashboard) and (admin) layouts wait inside their own
+  Suspense with `AppGround`.
 - **Middleware is `proxy.ts` at the repo root** — Next 16 renamed the
   `middleware.ts` convention to `proxy.ts`. There is exactly one, and no
   `middleware/` folder. It does only the Clerk page gate and its public-route

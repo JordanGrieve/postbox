@@ -80,7 +80,7 @@ function CodeBlock() {
 
 export default function InstallLoading() {
   return (
-    <div className="sti-wrap pbk" aria-busy="true" aria-label="Loading install settings">
+    <div className="sti-wrap pbk" role="status" aria-busy="true" aria-label="Loading install settings">
       <div className="sti-col" aria-hidden>
         <div className="sti-title pbk-text" style={{ width: 216 }}>
           &nbsp;

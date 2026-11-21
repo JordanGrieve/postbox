@@ -10,7 +10,7 @@ import "../../../skeleton.css";
  */
 export default function AccessLogLoading() {
   return (
-    <div className="stg-wrap pbk" aria-busy="true" aria-label="Loading the access log">
+    <div className="stg-wrap pbk" role="status" aria-busy="true" aria-label="Loading the access log">
       {/* Title with "What this log covers" beside it, as the page draws it.
           A subtitle bar stood here until 21 Nov 2026; that text moved into
           the button's modal on 17 Nov. */}

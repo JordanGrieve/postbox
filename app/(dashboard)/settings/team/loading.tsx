@@ -13,7 +13,7 @@ import "../../../skeleton.css";
  */
 export default function TeamLoading() {
   return (
-    <div className="stg-wrap pbk" aria-busy="true" aria-label="Loading team">
+    <div className="stg-wrap pbk" role="status" aria-busy="true" aria-label="Loading team">
       <header className="stg-head stg-head--action" aria-hidden>
         <div className="stg-title pbk-text" style={{ width: 68 }}>
           &nbsp;

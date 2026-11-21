@@ -43,7 +43,7 @@ export default function SettingsRowsSkeleton({
   status?: boolean;
 }) {
   return (
-    <div className="stg-wrap pbk" aria-busy="true" aria-label={label}>
+    <div className="stg-wrap pbk" role="status" aria-busy="true" aria-label={label}>
       <header className="stg-head" aria-hidden>
         <div className="stg-eyebrow pbk-text" style={{ width: 56 }}>
           &nbsp;

@@ -31,7 +31,7 @@ import "../../skeleton.css";
  */
 export default function SubscribeLoading() {
   return (
-    <div className="s-card pbk" aria-busy="true" aria-label="Loading the signup form">
+    <div className="s-card pbk" role="status" aria-busy="true" aria-label="Loading the signup form">
       <div aria-hidden>
         {/* The heading. A bar, because its text is the thing being fetched. */}
         <div className="pbk-text" style={{ width: "72%", height: 26 }}>

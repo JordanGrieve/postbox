@@ -95,6 +95,31 @@ describe("share previews and canonicals", () => {
   });
 });
 
+/*
+  Lighthouse's link-in-text-block (21 Nov 2026): the accent was the only thing
+  marking links inside sentences, at 1.12–1.65:1 against the sentence's own
+  ink. The project's probes check a link's NAME, not how it stands out, so
+  this guard holds the underline instead.
+*/
+describe("links inside sentences are underlined", () => {
+  const rule = (css: string, selector: string) => {
+    const at = css.indexOf(`${selector} {`);
+    expect(at, `${selector} has no rule`).toBeGreaterThan(-1);
+    return css.slice(at, css.indexOf("}", at));
+  };
+
+  it("on the homepage, contact page and legal pages", () => {
+    expect(rule(read("app/home.css"), ".home-sub a")).toMatch(/text-decoration:\s*underline/);
+    expect(rule(read("app/contact/contact.css"), ".ct-lede a")).toMatch(/text-decoration:\s*underline/);
+    expect(rule(LEGAL_LAYOUT, ".legal-prose a")).toMatch(/text-decoration:\s*underline/);
+  });
+
+  it("the two navigation landmarks are told apart by name", () => {
+    expect(NAV).toMatch(/<nav[^>]*aria-label="Main"/);
+    expect(FOOTER).toMatch(/<nav[^>]*aria-label="Footer"/);
+  });
+});
+
 describe("the homepage can be served from the CDN", () => {
   it("does not read the session itself", () => {
     // Its header comment explains why it no longer calls auth(); only the code counts.

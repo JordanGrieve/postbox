@@ -9,11 +9,10 @@ vi.mock("next/navigation", () => ({
 import { render, screen, cleanup } from "@testing-library/react";
 import { readdirSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
+import { existsSync } from "node:fs";
 import CardSkeleton from "../components/skeletons/CardSkeleton";
-import ProseSkeleton from "../components/skeletons/ProseSkeleton";
 import CentredSkeleton from "../components/skeletons/CentredSkeleton";
-import MarketingSkeleton from "../components/skeletons/MarketingSkeleton";
-import RootLoading from "../app/loading";
+import AppGround from "../components/skeletons/AppGround";
 import NewslettersLoading from "../app/(dashboard)/newsletters/loading";
 
 /**
@@ -65,28 +64,59 @@ describe("every route has a skeleton", () => {
   });
 
   /*
-    ── "IS IT COVERED" IS THE WRONG QUESTION ──
-    The first version of this asked only whether SOME loading.tsx sat above
-    each route. app/loading.tsx does, for all of them, so the check could not
-    fail — it would have passed just as happily with the other 25 files
-    deleted. That is the same shape of dead guard this repo has been bitten by
-    before, and it is worth the extra few lines to avoid it.
+    ── THE STATIC PAGES HAVE NO BOUNDARY AT ALL (21 Nov 2026) ──
+    These are prerendered and served from the CDN, so they never wait. A
+    loading.tsx above them is not harmless: React splits a large page around
+    the boundary, so the homepage, pricing and privacy shipped their skeleton
+    first and their real content in a hidden block revealed by script — the
+    render delay Lighthouse measured on the homepage. They must have NO
+    loading.tsx above them, root included, and must stay static (below).
+  */
+  const STATIC_ROUTES = [
+    "/",
+    "/pricing",
+    "/contact",
+    "/(legal)/privacy",
+    "/(legal)/terms",
+    "/s/done",
+  ];
 
-    So it asserts the NEAREST one instead. The root file draws the marketing
-    skeleton on "/" — a nav, a hero and a product shot — and only a blank
-    ground anywhere else (see "the root boundary" below). A dashboard or legal route
-    that fell through to it would render a placeholder for a completely
-    different page and then swap the whole screen, which is worse than no
-    skeleton at all. Only the homepage may use it.
+  it("the root has no loading.tsx", () => {
+    expect(existsSync(join(APP, "loading.tsx"))).toBe(false);
+  });
+
+  for (const route of STATIC_ROUTES) {
+    it(`${route} has no boundary above it, and stays static`, () => {
+      const dir = join(APP, ...route.split("/").filter(Boolean));
+      expect(routes, `${route} is not a route`).toContain(dir);
+      expect(coveredBy(dir), `${route} has a loading.tsx above it`).toBeNull();
+      // Anything that reads the request would make it dynamic, and a dynamic
+      // page with no boundary shows nothing while it waits.
+      const code = readFileSync(join(dir, "page.tsx"), "utf8").replace(
+        /\/\*[\s\S]*?\*\/|\/\/.*$/gm,
+        "",
+      );
+      expect(code, `${route} reads the request`).not.toMatch(
+        /\bauth\(\)|\bcookies\(\)|\bheaders\(\)|searchParams|force-dynamic|connection\(\)/,
+      );
+    });
+  }
+
+  /*
+    ── "IS IT COVERED" IS THE WRONG QUESTION ──
+    Every other route must have a loading.tsx of its OWN section, not merely
+    some boundary somewhere above it. When the root had one, "is it covered"
+    could not fail. A route that fell through to a distant skeleton renders a
+    placeholder for a different page and then swaps the whole screen, which
+    is worse than none.
   */
   for (const dir of routes) {
     const label = rel(dir);
-    it(`${label} has its own skeleton, not the marketing fallback`, () => {
+    if (STATIC_ROUTES.includes(label)) continue;
+    it(`${label} has its own skeleton`, () => {
       const cover = coveredBy(dir);
       expect(cover, `${label} has no loading.tsx above it`).not.toBeNull();
-      if (label !== "/") {
-        expect(rel(cover!), `${label} falls through to the marketing skeleton`).not.toBe("/");
-      }
+      expect(rel(cover!), `${label} falls through to the root`).not.toBe("/");
       /*
         The same argument one level down. settings/loading.tsx draws the
         General tab — a six-card theme grid — and on 8 Sep 2026 five of its
@@ -117,53 +147,41 @@ describe("the shared skeletons render", () => {
     expect(screen.getByLabelText("Loading").querySelector(".u-button")).toBeNull();
   });
 
-  it("ProseSkeleton, for the legal pages", () => {
-    render(<ProseSkeleton label="Loading the privacy policy" />);
-    const box = screen.getByLabelText("Loading the privacy policy");
-    expect(box.querySelectorAll(".pbk-text").length).toBeGreaterThan(6);
-  });
-
   it("CentredSkeleton, for sign-in and no-access", () => {
     render(<CentredSkeleton label="Loading sign in" height={380} />);
     const box = screen.getByLabelText("Loading sign in");
     expect(box.querySelectorAll(".pbk-fill").length).toBeGreaterThan(1);
   });
 
-  it("MarketingSkeleton, for the homepage", () => {
-    render(<MarketingSkeleton label="Loading Postbox" lines={3} block={280} />);
-    const box = screen.getByLabelText("Loading Postbox");
-    // Wears the real nav and hero-band classes, so it lands where the page
-    // will. (It drew plain bars in .home-wrap with no band until 21 Nov 2026.)
-    expect(box.querySelector(".home-nav")).toBeTruthy();
-    expect(box.querySelector(".home-hero .home-hero-inner")).toBeTruthy();
-    expect(box.querySelector(".home-shot")).toBeTruthy();
+  it("AppGround, while a signed-in layout resolves the viewer", () => {
+    render(<AppGround label="Loading your inbox" />);
+    const box = screen.getByLabelText("Loading your inbox");
+    expect(box.getAttribute("role")).toBe("status");
+    // The bare ground: no marketing chrome flashing before the inbox.
+    expect(box.querySelector(".home-nav")).toBeNull();
   });
 });
 
 /*
-  ── THE ROOT BOUNDARY COVERS THE APP'S LAYOUTS, NOT ONLY "/" ──
+  ── THE SIGNED-IN LAYOUTS OWN THEIR WAITING ──
   A loading.tsx does not wrap the layout in its own folder, so nothing under
   (dashboard) or (admin) can cover those layouts while they await the viewer.
-  app/loading.tsx is the boundary that shows then. Until 21 Nov 2026 it drew
-  the marketing homepage for every path, so a cold /inbox flashed the public
-  nav and hero first.
+  That used to be the root app/loading.tsx; since 21 Nov 2026 each layout
+  wraps the part that waits in its own Suspense, with AppGround as the
+  fallback, and the root has no boundary to split the marketing pages around.
 */
-describe("the root boundary", () => {
-  it("draws the homepage on /", () => {
-    nav.pathname = "/";
-    render(<RootLoading />);
-    const box = screen.getByLabelText("Loading Postbox");
-    expect(box.querySelector(".home-nav")).toBeTruthy();
-    expect(box.querySelector(".home-hero")).toBeTruthy();
-  });
-
-  for (const path of ["/inbox", "/tickets/5", "/admin", "/settings/team"]) {
-    it(`draws no marketing chrome on ${path}`, () => {
-      nav.pathname = path;
-      const { container } = render(<RootLoading />);
-      expect(container.querySelector("[aria-busy='true']")).toBeTruthy();
-      expect(container.querySelector(".home-nav")).toBeNull();
-      expect(container.querySelector(".home-hero")).toBeNull();
+describe("the signed-in layouts own their waiting", () => {
+  for (const [name, file, shell] of [
+    ["dashboard", "app/(dashboard)/layout.tsx", "DashboardShell"],
+    ["admin console", "app/(admin)/layout.tsx", "AdminShell"],
+  ] as const) {
+    it(`the ${name} layout waits inside its own boundary`, () => {
+      const src = readFileSync(join(process.cwd(), file), "utf8");
+      // The exported layout does not wait; the shell inside the boundary does.
+      expect(src).toMatch(/export default function \w+Layout/);
+      expect(src).toMatch(/<Suspense fallback=\{<AppGround /);
+      expect(src).toContain(`<${shell}>`);
+      expect(src).toMatch(new RegExp(`async function ${shell}`));
     });
   }
 });
@@ -215,9 +233,8 @@ describe("skeletons are hidden from assistive technology", () => {
   */
   const cases = [
     ["card", <CardSkeleton key="c" prefix="s" lines={2} label="L" />],
-    ["prose", <ProseSkeleton key="p" label="L" />],
     ["centred", <CentredSkeleton key="n" label="L" />],
-    ["marketing", <MarketingSkeleton key="m" label="L" />],
+    ["app ground", <AppGround key="g" label="L" />],
   ] as const;
 
   for (const [name, node] of cases) {

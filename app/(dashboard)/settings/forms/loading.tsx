@@ -12,7 +12,7 @@ import "./forms.css";
  */
 export default function FormsLoading() {
   return (
-    <div className="stg-wrap pbk" aria-busy="true" aria-label="Loading forms">
+    <div className="stg-wrap pbk" role="status" aria-busy="true" aria-label="Loading forms">
       <header className="stg-head" aria-hidden>
         <div className="stg-title pbk-text" style={{ width: 76 }}>
           &nbsp;

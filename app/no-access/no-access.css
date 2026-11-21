@@ -49,6 +49,13 @@
   color: var(--text);
 }
 
+/* "our contact page" in the declined state: underlined, not colour alone. */
+.pbx-text a {
+  color: var(--text);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .pbx-error {
   background: var(--pdf-bg);
   color: var(--pdf-fg);

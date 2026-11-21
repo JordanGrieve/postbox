@@ -73,6 +73,9 @@ export default function LegalLayout({
           .legal-prose ol { margin: 0 0 12px; padding-left: 22px; list-style: decimal; }
           .legal-prose li { margin-bottom: 6px; }
           .legal-prose li::marker { color: var(--muted); }
+          /* Links in the prose are underlined: the accent is 1.65:1 against
+             the body ink, so colour alone did not mark them (1.4.1). */
+          .legal-prose a { text-decoration: underline; text-underline-offset: 2px; }
           .legal-prose code {
             font-family: var(--font-mono);
             font-size: 0.92em;

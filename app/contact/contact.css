@@ -32,6 +32,19 @@
   line-height: 1.65;
 }
 
+/* Two intro paragraphs since 21 Nov 2026 (the second offers the trial); they
+   read as one block, not two sections. */
+.ct-lede + .ct-lede {
+  margin-top: -20px;
+}
+
+/* Underlined: the accent is 1.12:1 against this ink, so colour alone did not
+   mark these as links (1.4.1). */
+.ct-lede a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .ct-form {
   display: flex;
   flex-direction: column;

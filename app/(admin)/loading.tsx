@@ -33,7 +33,7 @@ import "../skeleton.css";
  */
 export default function AdminLoading() {
   return (
-    <div className="pba-page pbk" aria-busy="true" aria-label="Loading the admin console">
+    <div className="pba-page pbk" role="status" aria-busy="true" aria-label="Loading the admin console">
       <div className="pba-shell">
         <nav className="pba-side" aria-hidden>
           <div className="pba-brand">

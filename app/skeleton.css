@@ -105,35 +105,10 @@
   flex: none;
 }
 
-/* On the homepage's always-dark brand band, --surface-3 bars are light grey
-   on near-black in the light theme and glare. A faint wash of the band's own
-   ink reads as placeholder text there instead. (0,3,0) beats the fill. */
-.pbk .home-hero .pbk-fill,
-.pbk .home-hero .pbk-text {
-  background-color: color-mix(in srgb, var(--brand-panel-fg) 12%, transparent);
-  background-image: linear-gradient(
-    90deg,
-    transparent 0%,
-    color-mix(in srgb, var(--brand-panel-fg) 10%, transparent) 46%,
-    color-mix(in srgb, var(--brand-panel-fg) 10%, transparent) 54%,
-    transparent 100%
-  );
-}
-
-/* Bars for text that wraps to more lines on a phone (the homepage hero).
-   720px is home.css's phone breakpoint for the hero. */
-.pbk .pbk-narrow-only {
-  display: none;
-}
-
-@media (max-width: 720px) {
-  .pbk .pbk-narrow-only {
-    display: block;
-  }
-  .pbk .pbk-wide-only {
-    display: none;
-  }
-}
+/* The homepage, pricing, contact and legal skeletons, and their rules here,
+   went on 21 Nov 2026: those pages are prerendered and never wait, and a
+   boundary above them made React ship the skeleton before the page
+   (components/skeletons/AppGround.tsx). */
 
 @media (prefers-reduced-motion: reduce) {
   .pbk .pbk-fill,

@@ -37,9 +37,11 @@ export default function MarketingNav({
   return (
     <header className="home-nav">
       <Link href="/" aria-label="Postbox home">
-        <PostboxLockup />
+        <PostboxLockup wordmarkClassName="home-nav-wordmark" />
       </Link>
-      <nav className="home-nav-links">
+      {/* Named, because the footer has a nav too ("Footer"): two unnamed
+          navigation landmarks read as the same one twice. */}
+      <nav className="home-nav-links" aria-label="Main">
         <Link className="home-nav-link home-nav-link--hide-sm" href="/#features">
           Features
         </Link>
@@ -59,15 +61,20 @@ export default function MarketingNav({
         >
           Contact
         </Link>
-        <Link className="home-btn home-btn--sm home-btn--quiet" href="/sign-in">
-          Sign in
-        </Link>
-        {/* The way in, on every page and at every width (21 Nov 2026). The
-            nav only offered Sign in, which is for people who already have an
-            account. */}
-        <Link className="home-btn home-btn--sm home-btn--primary" href={TRIAL_HREF}>
-          {TRIAL_CTA}
-        </Link>
+        {/* The two buttons as a matched pair: same width and height, so Sign
+            in is not a smaller afterthought beside the trial (home.css,
+            .home-nav-actions). */}
+        <div className="home-nav-actions">
+          <Link className="home-btn home-btn--sm home-btn--quiet" href="/sign-in">
+            Sign in
+          </Link>
+          {/* The way in, on every page and at every width (21 Nov 2026). The
+              nav only offered Sign in, which is for people who already have
+              an account. */}
+          <Link className="home-btn home-btn--sm home-btn--primary" href={TRIAL_HREF}>
+            {TRIAL_CTA}
+          </Link>
+        </div>
       </nav>
     </header>
   );

@@ -20,7 +20,7 @@ import "../../skeleton.css";
  */
 export default function SearchLoading() {
   return (
-    <section className="pbm-results pbk" aria-busy="true" aria-label="Searching">
+    <section className="pbm-results pbk" role="status" aria-busy="true" aria-label="Searching">
       <div className="pbm-results-head" aria-hidden>
         <div className="pbm-search pbm-search--go">
           <span

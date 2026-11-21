@@ -44,7 +44,7 @@ export default function CardSkeleton({
   const widths = ["94%", "88%", "72%", "80%", "61%"];
 
   return (
-    <div className={`${prefix}-card pbk`} aria-busy="true" aria-label={label}>
+    <div className={`${prefix}-card pbk`} role="status" aria-busy="true" aria-label={label}>
       <div aria-hidden>
         <div className="pbk-text" style={{ width: "68%", height: 26 }}>
           &nbsp;

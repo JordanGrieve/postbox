@@ -192,7 +192,9 @@ export default function ProductShot({
         </div>
       ) : (
       <div className="pshot-body" aria-hidden data-focus={focus}>
-        <aside className="pshot-side">
+        {/* A div, not <aside>: this is a picture of a sidebar, not one, and
+            three of them on the homepage were three extra landmarks. */}
+        <div className="pshot-side">
           <div className="pshot-brand">
             <span className="pshot-brand-mark" />
             <span className="pshot-brand-name">Open Door Bakery</span>
@@ -209,7 +211,7 @@ export default function ProductShot({
               </li>
             ))}
           </ul>
-        </aside>
+        </div>
 
         <div className="pshot-list">
           {ROWS.map((r) => (

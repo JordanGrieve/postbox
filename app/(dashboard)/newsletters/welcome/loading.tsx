@@ -14,7 +14,7 @@ import "../../../newsletter.css";
  */
 export default function WelcomeNewsletterLoading() {
   return (
-    <div className="pbm-page pb-scroll pbk" aria-busy="true" aria-label="Loading the welcome email">
+    <div className="pbm-page pb-scroll pbk" role="status" aria-busy="true" aria-label="Loading the welcome email">
       <div className="nw" aria-hidden>
         <header className="nw-head">
           {/* The real button's classes, so it is the button's size and the

@@ -36,7 +36,7 @@ export default function CentredSkeleton({
   return (
     <div
       className="pbk"
-      aria-busy="true"
+      role="status" aria-busy="true"
       aria-label={label}
       style={{
         minHeight: "100vh",

@@ -55,7 +55,7 @@ function MailListSkeleton() {
   return (
     <section
       className="pbm-list pbk"
-      aria-busy="true"
+      role="status" aria-busy="true"
       aria-label="Loading messages"
     >
       <div className="pbm-list-head" aria-hidden>

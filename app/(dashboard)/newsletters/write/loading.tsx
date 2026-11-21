@@ -16,7 +16,7 @@ export default function WriteNewsletterLoading() {
       <div
         className="nl-wrap pbk"
         data-rail="off"
-        aria-busy="true"
+        role="status" aria-busy="true"
         aria-label="Loading the newsletter"
       >
         <div className="nl-main" aria-hidden>

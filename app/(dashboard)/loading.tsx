@@ -10,8 +10,8 @@ import "../skeleton.css";
  * refreshes on one.
  *
  * It sits INSIDE the (dashboard) layout, so it only shows once that layout has
- * resolved the viewer and the mail counts. Before then the nearest boundary is
- * the root app/loading.tsx.
+ * resolved the viewer and the mail counts. Before then the boundary is the
+ * layout's own (app/(dashboard)/layout.tsx, AppGround).
  *
  * WHY IT IS NOT REACHED ON NAVIGATION
  *
@@ -78,7 +78,7 @@ function MailListSkeleton() {
     <section
       className="pbm-list pbk"
       data-hide-mobile
-      aria-busy="true"
+      role="status" aria-busy="true"
       aria-label="Loading messages"
     >
       <div className="pbm-list-head" aria-hidden>
@@ -158,7 +158,7 @@ function ThreadSkeleton() {
   return (
     <section
       className="pbm-thread pbk"
-      aria-busy="true"
+      role="status" aria-busy="true"
       aria-label="Loading conversation"
     >
       {/* 74px, fixed in mail.css — this header cannot shift. */}

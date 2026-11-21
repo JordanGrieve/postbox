@@ -1,5 +1,7 @@
+import { Suspense } from "react";
 import { requireAdmin } from "@/lib/viewer";
 import AuthProvider from "@/components/AuthProvider";
+import AppGround from "@/components/skeletons/AppGround";
 import "../admin.css";
 
 /**
@@ -11,11 +13,21 @@ import "../admin.css";
  * restated on .pba-root in app/admin.css — globals.css only declares it at
  * :root, where an element-level attribute can't reach it.
  */
-export default async function AdminLayout({
+export default function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  // The admin check waits inside a boundary this layout owns; see
+  // components/skeletons/AppGround.tsx for why the root no longer has one.
+  return (
+    <Suspense fallback={<AppGround label="Loading the admin console" />}>
+      <AdminShell>{children}</AdminShell>
+    </Suspense>
+  );
+}
+
+async function AdminShell({ children }: { children: React.ReactNode }) {
   await requireAdmin();
 
   return (

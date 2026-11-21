@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import AuthProvider from "@/components/AuthProvider";
 import MailNav from "@/components/mail/MailNav";
+import AppGround from "@/components/skeletons/AppGround";
 import { resolveViewer } from "@/lib/viewer";
 import { ThemeApplier } from "@/components/ThemeApplier";
 import ImpersonationBanner from "@/app/(admin)/ImpersonationBanner";
@@ -8,7 +10,25 @@ import TrialBanner from "@/components/TrialBanner";
 import { mailCounts } from "./queries";
 import "../mail.css";
 
-export default async function DashboardLayout({
+/**
+ * The signed-in shell. The waiting — resolveViewer() and mailCounts() — is in
+ * DashboardShell, inside a boundary this layout owns, because the loading.tsx
+ * files below cannot cover the layout above them and the root no longer has a
+ * boundary of its own (components/skeletons/AppGround.tsx says why).
+ */
+export default function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <Suspense fallback={<AppGround label="Loading your inbox" />}>
+      <DashboardShell>{children}</DashboardShell>
+    </Suspense>
+  );
+}
+
+async function DashboardShell({
   children,
 }: {
   children: React.ReactNode;
