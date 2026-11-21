@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin, requireAdminRow, ADMIN_WS_COOKIE } from "@/lib/viewer";
 import { recordAdminAction } from "@/lib/admin-audit";
+import { parseId } from "@/lib/ids";
 import { addAdmin, findAdminByEmail, getAdminById, removeAdmin } from "@/lib/admin";
 import {
   ADMIN_IMP_COOKIE,
@@ -53,8 +54,8 @@ const IMP_COOKIE_OPTS = {
  */
 export async function selectWorkspaceAction(formData: FormData): Promise<void> {
   const admin = await requireAdminRow();
-  const id = Number(formData.get("workspaceId"));
-  if (!Number.isInteger(id)) redirect("/admin");
+  const id = parseId(formData.get("workspaceId"));
+  if (id === null) redirect("/admin");
 
   const workspace = await getWorkspaceById(id);
   if (!workspace) redirect("/admin?error=That workspace no longer exists.");
@@ -93,9 +94,10 @@ export async function stopImpersonatingAction(): Promise<void> {
   const admin = await requireAdminRow();
 
   const store = await cookies();
-  const sessionId = Number(store.get(ADMIN_IMP_COOKIE)?.value);
-  if (Number.isInteger(sessionId)) {
-    await endImpersonation(sessionId, "stopped");
+  const sessionId = parseId(store.get(ADMIN_IMP_COOKIE)?.value);
+  if (sessionId !== null) {
+    // Only this operator's own session, whatever the cookie says.
+    await endImpersonation(sessionId, admin.id, "stopped");
   }
   await endOpenSessionsForAdmin(admin.id, "stopped");
 
@@ -182,8 +184,8 @@ export async function removeAdminAction(formData: FormData): Promise<void> {
   const actor = await requireAdminRow();
   const selfEmail = actor.email;
 
-  const id = Number(formData.get("adminId"));
-  if (!Number.isInteger(id)) redirect("/admin?error=Invalid admin.");
+  const id = parseId(formData.get("adminId"));
+  if (id === null) redirect("/admin?error=Invalid admin.");
 
   const target = await getAdminById(id);
   if (!target) redirect("/admin?error=That admin no longer exists.");
@@ -213,8 +215,8 @@ export async function removeAdminAction(formData: FormData): Promise<void> {
 export async function resendInviteAction(formData: FormData): Promise<void> {
   const adminEmail = await requireAdmin();
 
-  const id = Number(formData.get("workspaceId"));
-  if (!Number.isInteger(id)) redirect("/admin?error=Invalid workspace.");
+  const id = parseId(formData.get("workspaceId"));
+  if (id === null) redirect("/admin?error=Invalid workspace.");
 
   const workspace = await getWorkspaceById(id);
   if (!workspace) redirect("/admin?error=That workspace no longer exists.");
@@ -247,9 +249,9 @@ export async function resendInviteAction(formData: FormData): Promise<void> {
 export async function deleteClientAction(formData: FormData): Promise<void> {
   const actor = await requireAdminRow();
 
-  const id = Number(formData.get("workspaceId"));
+  const id = parseId(formData.get("workspaceId"));
   const confirmName = String(formData.get("confirmName") ?? "").trim();
-  if (!Number.isInteger(id)) redirect("/admin?error=Invalid workspace.");
+  if (id === null) redirect("/admin?error=Invalid workspace.");
 
   const workspace = await getWorkspaceById(id);
   if (!workspace) redirect("/admin?error=That workspace no longer exists.");
@@ -324,8 +326,8 @@ export async function deleteClientAction(formData: FormData): Promise<void> {
 export async function rotateKeyAction(formData: FormData): Promise<void> {
   const actor = await requireAdminRow();
 
-  const id = Number(formData.get("workspaceId"));
-  if (!Number.isInteger(id)) redirect("/admin?error=Invalid workspace.");
+  const id = parseId(formData.get("workspaceId"));
+  if (id === null) redirect("/admin?error=Invalid workspace.");
 
   const workspace = await getWorkspaceById(id);
   if (!workspace) redirect("/admin?error=That workspace no longer exists.");
@@ -392,8 +394,8 @@ export async function rotateKeyAction(formData: FormData): Promise<void> {
 export async function setOptInAction(formData: FormData): Promise<void> {
   const actor = await requireAdminRow();
 
-  const id = Number(formData.get("workspaceId"));
-  if (!Number.isInteger(id)) redirect("/admin?error=Invalid workspace.");
+  const id = parseId(formData.get("workspaceId"));
+  if (id === null) redirect("/admin?error=Invalid workspace.");
 
   const workspace = await getWorkspaceById(id);
   if (!workspace) redirect("/admin?error=That workspace no longer exists.");

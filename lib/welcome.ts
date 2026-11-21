@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { b64url, fromB64url, signBody, verifySignedBody } from "./signed-token";
 import {
   renderCampaign,
   type Brand,
@@ -81,22 +81,10 @@ const TOKEN_DOMAIN = "postbox.unsubscribe.welcome.v1";
 /** Marks a token as ours before any HMAC work is done. See decode below. */
 export const WELCOME_TOKEN_PREFIX = "w1.";
 
-function b64url(input: Buffer | string): string {
-  return Buffer.from(input)
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
-
-function fromB64url(input: string): Buffer {
-  return Buffer.from(input.replace(/-/g, "+").replace(/_/g, "/"), "base64");
-}
-
+// Signing and checking are lib/signed-token.ts, shared with the subscribe
+// confirmation since 21 Nov 2026 (this copy could 500 on a crafted token).
 function sign(body: string, secret: string): string {
-  return b64url(
-    createHmac("sha256", secret).update(`${TOKEN_DOMAIN}.${body}`).digest(),
-  );
+  return signBody(TOKEN_DOMAIN, body, secret);
 }
 
 /**
@@ -134,24 +122,19 @@ export function decodeWelcomeUnsubToken(
   token: string,
   secret: string,
 ): WelcomeTokenResult {
-  if (!token.startsWith(WELCOME_TOKEN_PREFIX)) return { ok: false };
-  const rest = token.slice(WELCOME_TOKEN_PREFIX.length);
-  const dot = rest.indexOf(".");
-  if (dot <= 0) return { ok: false };
-
-  const payload = rest.slice(0, dot);
-  const signature = rest.slice(dot + 1);
-  const expected = sign(payload, secret);
-
-  // Length first: timingSafeEqual throws on a length mismatch, and an
-  // exception is itself a signal about the input.
-  if (signature.length !== expected.length) return { ok: false };
-  if (!timingSafeEqual(Buffer.from(signature), Buffer.from(expected))) {
+  if (typeof token !== "string" || !token.startsWith(WELCOME_TOKEN_PREFIX)) {
     return { ok: false };
   }
+  // Bounded, base64url-only, byte-length-safe: see lib/signed-token.ts.
+  const verified = verifySignedBody(
+    token.slice(WELCOME_TOKEN_PREFIX.length),
+    TOKEN_DOMAIN,
+    secret,
+  );
+  if (!verified.ok) return { ok: false };
 
   try {
-    const parsed: unknown = JSON.parse(fromB64url(payload).toString("utf8"));
+    const parsed: unknown = JSON.parse(fromB64url(verified.body).toString("utf8"));
     if (typeof parsed !== "object" || parsed === null) return { ok: false };
     const { w, e } = parsed as { w?: unknown; e?: unknown };
     if (typeof w !== "number" || !Number.isInteger(w) || w <= 0) {

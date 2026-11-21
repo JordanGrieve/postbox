@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { json } from "@/lib/http";
+import { parseId } from "@/lib/ids";
 import { rateLimitDurable } from "@/lib/rate-limit-store";
 import { APP_URL } from "@/lib/config";
 import { resolveViewer } from "@/lib/viewer";
@@ -55,10 +56,8 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
-function idFrom(raw: string): number | null {
-  const n = Number(raw);
-  return Number.isInteger(n) ? n : null;
-}
+// One parser for every id from a request: int4, digits only (lib/ids.ts).
+const idFrom = parseId;
 
 export async function POST(
   req: Request,
@@ -237,10 +236,13 @@ export async function POST(
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
+    // The provider's own words go to the log, not the browser (21 Nov 2026).
+    // They can name our sending account, region or configuration, which is
+    // ours to read and not a client's; Postbox staff find them in the logs.
     console.error("[test-send] delivery failed:", message);
-    // The provider's own words. This endpoint exists to surface exactly this —
-    // "MessageRejected: Email address is not verified" is the sandbox telling
-    // you something true, and paraphrasing it would waste the trip.
-    return json({ error: `Delivery failed: ${message}` }, { status: 502 });
+    return json(
+      { error: "The test email could not be sent. Try again, or contact Postbox if it keeps failing." },
+      { status: 502 },
+    );
   }
 }

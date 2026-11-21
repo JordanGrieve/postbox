@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { scrubEvent } from "./lib/sentry-scrub";
 
 /**
  * Browser runtime. Runs after document load, before React hydration.
@@ -17,6 +18,12 @@ Sentry.init({
   tracesSampleRate: process.env.NODE_ENV === "development" ? 1.0 : 0.1,
 
   environment: process.env.NEXT_PUBLIC_VERCEL_ENV ?? process.env.NODE_ENV,
+
+  // The browser sees the most token URLs (/u/<token>, /s/confirm?t=…) as page
+  // loads and navigations. lib/sentry-scrub.ts takes them out.
+  beforeSend: (event) => scrubEvent(event),
+  beforeSendTransaction: (event) => scrubEvent(event),
+  beforeBreadcrumb: (crumb) => scrubEvent(crumb),
 });
 
 // Ties client-side App Router navigations into traces.

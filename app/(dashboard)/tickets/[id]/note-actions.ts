@@ -5,6 +5,7 @@ import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { agents, contactNotes } from "@/db/schema";
 import { resolveViewer } from "@/lib/viewer";
+import { parseId } from "@/lib/ids";
 import { checkNote, normaliseContactEmail } from "@/lib/contact-notes";
 
 /**
@@ -83,8 +84,8 @@ export async function deleteContactNoteAction(
   const author = await requireAuthor();
   if (!author) return;
 
-  const id = Number(formData.get("noteId"));
-  if (!Number.isInteger(id) || id <= 0) return;
+  const id = parseId(formData.get("noteId"));
+  if (id === null) return;
 
   // Tenancy inside the statement: an id from another workspace matches no row
   // and deletes nothing.

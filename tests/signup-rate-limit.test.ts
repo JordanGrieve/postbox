@@ -28,16 +28,30 @@ describe("forwardedIp", () => {
   const from = (h: Record<string, string>) =>
     forwardedIp((name) => h[name] ?? null);
 
-  it("takes the leftmost X-Forwarded-For entry", () => {
-    // The header is appended hop by hop, so the leftmost value is the original
-    // client and everything after it is infrastructure. Taking the last one
-    // would rate-limit our own edge.
-    expect(from({ "x-forwarded-for": "203.0.113.9, 70.41.3.18, 150.172.238.178" }))
-      .toBe("203.0.113.9");
+  /*
+    Since 21 Nov 2026: the leftmost X-Forwarded-For entry is whatever the
+    client sent, so it let anyone choose their own rate-limit bucket and
+    consent-evidence IP. Vercel's own header first, then X-Real-IP, then the
+    rightmost (proxy-added) X-Forwarded-For entry.
+  */
+  it("prefers x-vercel-forwarded-for over everything else", () => {
+    expect(
+      from({
+        "x-vercel-forwarded-for": "198.51.100.7",
+        "x-real-ip": "203.0.113.9",
+        "x-forwarded-for": "1.2.3.4, 198.51.100.7",
+      }),
+    ).toBe("198.51.100.7");
   });
 
   it("falls back to X-Real-IP", () => {
     expect(from({ "x-real-ip": "203.0.113.9" })).toBe("203.0.113.9");
+  });
+
+  it("ignores a client-typed leftmost X-Forwarded-For and takes the proxy's entry", () => {
+    expect(from({ "x-forwarded-for": "1.2.3.4, 70.41.3.18, 198.51.100.7" })).toBe(
+      "198.51.100.7",
+    );
   });
 
   it("returns null when neither header is present", () => {

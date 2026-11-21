@@ -1,5 +1,6 @@
 import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs/config";
+import { buildReportOnlyCsp } from "./lib/csp";
 
 /*
   Security headers on every response.
@@ -14,13 +15,23 @@ import { withSentryConfig } from "@sentry/nextjs/config";
   runner in tests/audit-runner.html loads pages in same-origin iframes, and
   DENY would blank every pane of it.
 
-  Not a full Content-Security-Policy. Clerk and Sentry inject scripts that
-  need nonces, which is a project of its own; frame-ancestors is the one
-  directive that matters here and needs none.
+  The enforced CSP is still only frame-ancestors, the one directive that
+  matters here and cannot break a page. A full policy is sent alongside it as
+  Content-Security-Policy-Report-Only from 21 Nov 2026 (lib/csp.ts): browsers
+  report what it would block and block nothing, so it can be checked against
+  real traffic before anyone makes it enforcing.
 */
 const SECURITY_HEADERS = [
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
   { key: "Content-Security-Policy", value: "frame-ancestors 'self'" },
+  {
+    key: "Content-Security-Policy-Report-Only",
+    value: buildReportOnlyCsp({
+      clerkPublishableKey: process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+      sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN ?? process.env.SENTRY_DSN,
+      isDev: process.env.NODE_ENV === "development",
+    }),
+  },
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
 ];

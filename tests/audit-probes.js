@@ -776,7 +776,29 @@ window.__selftest = function () {
   const sawUnscaled = window.__textZoom().unscaled.length > 0;
   stuck.remove();
 
+  /*
+    Focusable inside aria-hidden, both ways. A plain button in an aria-hidden
+    box must be reported; the same button with tabindex="-1" (parked, like
+    the inbox swipe actions) must not. The second half went in with the fix
+    on 21 Nov 2026, so the exemption cannot quietly swallow the real case.
+  */
+  const hidden = document.createElement("div");
+  hidden.setAttribute("aria-hidden", "true");
+  hidden.className = "selftest-hidden-focus";
+  const live = document.createElement("button");
+  live.textContent = "reachable";
+  hidden.appendChild(live);
+  host.appendChild(hidden);
+  const mine = () =>
+    window.__structure().problems.filter((p) => p.indexOf("selftest-hidden-focus") !== -1);
+  const sawHiddenFocusable = mine().length > 0;
+  live.setAttribute("tabindex", "-1");
+  const ignoredParkedFocusable = mine().length === 0;
+  hidden.remove();
+
   return {
+    sawHiddenFocusable,
+    ignoredParkedFocusable,
     sawOverflow,
     sawContrast,
     sawFadedContrast,
@@ -905,6 +927,11 @@ window.__structure = function () {
       'a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])',
     );
     for (const f of focusable) {
+      // tabindex="-1" takes a button or link out of the tab order, which is
+      // what axe accepts too. The inbox swipe actions sit aria-hidden with
+      // tabIndex -1 until revealed, and were reported here as a defect they
+      // are not (AUDIT-REPORT.md, until 21 Nov 2026).
+      if (f.getAttribute("tabindex") === "-1") continue;
       problems.push(
         "focusable " + f.tagName.toLowerCase() + " inside aria-hidden " +
           (h.className || "").toString().slice(0, 30),

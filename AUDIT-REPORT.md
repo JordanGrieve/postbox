@@ -21,14 +21,15 @@ probes (`tests/audit-probes.js`) were run alongside axe.
 | Check | Before | After |
 | --- | --- | --- |
 | `npm run typecheck` | ✅ pass | ✅ pass |
-| `npm run lint` | ✅ 0 errors, 2 warnings | ✅ 0 errors, the same 2 warnings |
-| `npm test` | ✅ 122 files, 1734 passed, 1 expected fail | ✅ 131 files, 1774 passed, 1 expected fail |
+| `npm run lint` | ✅ 0 errors, 2 warnings | ✅ 0 errors, 0 warnings (21 Nov) |
+| `npm test` | ✅ 122 files, 1734 passed, 1 expected fail | ✅ 153 files, 1907 passed, 1 expected fail (21 Nov) |
 | `npm run build` | ✅ pass | ✅ pass |
-| `npm audit --omit=dev` | ❌ 7 moderate | ❌ unchanged — the audit fix was reverted (see Fixed) |
-| `npm audit` (incl. dev) | ❌ 15 moderate, 2 high | ❌ unchanged — the audit fix was reverted (see Fixed) |
+| `npm audit --omit=dev` | ❌ 7 moderate | ⚠️ 6 moderate, all `@sentry/nextjs`'s build plugin (21 Nov) |
+| `npm audit` (incl. dev) | ❌ 15 moderate, 2 high | ⚠️ the same 6 moderate, 0 high (21 Nov) |
 
-The two lint warnings are `window.location.assign()` in
-`app/(dashboard)/newsletters/Composer.tsx:1060,1067` (nit, below).
+The remaining six are glob/minimatch inside `@sentry/bundler-plugin-core`,
+which runs at build time only. The fix is Sentry 11, a major upgrade of the
+SDK and its config, not done here.
 
 ## Fixed
 
@@ -59,7 +60,53 @@ The two lint warnings are `window.location.assign()` in
 | Maybe | Contact ticket counts include trashed tickets. | **Left as is.** |
 | Nit | Any team member can invite; only the owner can remove. | **Left as is.** |
 
-### Left for later (judgement or larger change)
+### Left for later — worked through on 21 Nov 2026
+
+Everything in the table below was done on 21 Nov 2026, each with a test seen
+to fail with its fix reverted, except where noted:
+
+- **npm audit**: 17 advisories (2 high) down to 6 moderate. npm 10 crashes on
+  this project's peer tree whenever the lockfile changes, so the lockfile is
+  now written with npm 11 and CI installs npm 11 before `npm ci` (Jordan's
+  call). Only the vulnerable packages were updated on the existing lockfile;
+  happy-dom went to 21. `allowScripts` in package.json approves the same
+  install scripts npm 10 used to run. Left: the six in Sentry's build plugin
+  (needs Sentry 11).
+- **Stripe webhook** applies an event only to the workspace that has no
+  subscription or this exact one (`tests/stripe-webhook-ownership.test.ts`).
+- **Inbound** de-duplicates per workspace, and a message addressed to two
+  workspaces is now filed in both (it used to stop at the first). Resend's
+  delivery of one message to two recipients is still not verified; the fix
+  holds either way (`tests/inbound-dedupe.test.ts`).
+- **Sentry**: `lib/sentry-scrub.ts` strips tokens, keys and emails from URLs,
+  breadcrumbs and spans in all three runtimes (`tests/sentry-scrub.test.ts`).
+- **Client IP**: `x-vercel-forwarded-for`, then `x-real-ip`, then the
+  rightmost X-Forwarded-For. Vercel's header behaviour is from its docs, not
+  verified against a live request.
+- **Welcome unsubscribe** shares the subscribe decoder (`lib/signed-token.ts`);
+  a crafted token is an invalid link, not a 500.
+- **ContactNotes date** is formatted in UTC on both sides, so server and
+  browser render the same day (`tests/contact-notes-date.test.ts`).
+- **Suppression lookup** is case-insensitive like the other matches.
+- **Concurrent checkouts**: the customer id is claimed only if still empty;
+  the loser deletes its own Stripe customer.
+- **Stop impersonating** matches the operator's own id.
+- **Provider error text** stays in server logs; billing routes 401 when
+  signed out; every numeric id goes through `lib/ids.ts` `parseId`.
+- **CSP**: sent as `Content-Security-Policy-Report-Only` (`lib/csp.ts`),
+  reporting to Sentry when a DSN is set. Not enforcing: switch it once real
+  pages have reported clean for a while.
+- **Duplicated helpers** each have one home (`lib/email-address.ts`,
+  `lib/merge-tags.ts`, `lib/request-fields.ts`, `lib/utc-time.ts`); the two
+  `formatDateTime`s differ on purpose and say so.
+- **Structure**: `components/` and `lib/` no longer import from `app/`.
+- **Test casts and skips** fixed; **Composer lint** fixed (`router.push`).
+- **Probe**: `__structure()` ignores `tabindex="-1"` inside aria-hidden, and
+  `__selftest` proves both halves.
+- **AGENTS.md** carries the block `next dev` writes, so dev no longer dirties
+  the tree.
+
+The original table, for reference:
 
 | Sev | Finding | Why not now |
 | --- | --- | --- |

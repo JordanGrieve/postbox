@@ -3,6 +3,7 @@ import { EMAIL_FROM_ADDRESS, INBOUND_DOMAIN } from "./config";
 import { parseTicketRefFromAddress } from "./tickets";
 import type { RateLimitResult } from "./rate-limit";
 import { evaluateSchedule } from "./business-hours";
+import { looksLikeEmail } from "./email-address";
 import {
   buildMergeValues,
   isAutomatedMail,
@@ -92,8 +93,6 @@ export function isSelfAddress(
   return false;
 }
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 // ── The decision ─────────────────────────────────────────────────
 
 export type SuppressReason =
@@ -155,7 +154,7 @@ export function decideAutoReply(input: DecisionInput): AutoReplyDecision {
 
   // 1. The recipient must be a real, single mailbox.
   const to = (ticket.customerEmail ?? "").trim().toLowerCase();
-  if (!to || to.length > 254 || !EMAIL_RE.test(to)) {
+  if (!to || to.length > 254 || !looksLikeEmail(to)) {
     return { send: false, reason: "invalid_recipient" };
   }
 

@@ -8,6 +8,12 @@ import {
   DEFAULT_BUSINESS_HOURS,
   isWithinBusinessHours,
 } from "./business-hours";
+import {
+  UNKNOWN_FIRST_NAME,
+  firstNameFrom,
+  renderTemplate,
+  type MergeValues,
+} from "./merge-tags";
 
 /**
  * Auto-acknowledgement engine — the decision half.
@@ -85,49 +91,17 @@ export const MERGE_TOKENS: {
  * Names that are really email addresses count as unknown: inbound mail with no
  * display name is stored as `customerName = sender.email`, so
  * "Hi bob.smith@acme.co," is the common case, not the exotic one.
+ *
+ * UNKNOWN_FIRST_NAME, firstNameFrom, MergeValues and renderTemplate live in
+ * lib/merge-tags.ts, shared with newsletters, and are re-exported here.
  */
-export const UNKNOWN_FIRST_NAME = "there";
-
-/** Extract a usable first name, or the fallback. */
-export function firstNameFrom(
-  customerName: string | null | undefined,
-  customerEmail?: string | null,
-): string {
-  const raw = (customerName ?? "").trim();
-  if (!raw) return UNKNOWN_FIRST_NAME;
-  // A display name that is an address tells us nothing a customer wants read
-  // back to them.
-  if (raw.includes("@")) return UNKNOWN_FIRST_NAME;
-  if (customerEmail && raw.toLowerCase() === customerEmail.trim().toLowerCase()) {
-    return UNKNOWN_FIRST_NAME;
-  }
-
-  const first = raw
-    .split(/\s+/)[0]
-    .replace(/^["'`(<[]+/, "")
-    .replace(/["'`)>\].,;:!?]+$/, "")
-    .trim();
-  if (first.length < 2) return UNKNOWN_FIRST_NAME;
-  // Digits or URL punctuation mean this isn't a first name.
-  if (/[0-9/\\|]/.test(first)) return UNKNOWN_FIRST_NAME;
-
-  // Normalise shouting and all-lowercase sign-ups; leave mixed case alone so
-  // "McDonald" and "O'Neill" survive intact.
-  if (first === first.toUpperCase()) {
-    return first[0] + first.slice(1).toLowerCase();
-  }
-  if (first === first.toLowerCase()) {
-    return first[0].toUpperCase() + first.slice(1);
-  }
-  return first;
-}
+export { UNKNOWN_FIRST_NAME, firstNameFrom, renderTemplate };
+export type { MergeValues };
 
 /** What `{form_name}` becomes when the ticket isn't tied to a named form. */
 export function formNameFallback(source: TicketSource): string {
   return source === "contact_form" ? "our contact form" : "email";
 }
-
-export type MergeValues = Record<string, string>;
 
 export function buildMergeValues(input: {
   customerName: string | null | undefined;
@@ -141,43 +115,6 @@ export function buildMergeValues(input: {
     form_name: (input.formName ?? "").trim() || formNameFallback(input.source),
     company: input.workspaceName.trim() || "our team",
   };
-}
-
-/**
- * Substitute merge tokens.
- *
- * Two hard rules:
- *  1. no `{anything}` survives into the output — an unknown or misspelled
- *     token (`{firstname}`, `{order_id}`) is deleted, never passed through, so
- *     a customer cannot receive a literal placeholder;
- *  2. the result is tidied, so a deleted token doesn't leave "Hi ," or a
- *     double space behind.
- *
- * Newlines are preserved — only runs of spaces/tabs inside a line collapse.
- */
-export function renderTemplate(template: string, values: MergeValues): string {
-  const substituted = (template ?? "").replace(
-    /\{\s*([a-z0-9_]+)\s*\}/gi,
-    (_match, name: string) => {
-      const value = values[name.toLowerCase()];
-      return typeof value === "string" ? value.trim() : "";
-    },
-  );
-  return tidy(substituted);
-}
-
-function tidy(text: string): string {
-  return text
-    .split("\n")
-    .map((line) =>
-      line
-        .replace(/[ \t]{2,}/g, " ")
-        // " ," / " ." left behind by a removed token.
-        .replace(/[ \t]+([,.!?;:])/g, "$1")
-        .replace(/[ \t]+$/g, ""),
-    )
-    .join("\n")
-    .trim();
 }
 
 // ── Defaults ─────────────────────────────────────────────────────
@@ -505,8 +442,8 @@ export function isAutomatedMail(
   return false;
 }
 
-// EMAIL_RE, decideAutoReply and checkAutoReplyRateLimits moved to
-// lib/auto-reply-guards.ts. decideAutoReply calls isSelfAddress, so it needs
+// decideAutoReply and checkAutoReplyRateLimits moved to
+// lib/auto-reply-guards.ts (its email check is lib/email-address.ts). decideAutoReply calls isSelfAddress, so it needs
 // config too; the rate limiter is server-side machinery that had no business
 // in a client bundle either. Both are re-exported nowhere on purpose — a
 // re-export here would drag config straight back in.

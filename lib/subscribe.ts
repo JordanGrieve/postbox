@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { b64url, fromB64url, signBody, verifySignedBody } from "./signed-token";
 import { looksLikeEmail, normaliseEmail } from "./newsletter";
 
 /**
@@ -310,22 +310,10 @@ export type ConfirmPayload = {
  */
 const TOKEN_DOMAIN = "postbox.subscribe.confirm.v1";
 
-function b64url(input: Buffer | string): string {
-  return Buffer.from(input)
-    .toString("base64")
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
-}
-
-function fromB64url(input: string): Buffer {
-  return Buffer.from(input.replace(/-/g, "+").replace(/_/g, "/"), "base64");
-}
-
+// Signing and checking are lib/signed-token.ts, shared with the welcome
+// unsubscribe token since 21 Nov 2026.
 function sign(body: string, secret: string): string {
-  return b64url(
-    createHmac("sha256", secret).update(`${TOKEN_DOMAIN}.${body}`).digest(),
-  );
+  return signBody(TOKEN_DOMAIN, body, secret);
 }
 
 /**
@@ -378,31 +366,11 @@ export function decodeConfirmToken(
   secret: string,
   now: number = Date.now(),
 ): ConfirmTokenResult {
-  // Bound the work before any of it happens. `token` is a path segment from a
-  // stranger; base64-decoding and JSON-parsing an unbounded string is free
-  // CPU for whoever sends it.
-  if (typeof token !== "string" || token.length < 8 || token.length > 4096) {
-    return { ok: false, reason: "malformed" };
-  }
-  const dot = token.indexOf(".");
-  if (dot <= 0 || dot === token.length - 1) {
-    return { ok: false, reason: "malformed" };
-  }
-  const body = token.slice(0, dot);
-  const provided = token.slice(dot + 1);
-  if (!/^[A-Za-z0-9_-]+$/.test(body) || !/^[A-Za-z0-9_-]+$/.test(provided)) {
-    return { ok: false, reason: "malformed" };
-  }
-
-  const expected = sign(body, secret);
-  const a = Buffer.from(provided);
-  const b = Buffer.from(expected);
-  // Length is compared first because timingSafeEqual THROWS on a mismatch —
-  // an uncaught throw here would turn a malformed token into a 500, and the
-  // difference between 500 and 200 is itself an oracle.
-  if (a.length !== b.length || !timingSafeEqual(a, b)) {
-    return { ok: false, reason: "bad_signature" };
-  }
+  // Bounded, base64url-only, byte-length-safe and never throwing — see
+  // lib/signed-token.ts, which is this function's former first half.
+  const verified = verifySignedBody(token, TOKEN_DOMAIN, secret);
+  if (!verified.ok) return { ok: false, reason: verified.reason };
+  const body = verified.body;
 
   let raw: unknown;
   try {

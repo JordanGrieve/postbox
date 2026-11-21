@@ -83,6 +83,22 @@ describe("the unsubscribe token", () => {
     }
   });
 
+  /*
+    It used to compare the signature's STRING length and then call
+    timingSafeEqual, which throws on a BYTE length mismatch: a signature of
+    the right length in non-ASCII characters threw a RangeError and the
+    unsubscribe page answered 500 (AUDIT-REPORT.md, fixed 21 Nov 2026 by
+    sharing lib/signed-token.ts with the subscribe decoder).
+  */
+  it("refuses, without throwing, a signature of the right length in non-ASCII", () => {
+    const good = encodeWelcomeUnsubToken(7, "alex@example.com", SECRET);
+    const dot = good.lastIndexOf(".");
+    const sigLength = good.length - dot - 1;
+    const crafted = `${good.slice(0, dot)}.${"é".repeat(sigLength)}`;
+    expect(() => decodeWelcomeUnsubToken(crafted, SECRET)).not.toThrow();
+    expect(decodeWelcomeUnsubToken(crafted, SECRET)).toEqual({ ok: false });
+  });
+
   it("refuses a correctly signed payload that says nothing useful", () => {
     // The signature passes here — these tokens are minted with the real key
     // and the real domain — so the SHAPE CHECK is the only thing refusing

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { ContactNoteDTO } from "@/app/(dashboard)/queries";
+import type { ContactNoteDTO } from "./types";
 import { MAX_NOTE_LENGTH } from "@/lib/contact-notes";
 
 /**
@@ -145,9 +145,10 @@ export default function ContactNotes({
 /**
  * Date only, no clock.
  *
- * A time would be rendered on the client from a UTC instant and could disagree
- * with the server's idea of it across a midnight boundary; the day is what
- * anybody reading a note actually wants, and it is stable.
+ * And the UTC day, pinned. Formatted in the runtime's own zone, the server
+ * (UTC) and a browser elsewhere disagreed about the date of a note written
+ * near midnight, and hydration failed on the mismatch (AUDIT-REPORT.md, fixed
+ * 21 Nov 2026). Naming the zone makes both sides render the same text.
  */
 function formatNoteDate(iso: string): string {
   const d = new Date(iso);
@@ -156,5 +157,6 @@ function formatNoteDate(iso: string): string {
     day: "numeric",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
   });
 }

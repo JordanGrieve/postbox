@@ -4,6 +4,7 @@ import { getWorkspaceByApiKey } from "@/lib/data";
 import { recordIngestionFailure, recordInvalidKey } from "@/lib/ingestion-log";
 import { readSignupSubmission } from "@/lib/submission-fields";
 import { APP_URL } from "@/lib/config";
+import { readFields, wantsHtml } from "@/lib/request-fields";
 import {
   consentSourceFrom,
   isHoneypotTripped,
@@ -330,46 +331,8 @@ function accepted(req: Request, workspaceName: string): Response {
   );
 }
 
-function isJsonRequest(req: Request): boolean {
-  return (req.headers.get("content-type") ?? "").includes("application/json");
-}
-
-function wantsHtml(req: Request): boolean {
-  return (
-    !isJsonRequest(req) &&
-    (req.headers.get("accept") ?? "").includes("text/html")
-  );
-}
-
-/** JSON or form-encoded, and never a 500 on a body we cannot parse. */
-async function readFields(req: Request): Promise<Record<string, string>> {
-  if (isJsonRequest(req)) {
-    try {
-      const body = (await req.json()) as Record<string, unknown>;
-      const out: Record<string, string> = {};
-      for (const [k, v] of Object.entries(body)) {
-        if (v != null) out[k] = String(v);
-      }
-      return out;
-    } catch {
-      return {};
-    }
-  }
-  // formData() throws on a body it cannot parse, and the key that reaches this
-  // endpoint is published in the client's own page source. Unguarded, that
-  // makes view-source plus a malformed POST into a public 500. Same guard and
-  // same reason as app/api/tickets/[id]/route.ts.
-  try {
-    const form = await req.formData();
-    const out: Record<string, string> = {};
-    for (const [k, v] of form.entries()) {
-      if (typeof v === "string") out[k] = v;
-    }
-    return out;
-  } catch {
-    return {};
-  }
-}
+// isJsonRequest, wantsHtml and readFields: lib/request-fields.ts, shared with
+// the contact-form endpoint.
 
 function badRequest(req: Request, error: string): Response {
   if (wantsHtml(req)) {

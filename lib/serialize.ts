@@ -65,7 +65,13 @@ export function toMessageDTO(m: TicketMessage): MessageDTO {
   };
 }
 
-/** Human timestamp like "Today, 9:24 AM" / "Yesterday, 5:02 PM" / "3 Jul, 4:12 PM". */
+/**
+ * Human timestamp like "Today, 9:24 AM" / "Yesterday, 5:02 PM" / "3 Jul, 4:12 PM".
+ *
+ * Relative and local-time, for a conversation thread. Deliberately different
+ * from lib/utc-time.ts's formatDateTime (absolute, UTC, for audit records);
+ * same name, different question, so check which one you import.
+ */
 export function formatDateTime(input: Date | string, now: Date = new Date()): string {
   const d = typeof input === "string" ? new Date(input) : input;
   const time = d.toLocaleTimeString("en-GB", {

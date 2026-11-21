@@ -1,5 +1,25 @@
 import type { TicketSource, TicketStatus } from "@/db/schema";
 
+/*
+  The two types the mail components share with the dashboard's queries.
+  They lived in app/(dashboard)/queries.ts, which made components/ reach into
+  a route folder; they moved here on 21 Nov 2026 and queries.ts imports them.
+*/
+
+/**
+ * The two inbox views: "To reply" is `inbox` (open conversations) and "Done"
+ * is `closed`. parseInboxView in app/(dashboard)/queries.ts reads ?folder=.
+ */
+export type InboxView = "inbox" | "closed";
+
+/** One internal note about a contact, as the rail renders it. */
+export type ContactNoteDTO = {
+  id: number;
+  body: string;
+  authorLabel: string;
+  createdAtIso: string;
+};
+
 /**
  * One row in the message list. Every field here is backed by a real column.
  *

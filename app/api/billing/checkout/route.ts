@@ -1,4 +1,5 @@
-import { eq } from "drizzle-orm";
+import { auth } from "@clerk/nextjs/server";
+import { and, eq, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import { workspaces } from "@/db/schema";
 import { resolveViewer } from "@/lib/viewer";
@@ -31,6 +32,10 @@ import { APP_URL } from "@/lib/config";
  * the oldest checkout bug there is.
  */
 export async function POST(req: Request): Promise<Response> {
+  // Signed out is a 401, not the 500 resolveViewer's throw used to become.
+  const { userId } = await auth();
+  if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
   const viewer = await resolveViewer();
   if (!viewer.workspace) {
     return Response.json({ error: "No workspace" }, { status: 403 });
@@ -99,11 +104,36 @@ export async function POST(req: Request): Promise<Response> {
       // this is without joining anything by hand.
       metadata: { workspaceId: String(ws.id) },
     });
-    customerId = customer.id;
-    await db
+    /*
+      ── TWO CHECKOUTS AT ONCE ──
+      Both read "no customer" above and both created one. The claim is
+      conditional on the column still being empty, so exactly one wins; the
+      loser adopts the winner's customer and deletes the one it made, rather
+      than overwriting the winner and splitting the workspace's billing
+      history across two customers (AUDIT-REPORT.md, 21 Nov 2026).
+    */
+    const claimed = await db
       .update(workspaces)
-      .set({ stripeCustomerId: customerId })
-      .where(eq(workspaces.id, ws.id));
+      .set({ stripeCustomerId: customer.id })
+      .where(and(eq(workspaces.id, ws.id), isNull(workspaces.stripeCustomerId)))
+      .returning({ id: workspaces.id });
+
+    if (claimed.length > 0) {
+      customerId = customer.id;
+    } else {
+      const [winner] = await db
+        .select({ stripeCustomerId: workspaces.stripeCustomerId })
+        .from(workspaces)
+        .where(eq(workspaces.id, ws.id))
+        .limit(1);
+      customerId = winner?.stripeCustomerId ?? null;
+      await stripe.customers.del(customer.id).catch((err: unknown) => {
+        console.error("[checkout] could not delete duplicate customer %s:", customer.id, err);
+      });
+      if (!customerId) {
+        return Response.json({ error: "No workspace" }, { status: 403 });
+      }
+    }
   }
 
   const base = APP_URL.replace(/\/$/, "");

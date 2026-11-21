@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { json } from "@/lib/http";
+import { parseId } from "@/lib/ids";
 import { setTicketStatus } from "@/lib/data";
 import { activeWorkspace } from "@/lib/viewer";
 import type { TicketStatus } from "@/db/schema";
@@ -17,8 +18,9 @@ export async function PATCH(
   const { userId } = await auth();
   if (!userId) return json({ error: "Unauthorized" }, { status: 401 });
 
-  const ticketId = Number((await ctx.params).id);
-  if (!Number.isInteger(ticketId)) {
+  // int4 digits only (lib/ids.ts): 99999999999 used to reach Postgres and 500.
+  const ticketId = parseId((await ctx.params).id);
+  if (ticketId === null) {
     return json({ error: "Invalid ticket id" }, { status: 400 });
   }
 

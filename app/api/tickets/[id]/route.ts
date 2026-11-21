@@ -9,6 +9,7 @@ import { resolveIngestKey } from "@/lib/forms";
 import { notifyWorkspace } from "@/lib/notify";
 import { maybeSendAutoReply } from "@/lib/auto-reply-send";
 import { formErrorPage, formSuccessPage } from "@/lib/form-response-pages";
+import { readFields, wantsHtml } from "@/lib/request-fields";
 
 /**
  * POST /api/tickets/:apiKey — PUBLIC contact-form ingestion. The dashboard
@@ -181,9 +182,7 @@ export async function POST(
 
   // A native form submit (Mode A) navigates the browser here — show a tidy
   // confirmation page instead of raw JSON. Fetch/JSON callers get JSON.
-  const wantsHtml =
-    !isJsonRequest(req) && (req.headers.get("accept") ?? "").includes("text/html");
-  if (wantsHtml) {
+  if (wantsHtml(req)) {
     return htmlSuccess(workspace.name);
   }
 
@@ -195,40 +194,8 @@ export async function POST(
 
 // ── helpers ──────────────────────────────────────────────────────
 
-function isJsonRequest(req: Request): boolean {
-  return (req.headers.get("content-type") ?? "").includes("application/json");
-}
-
-async function readFields(req: Request): Promise<Record<string, string>> {
-  if (isJsonRequest(req)) {
-    try {
-      const body = (await req.json()) as Record<string, unknown>;
-      const out: Record<string, string> = {};
-      for (const [k, v] of Object.entries(body)) {
-        if (v != null) out[k] = String(v);
-      }
-      return out;
-    } catch {
-      return {};
-    }
-  }
-  // formData() THROWS on a body it cannot parse — text/plain, application/xml,
-  // or no content-type at all — and this is a public endpoint whose API key is
-  // embedded in the client's own page source. Unguarded, anyone who views
-  // source could turn a malformed POST into a 500. Fall through to the same
-  // empty result the JSON branch gives, and let the caller's validation
-  // produce the honest 400.
-  try {
-    const form = await req.formData();
-    const out: Record<string, string> = {};
-    for (const [k, v] of form.entries()) {
-      if (typeof v === "string") out[k] = v;
-    }
-    return out;
-  } catch {
-    return {};
-  }
-}
+// isJsonRequest, wantsHtml and readFields: lib/request-fields.ts, shared with
+// the newsletter sign-up endpoint.
 
 /**
  * The reply to a tripped honeypot: byte-identical in shape to a real success,
@@ -240,7 +207,7 @@ async function readFields(req: Request): Promise<Record<string, string>> {
  * instead of pointing at somebody else's ticket.
  */
 function honeypotSuccess(req: Request, workspaceName: string): Response {
-  if (!isJsonRequest(req) && (req.headers.get("accept") ?? "").includes("text/html")) {
+  if (wantsHtml(req)) {
     return htmlSuccess(workspaceName);
   }
   return json(
@@ -250,9 +217,7 @@ function honeypotSuccess(req: Request, workspaceName: string): Response {
 }
 
 function badRequest(req: Request, error: string): Response {
-  const wantsHtml =
-    !isJsonRequest(req) && (req.headers.get("accept") ?? "").includes("text/html");
-  if (wantsHtml) {
+  if (wantsHtml(req)) {
     return new Response(formErrorPage(error), {
       status: 400,
       headers: { "Content-Type": "text/html; charset=utf-8", ...CORS_HEADERS },

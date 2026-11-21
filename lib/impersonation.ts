@@ -262,6 +262,12 @@ export async function verifyImpersonationLog(): Promise<ChainVerification> {
 /** Close one session, if it is still open. Closing twice is a no-op. */
 export async function endImpersonation(
   sessionId: number,
+  /**
+   * The operator ending it. The session id comes from a cookie, which its
+   * holder can edit; matching on id alone let one operator close another's
+   * open session and stamp it "stopped" in the audit record (21 Nov 2026).
+   */
+  adminId: number,
   endedReason: ImpersonationEnd,
 ): Promise<void> {
   await db
@@ -270,6 +276,7 @@ export async function endImpersonation(
     .where(
       and(
         eq(impersonationSessions.id, sessionId),
+        eq(impersonationSessions.adminId, adminId),
         isNull(impersonationSessions.endedAt),
       ),
     );

@@ -2,6 +2,8 @@ import { Resend } from "resend";
 import { recordUsage } from "./usage-store";
 import { isProviderRateLimit } from "./email-quota";
 import { recordTransactionalSend } from "./email-quota-store";
+// The one HTML escaper; this file had a byte-identical copy until 21 Nov 2026.
+import { escapeHtml } from "./newsletter";
 
 /**
  * Resend wrapper. Replies are sent as real email FROM the workspace's
@@ -201,11 +203,6 @@ ${input.ticketUrl}
   return { sent: true, id: data?.id };
 }
 
-function escapeHtml(s: string): string {
-  return s.replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!,
-  );
-}
 
 /**
  * Branded HTML version of the invite (inline styles only — email clients).

@@ -132,10 +132,18 @@ describe("access log — reachable, and the same data as the operator console", 
 
   it("shares the operator console's formatters rather than copying them", () => {
     // The client must be able to quote a timestamp back at us and have it
-    // match what we see in app/(admin). Two copies drift.
+    // match what we see in app/(admin). Two copies drift. Since 21 Nov 2026
+    // both screens take them from lib/utc-time.ts, rather than this page
+    // reaching into the console's route folder.
     expect(src).toMatch(
-      /import \{ formatDateTime, formatDuration \} from "@\/app\/\(admin\)\/admin\/ui"/,
+      /import \{ formatDateTime, formatDuration \} from "@\/lib\/utc-time"/,
     );
+    const consoleUi = readFileSync(
+      join(process.cwd(), "app", "(admin)", "admin", "ui.tsx"),
+      "utf8",
+    );
+    expect(consoleUi).toMatch(/from "@\/lib\/utc-time"/);
+    expect(consoleUi).not.toMatch(/export function formatDateTime/);
   });
 
   it("shows the operator's email, and not their internal auth id", () => {

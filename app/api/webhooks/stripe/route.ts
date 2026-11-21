@@ -1,5 +1,5 @@
 import type Stripe from "stripe";
-import { eq } from "drizzle-orm";
+import { and, eq, isNull, or } from "drizzle-orm";
 import { db } from "@/db";
 import { workspaces, type PlanState } from "@/db/schema";
 import { stripeClient } from "@/lib/stripe";
@@ -140,6 +140,21 @@ async function applySubscription(
   workspaceId: number,
   sub: Stripe.Subscription,
 ): Promise<void> {
+  /*
+    ── ONLY THE WORKSPACE'S OWN SUBSCRIPTION ──
+    Every write below is conditional on the workspace having no subscription
+    yet, or having THIS one. Until 21 Nov 2026 any subscription event naming
+    the workspace in its metadata was applied: a second subscription (opened
+    by the old "Change plan" double-checkout, or by hand in the Stripe
+    dashboard) ending would drop a paying workspace to trial while the first
+    was still being charged. In the WHERE rather than read-then-write, so two
+    events racing cannot both pass a check that was true a moment ago.
+  */
+  const owns = and(
+    eq(workspaces.id, workspaceId),
+    or(isNull(workspaces.stripeSubscriptionId), eq(workspaces.stripeSubscriptionId, sub.id)),
+  );
+
   const item = sub.items.data[0];
   const priceId = item?.price?.id;
   const plan = priceId ? planForPriceId(priceId) : null;
@@ -153,10 +168,12 @@ async function applySubscription(
       priceId ?? "(none)",
       sub.id,
     );
-    await db
+    const touched = await db
       .update(workspaces)
       .set({ subscriptionStatus: sub.status })
-      .where(eq(workspaces.id, workspaceId));
+      .where(owns)
+      .returning({ id: workspaces.id });
+    if (touched.length === 0) logNotOurs(workspaceId, sub.id);
     return;
   }
 
@@ -173,7 +190,7 @@ async function applySubscription(
   // a paying customer.
   const periodEnd = item?.current_period_end ?? null;
 
-  await db
+  const updated = await db
     .update(workspaces)
     .set({
       plan: (ended ? "trial" : plan) as PlanState,
@@ -181,12 +198,30 @@ async function applySubscription(
       subscriptionStatus: sub.status,
       currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : null,
     })
-    .where(eq(workspaces.id, workspaceId));
+    .where(owns)
+    .returning({ id: workspaces.id });
+
+  if (updated.length === 0) {
+    logNotOurs(workspaceId, sub.id);
+    return;
+  }
 
   console.log(
     "[stripe-webhook] workspace %d → plan=%s status=%s",
     workspaceId,
     ended ? "trial" : plan,
     sub.status,
+  );
+}
+
+/**
+ * Acknowledged, not applied: the workspace is on a different subscription
+ * (or no longer exists). 200 all the same, so Stripe does not retry it.
+ */
+function logNotOurs(workspaceId: number, subId: string): void {
+  console.warn(
+    "[stripe-webhook] ignored subscription %s: workspace %d is on a different subscription, or gone",
+    subId,
+    workspaceId,
   );
 }

@@ -11,6 +11,14 @@ import {
   parseHex,
   toHex,
 } from "./email-colour";
+import { looksLikeEmail } from "./email-address";
+import { parseId } from "./ids";
+import {
+  UNKNOWN_FIRST_NAME,
+  firstNameFrom,
+  renderTemplate,
+  type MergeValues,
+} from "./merge-tags";
 
 /**
  * Newsletter engine — the PURE half.
@@ -143,45 +151,13 @@ export const NEWSLETTER_MERGE_TOKENS: {
   },
 ];
 
-/** Same neutral placeholder as the auto-reply engine, for the same reasons. */
-export const UNKNOWN_FIRST_NAME = "there";
-
-/**
- * Extract a usable first name, or the fallback.
- *
- * Marketing lists are dirtier than ticket contacts: CSV imports routinely put
- * the address in the name column, or "N/A", or the empty string. A subscriber
- * must never be greeted "Hi bob.smith@acme.co," — that is the tell of a spam
- * blast, and it is exactly what trains a recipient to hit the complaint button
- * that costs every other tenant on this domain their inbox placement.
+/*
+ * The neutral placeholder, firstNameFrom, MergeValues and renderTemplate are
+ * shared with the auto-reply engine from lib/merge-tags.ts (one copy since
+ * 21 Nov 2026) and re-exported here for this module's callers.
  */
-export function firstNameFrom(
-  name: string | null | undefined,
-  email?: string | null,
-): string {
-  const raw = (name ?? "").trim();
-  if (!raw) return UNKNOWN_FIRST_NAME;
-  if (raw.includes("@")) return UNKNOWN_FIRST_NAME;
-  if (email && raw.toLowerCase() === email.trim().toLowerCase()) {
-    return UNKNOWN_FIRST_NAME;
-  }
-
-  const first = raw
-    .split(/\s+/)[0]
-    .replace(/^["'`(<[]+/, "")
-    .replace(/["'`)>\].,;:!?]+$/, "")
-    .trim();
-  if (first.length < 2) return UNKNOWN_FIRST_NAME;
-  if (/[0-9/\\|]/.test(first)) return UNKNOWN_FIRST_NAME;
-
-  if (first === first.toUpperCase()) {
-    return first[0] + first.slice(1).toLowerCase();
-  }
-  if (first === first.toLowerCase()) {
-    return first[0].toUpperCase() + first.slice(1);
-  }
-  return first;
-}
+export { UNKNOWN_FIRST_NAME, firstNameFrom, renderTemplate };
+export type { MergeValues };
 
 /** Whole name, cleaned. Falls back to the same placeholder as first_name. */
 export function fullNameFrom(
@@ -196,8 +172,6 @@ export function fullNameFrom(
   }
   return raw;
 }
-
-export type MergeValues = Record<string, string>;
 
 export function buildCampaignMergeValues(input: {
   name: string | null | undefined;
@@ -215,41 +189,6 @@ export function buildCampaignMergeValues(input: {
   };
 }
 
-/**
- * Substitute merge tokens.
- *
- * Two hard rules, unchanged from the auto-reply renderer:
- *  1. no `{anything}` survives into the output — a misspelled or unknown token
- *     (`{firstname}`, `{order_id}`) is deleted, never passed through. 40,000
- *     people reading a literal `{first_name}` is an unrecoverable send;
- *  2. the result is tidied so a deleted token doesn't leave "Hi ," behind.
- *
- * Newlines survive; only runs of spaces/tabs within a line collapse. URLs are
- * substituted verbatim and are not touched by the tidy pass.
- */
-export function renderTemplate(template: string, values: MergeValues): string {
-  const substituted = (template ?? "").replace(
-    /\{\s*([a-z0-9_]+)\s*\}/gi,
-    (_match, name: string) => {
-      const value = values[name.toLowerCase()];
-      return typeof value === "string" ? value.trim() : "";
-    },
-  );
-  return tidy(substituted);
-}
-
-function tidy(text: string): string {
-  return text
-    .split("\n")
-    .map((line) =>
-      line
-        .replace(/[ \t]{2,}/g, " ")
-        .replace(/[ \t]+([,.!?;:])/g, "$1")
-        .replace(/[ \t]+$/g, ""),
-    )
-    .join("\n")
-    .trim();
-}
 
 // ── Addresses ────────────────────────────────────────────────────
 
@@ -272,10 +211,8 @@ export function normaliseEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-/** Light sanity check. Mirrors lib/http.isValidEmail; kept local to stay pure. */
-export function looksLikeEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
+/** Light sanity check. Lives in lib/email-address.ts; re-exported for callers here. */
+export { looksLikeEmail };
 
 // ── Audience selection ───────────────────────────────────────────
 
@@ -1967,8 +1904,10 @@ export function parseCampaignInput(body: {
 
   let listId: number | null = null;
   if (body.listId !== undefined && body.listId !== null) {
-    const n = Number(body.listId);
-    if (!Number.isInteger(n) || n <= 0) {
+    // parseId, so an id past Postgres's int range is a clean refusal rather
+    // than a 500 from the query (21 Nov 2026).
+    const n = parseId(body.listId);
+    if (n === null) {
       return { ok: false, error: "Invalid audience list." };
     }
     listId = n;

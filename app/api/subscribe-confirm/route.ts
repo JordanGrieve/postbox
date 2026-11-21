@@ -124,6 +124,11 @@ function redirect(path: string): Response {
   });
 }
 
+/*
+  Form-only, on purpose, and not lib/request-fields.ts's readFields: only
+  Postbox's own confirm page posts here, as a plain HTML form, so there is no
+  JSON caller to serve and no reason to accept one.
+*/
 async function readFields(req: Request): Promise<Record<string, string>> {
   try {
     const form = await req.formData();

@@ -40,6 +40,14 @@ jobs:
         with:
           node-version: 22
           cache: npm
+      # npm 11, not the npm 10 that ships with Node 22. npm 10 crashes on this
+      # project's peer-dependency tree ("Cannot read properties of null
+      # (reading 'edgesOut')") whenever the lockfile has to change, so the
+      # lockfile is made with npm 11 — and npm 10's `npm ci` rejects an npm 11
+      # lockfile (esbuild's platform packages read as missing). That mismatch
+      # turned main red on 20 Nov 2026. Same major here as wherever the
+      # lockfile is written; Jordan's call, 21 Nov 2026.
+      - run: npm install -g npm@11
       - run: npm ci
       # FIRST, and on purpose.
       #

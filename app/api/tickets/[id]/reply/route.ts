@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { json } from "@/lib/http";
+import { parseId } from "@/lib/ids";
 import { rateLimitDurable } from "@/lib/rate-limit-store";
 import { getTicket, getMessages, addMessage } from "@/lib/data";
 import { activeWorkspace } from "@/lib/viewer";
@@ -22,8 +23,9 @@ export async function POST(
   const { userId } = await auth();
   if (!userId) return json({ error: "Unauthorized" }, { status: 401 });
 
-  const ticketId = Number((await ctx.params).id);
-  if (!Number.isInteger(ticketId)) {
+  // int4 digits only (lib/ids.ts): 99999999999 used to reach Postgres and 500.
+  const ticketId = parseId((await ctx.params).id);
+  if (ticketId === null) {
     return json({ error: "Invalid ticket id" }, { status: 400 });
   }
 
@@ -101,6 +103,10 @@ export async function POST(
     },
   });
 
+  if (emailResult.error) {
+    console.error("[reply] email for ticket %d not sent: %s", ticket.id, emailResult.error);
+  }
+
   const saved = await addMessage({
     ticketId: ticket.id,
     direction: "outbound",
@@ -141,7 +147,11 @@ export async function POST(
       ok: true,
       message: saved,
       emailSent: emailResult.sent,
-      ...(emailResult.error ? { emailWarning: emailResult.error } : {}),
+      // Plain words for the browser; the provider's error is logged below
+      // rather than returned (21 Nov 2026).
+      ...(emailResult.error
+        ? { emailWarning: "Saved, but the email could not be sent to the customer." }
+        : {}),
     },
     { status: 201 },
   );

@@ -11,7 +11,7 @@ import { formatDateTime } from "@/lib/serialize";
 import type { TicketStatus } from "@/db/schema";
 import { Icon, OverflowIcon } from "./icons";
 import ContactRail from "./ContactRail";
-import type { ContactNoteDTO } from "@/app/(dashboard)/queries";
+import type { ContactNoteDTO } from "./types";
 import { describeDeliveryStatus } from "@/lib/delivery-events";
 import type { ContactCard } from "./types";
 

@@ -25,6 +25,7 @@
  */
 
 import type { AgentRole } from "@/db/schema";
+import { looksLikeEmail } from "./email-address";
 
 export type TeamMember = {
   id: number;
@@ -240,6 +241,3 @@ export function sortTeam(team: TeamMember[]): TeamMember[] {
   });
 }
 
-function looksLikeEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}

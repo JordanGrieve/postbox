@@ -271,15 +271,27 @@ export async function listWorkspaceSummaries(): Promise<WorkspaceSummary[]> {
 }
 
 /**
- * Has this email already been ingested? Webhook deliveries are retried on
- * timeouts even after we processed them — matching on Message-ID makes
- * ingestion idempotent.
+ * Has this email already been ingested INTO THIS WORKSPACE? Webhook
+ * deliveries are retried on timeouts even after we processed them — matching
+ * on Message-ID makes ingestion idempotent.
+ *
+ * Scoped to one workspace since 21 Nov 2026. It used to match across the
+ * whole platform, so one email CC'd to two clients' Postbox addresses was
+ * filed for whichever came first and dropped as a "duplicate" for the other.
+ * A Message-ID names one email, not one tenant's copy of it.
+ *
+ * ticket_messages has no workspace_id: the join up to tickets is the scope,
+ * as everywhere else.
  */
-export async function messageIdExists(messageId: string): Promise<boolean> {
+export async function messageIdExists(
+  messageId: string,
+  workspaceId: number,
+): Promise<boolean> {
   const rows = await db
     .select({ id: ticketMessages.id })
     .from(ticketMessages)
-    .where(eq(ticketMessages.messageId, messageId))
+    .innerJoin(tickets, eq(ticketMessages.ticketId, tickets.id))
+    .where(and(eq(tickets.workspaceId, workspaceId), eq(ticketMessages.messageId, messageId)))
     .limit(1);
   return rows.length > 0;
 }

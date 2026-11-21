@@ -6,7 +6,7 @@ import { useVisibleRefresh } from "@/lib/use-visible-refresh";
 import { SOURCE_META } from "@/lib/theme";
 import { Icon, SearchIcon } from "./icons";
 import type { MailRow } from "./types";
-import type { InboxView } from "@/app/(dashboard)/queries";
+import type { InboxView } from "./types";
 
 /**
  * The list pane (full width below 768px).

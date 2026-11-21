@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { scrubEvent } from "./lib/sentry-scrub";
 
 /**
  * Edge runtime (proxy.ts runs here). Loaded from instrumentation.ts's
@@ -12,4 +13,9 @@ Sentry.init({
 
   environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV,
   release: process.env.VERCEL_GIT_COMMIT_SHA,
+
+  // See sentry.server.config.ts and lib/sentry-scrub.ts.
+  beforeSend: (event) => scrubEvent(event),
+  beforeSendTransaction: (event) => scrubEvent(event),
+  beforeBreadcrumb: (crumb) => scrubEvent(crumb),
 });

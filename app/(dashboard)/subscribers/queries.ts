@@ -207,10 +207,15 @@ export async function getSubscriberDetail(
       .from(suppressions)
       // Suppressions are keyed by address, not by subscriber id — that is the
       // whole point of the table, so this is a (workspace, email) lookup.
+      //
+      // lower(btrim(…)) on BOTH sides, as every other suppression match does
+      // (lib/suppressions.ts, lib/campaign-send.ts). It compared exactly until
+      // 21 Nov 2026, so a suppression stored as "Ann@Example.com" left this
+      // page saying "not suppressed" while sends were correctly blocked.
       .where(
         and(
           eq(suppressions.workspaceId, workspaceId),
-          eq(suppressions.email, row.email),
+          sql`lower(btrim(${suppressions.email})) = lower(btrim(${row.email}))`,
         ),
       )
       .limit(1),

@@ -1,3 +1,4 @@
+import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { workspaces } from "@/db/schema";
@@ -20,6 +21,10 @@ import { APP_URL } from "@/lib/config";
  * digits and their address.
  */
 export async function POST(): Promise<Response> {
+  // Signed out is a 401, not the 500 resolveViewer's throw used to become.
+  const { userId } = await auth();
+  if (!userId) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
   const viewer = await resolveViewer();
   if (!viewer.workspace) {
     return Response.json({ error: "No workspace" }, { status: 403 });

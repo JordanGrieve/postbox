@@ -16,6 +16,18 @@ describe("operatorBillingRefusal", () => {
   });
 
   for (const route of ["checkout", "portal"]) {
+    // Signed out was a 500: resolveViewer throws without a session (21 Nov 2026).
+    it(`app/api/billing/${route} answers a signed-out caller 401 before resolveViewer`, () => {
+      const src = readFileSync(
+        join(__dirname, "..", "app", "api", "billing", route, "route.ts"),
+        "utf8",
+      );
+      const authAt = src.indexOf("if (!userId) return Response.json({ error: \"Unauthorized\" }, { status: 401 })");
+      const viewerAt = src.indexOf("await resolveViewer()");
+      expect(authAt, "checks the session").toBeGreaterThan(-1);
+      expect(authAt).toBeLessThan(viewerAt);
+    });
+
     it(`app/api/billing/${route} refuses operators before it reaches Stripe`, () => {
       const src = readFileSync(
         join(__dirname, "..", "app", "api", "billing", route, "route.ts"),
@@ -62,6 +74,19 @@ describe("app/api/billing/checkout/route.ts", () => {
     expect(refusalAt, "the route consults checkoutRefusal").toBeGreaterThan(-1);
     expect(sessionAt).toBeGreaterThan(-1);
     expect(refusalAt).toBeLessThan(sessionAt);
+  });
+
+  /*
+    Two checkouts at once both saw "no customer" and both created one; the
+    second write overwrote the first, splitting the workspace's billing
+    across two Stripe customers (21 Nov 2026). The claim is now conditional
+    on the column still being empty, and the loser deletes its own.
+  */
+  it("claims the Stripe customer only if none is stored, and the loser deletes its own", () => {
+    expect(src).toMatch(
+      /\.set\(\{ stripeCustomerId: customer\.id \}\)\s*\.where\(and\(eq\(workspaces\.id, ws\.id\), isNull\(workspaces\.stripeCustomerId\)\)\)/,
+    );
+    expect(src).toContain("stripe.customers.del(customer.id)");
   });
 
   it("reads the subscription id it needs for that decision", () => {

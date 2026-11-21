@@ -89,12 +89,11 @@ export async function POST(req: Request) {
   let data = (payload.data as Record<string, unknown>) ?? payload;
 
   // Idempotency: webhook deliveries are retried on timeout even after we
-  // processed them. The Message-ID is in the metadata, so dedupe before
-  // doing any work (or fetching the body).
-  const earlyMessageId = extractMessageId(data);
-  if (earlyMessageId && (await messageIdExists(earlyMessageId))) {
-    return json({ ok: true, duplicate: true });
-  }
+  // processed them. The check is per WORKSPACE, at the point each one is
+  // written to below — not here, once, across the platform. A global check
+  // dropped an email CC'd to two clients for whichever came second
+  // (AUDIT-REPORT.md, 21 Nov 2026). The cost is that a retried delivery may
+  // fetch the body again before it is recognised; retries are rare.
 
   // Resend's email.received event carries METADATA ONLY — no body, no headers.
   // When the body is missing, fetch the full email from the Received Emails
@@ -139,6 +138,11 @@ export async function POST(req: Request) {
     if (ref != null) {
       const ticket = await lookupTicketAnyWorkspace(ref.id);
       if (ticket && ticket.replyToken && ref.token && tokensEqual(ref.token, ticket.replyToken)) {
+        // Already threaded into this workspace: a retried delivery. Checked
+        // before the rate limit so a retry does not spend the budget.
+        if (messageId && (await messageIdExists(messageId, ticket.workspaceId))) {
+          return json({ ok: true, duplicate: true });
+        }
         const limited = await inboundLimited(ticket.workspaceId, sender.email);
         if (limited) return limited;
         // The customer's reply tells us the real Message-ID SES assigned to
@@ -164,10 +168,24 @@ export async function POST(req: Request) {
     }
   }
 
-  // 2) New ticket to a workspace inbound address.
+  // 2) New ticket to a workspace inbound address — EVERY one addressed, not
+  //    only the first. One email can be sent to two clients' Postbox
+  //    addresses (CC'd, or forwarded from two shared inboxes), and each
+  //    client gets their own ticket. Each is deduplicated in its own
+  //    workspace, so a retry after a partial run (say a 429 on the second)
+  //    files only what is still missing.
+  const created: number[] = [];
+  const seen = new Set<number>();
+  let duplicate = false;
+  let firstSource: string | null = null;
   for (const addr of recipients) {
     const workspace = await getWorkspaceByInboundEmail(addr);
-    if (workspace) {
+    if (workspace && !seen.has(workspace.id)) {
+      seen.add(workspace.id);
+      if (messageId && (await messageIdExists(messageId, workspace.id))) {
+        duplicate = true;
+        continue;
+      }
       const limited = await inboundLimited(workspace.id, sender.email);
       if (limited) return limited;
       const { source, orderId } = classifyInbound(subject, body);
@@ -193,9 +211,18 @@ export async function POST(req: Request) {
       // replies into an existing thread never do, which is what stops two
       // autoresponders from talking to each other.
       await maybeSendAutoReply({ workspace, ticket, inboundPayload: data });
-      return json({ ok: true, ticket: ticket.id, source }, { status: 201 });
+      created.push(ticket.id);
+      firstSource ??= source;
     }
   }
+
+  if (created.length > 0) {
+    return json(
+      { ok: true, ticket: created[0], tickets: created, source: firstSource },
+      { status: 201 },
+    );
+  }
+  if (duplicate) return json({ ok: true, duplicate: true });
 
   // Nothing matched — acknowledge so Resend doesn't retry endlessly.
   return json({ ok: true, ignored: true });

@@ -2,6 +2,7 @@
 import { describe, it, expect, vi, afterEach, beforeEach } from "vitest";
 import { render, cleanup } from "@testing-library/react";
 import ContactRail from "../components/mail/ContactRail";
+import type { ContactCard } from "../components/mail/types";
 
 /**
  * Escape closes the contact rail, and only while it is a sheet.
@@ -44,7 +45,7 @@ const contact = {
   email: "margarethe@example.co.uk",
   firstSeenIso: "2026-01-04T09:00:00.000Z",
   ticketCount: 7,
-} as never;
+} satisfies ContactCard;
 
 function press(key: string) {
   document.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true }));

@@ -47,7 +47,7 @@ import Thread from "../components/mail/Thread";
 import type { MailRow, ContactCard } from "../components/mail/types";
 import type { TicketDTO, MessageDTO } from "../lib/serialize";
 import type { OnboardingProgress, OnboardingStep } from "../lib/onboarding";
-import type { ContactNoteDTO } from "../app/(dashboard)/queries";
+import type { ContactNoteDTO } from "../components/mail/types";
 
 /**
  * Every client-facing mail view renders.

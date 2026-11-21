@@ -309,8 +309,11 @@ describe("muted text clears AA in every theme", () => {
   for (const palette of PALETTES) {
     for (const ink of MUTED_INKS) {
     it(`${palette.name} ${ink} on the translucent --surface-3`, () => {
-      const raw = rawToken(palette.selector, "--surface-3");
-      if (!raw) return; // palette inherits one already checked
+      const raw = rawToken(palette.selector, "--surface-3") ?? "";
+      // Asserted, not skipped (21 Nov 2026). With two full palettes nothing
+      // is "inherited and checked already": a token the dark block left out
+      // would fall back to light's value, never measured against dark's ink.
+      expect(raw, `${palette.name} declares --surface-3`).not.toBe("");
 
       // The panel the overlay is painted over.
       const base =
@@ -361,8 +364,9 @@ describe("muted text clears AA in every theme", () => {
   for (const palette of PALETTES) {
     for (const ink of MUTED_INKS) {
       it(`${palette.name} ${ink} on two stacked --surface-3 washes`, () => {
-        const raw = rawToken(palette.selector, "--surface-3");
-        if (!raw) return; // palette inherits one already checked
+        const raw = rawToken(palette.selector, "--surface-3") ?? "";
+        // Asserted, not skipped: see the single-wash block above.
+        expect(raw, `${palette.name} declares --surface-3`).not.toBe("");
 
         const base =
           parseHex(rawToken(palette.selector, "--panel") ?? "") ??
@@ -405,8 +409,9 @@ describe("muted text clears AA in every theme", () => {
   */
   for (const palette of PALETTES) {
     it(`${palette.name} --accent-text on --accent-chip`, () => {
-      const rawChip = rawToken(palette.selector, "--accent-chip");
-      if (!rawChip) return; // palette inherits one already checked
+      const rawChip = rawToken(palette.selector, "--accent-chip") ?? "";
+      // Asserted, not skipped: see the --surface-3 blocks above.
+      expect(rawChip, `${palette.name} declares --accent-chip`).not.toBe("");
 
       const base =
         parseHex(rawToken(palette.selector, "--surface") ?? "") ??
@@ -716,8 +721,9 @@ describe("the focus ring clears 3:1 on the grounds it is drawn over", () => {
         const base =
           parseHex(rawToken(palette.selector, "--panel") ?? "") ??
           parseHex(rawToken(palette.selector, "--surface") ?? "");
-        const raw = rawToken(palette.selector, ground);
-        if (!raw) return; // not declared in this palette; it inherits one checked already
+        const raw = rawToken(palette.selector, ground) ?? "";
+        // Asserted, not skipped: see the --surface-3 blocks above.
+        expect(raw, `${palette.name} declares ${ground}`).not.toBe("");
 
         // Throws rather than skipping: a ground that cannot be read is a broken
         // test, not an absent problem. Same rule as the --surface-3 block above.

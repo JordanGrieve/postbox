@@ -15,12 +15,12 @@ import {
   exportsForWorkspace,
   operatorActionsForWorkspace,
 } from "@/lib/admin-audit";
-// The operator console's formatters, imported rather than reimplemented. This
-// screen and app/(admin)/admin/sections.tsx are two views of ONE table, and the
-// client must be able to quote a row back at us and have it match what we see.
-// A second copy of "how a timestamp is written" is how those two drift into
+// The same formatters the operator console uses (lib/utc-time.ts). This screen
+// and app/(admin)/admin/sections.tsx are two views of ONE table, and the client
+// must be able to quote a row back at us and have it match what we see. A
+// second copy of "how a timestamp is written" is how those two drift into
 // disagreeing about the same visit.
-import { formatDateTime, formatDuration } from "@/app/(admin)/admin/ui";
+import { formatDateTime, formatDuration } from "@/lib/utc-time";
 
 export const metadata = { title: "Access log · Settings" };
 

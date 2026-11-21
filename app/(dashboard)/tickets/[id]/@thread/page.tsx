@@ -1,5 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import Thread from "@/components/mail/Thread";
+import { parseId } from "@/lib/ids";
 import { currentImpersonation, resolveViewer } from "@/lib/viewer";
 import { recordImpersonationRead } from "@/lib/impersonation-reads";
 import { getTicket, getMessages, TICKETS_PAGE_SIZE } from "@/lib/data";
@@ -43,8 +44,9 @@ export default async function TicketThreadSlot({
   params: Promise<{ id: string }>;
   searchParams: Promise<{ folder?: string; page?: string }>;
 }) {
-  const ticketId = Number((await params).id);
-  if (!Number.isInteger(ticketId)) notFound();
+  // int4 digits only (lib/ids.ts): a huge id used to reach Postgres and 500.
+  const ticketId = parseId((await params).id);
+  if (ticketId === null) notFound();
 
   const { folder: folderParam, page: pageParam } = await searchParams;
   const view = parseInboxView(folderParam);

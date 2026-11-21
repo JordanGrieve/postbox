@@ -31,7 +31,7 @@ const HEALTHY_ENV = {
   sweepConfigured: true,
   senderConfigured: true,
   deliveryLive: true,
-};
+} satisfies CampaignHealthInput["env"];
 
 function input(over: Partial<CampaignHealthInput> = {}): CampaignHealthInput {
   return {
@@ -99,14 +99,15 @@ describe("blockers", () => {
     expect(h.blockers.some((b) => b.code === "no_postal_address")).toBe(true);
   });
 
-  it.each([
+  // Typed, so a key that is not an env flag fails tsc rather than being cast
+  // past it (this used `as never` until 21 Nov 2026).
+  it.each<[keyof CampaignHealthInput["env"], string]>([
     ["sweepConfigured", "sweep_not_configured"],
     ["senderConfigured", "sender_not_configured"],
     ["deliveryLive", "log_only_mode"],
   ])("reports %s being off as OPERATOR-only", (key, code) => {
-    const h = diagnoseCampaign(
-      input({ env: { ...HEALTHY_ENV, [key]: false } as never }),
-    );
+    const env: CampaignHealthInput["env"] = { ...HEALTHY_ENV, [key]: false };
+    const h = diagnoseCampaign(input({ env }));
     const b = h.blockers.find((x) => x.code === code);
     expect(b?.blocking).toBe(true);
     // A client cannot set an environment variable. Telling them to would be

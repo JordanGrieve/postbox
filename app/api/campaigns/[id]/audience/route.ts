@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { json } from "@/lib/http";
+import { parseId } from "@/lib/ids";
 import { activeWorkspace } from "@/lib/viewer";
 import {
   discardQueuedRecipients,
@@ -30,10 +31,8 @@ import {
  * lib/campaign-sweep-run.ts, never from here.
  */
 
-function idFrom(raw: string): number | null {
-  const n = Number(raw);
-  return Number.isInteger(n) ? n : null;
-}
+// One parser for every id from a request: int4, digits only (lib/ids.ts).
+const idFrom = parseId;
 
 export async function GET(
   _req: Request,

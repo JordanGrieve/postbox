@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import MessageList from "@/components/mail/MessageList";
+import { parseId } from "@/lib/ids";
 import { resolveViewer } from "@/lib/viewer";
 import { TICKETS_PAGE_SIZE } from "@/lib/data";
 import { listMailPage, mailCounts, parseInboxView, toMailRow } from "../../queries";
@@ -49,8 +50,7 @@ async function ListPane({
   // A non-integer id is a 404, but that is the thread slot's call to make —
   // it is the half that actually loads the ticket. Here it just means no row
   // is highlighted.
-  const ticketId = Number(idParam);
-  const selectedId = Number.isInteger(ticketId) ? ticketId : undefined;
+  const selectedId = parseId(idParam) ?? undefined;
 
   const { folder: folderParam, page: pageParam } = await searchParams;
   // To reply or Done; nothing else is offered (18 Nov 2026).

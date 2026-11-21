@@ -90,3 +90,27 @@ describe("impersonation — cookies", () => {
     expect(opts).toContain("secure:");
   });
 });
+
+/*
+  Stopping only ends YOUR session (21 Nov 2026). The session id comes from a
+  cookie its holder can edit, and endImpersonation matched on that id alone,
+  so one operator could close another's open session as "stopped".
+*/
+describe("impersonation — stopping ends only your own session", () => {
+  const impSrc = readFileSync(join(process.cwd(), "lib", "impersonation.ts"), "utf8");
+  const actSrc = readFileSync(
+    join(process.cwd(), "app", "(admin)", "admin", "actions.ts"),
+    "utf8",
+  );
+
+  it("endImpersonation matches the operator as well as the session id", () => {
+    const start = impSrc.indexOf("export async function endImpersonation(");
+    expect(start).toBeGreaterThan(-1);
+    const body = impSrc.slice(start, impSrc.indexOf("\n}", start));
+    expect(body).toContain("eq(impersonationSessions.adminId, adminId)");
+  });
+
+  it("stopImpersonatingAction passes the signed-in operator's id", () => {
+    expect(actSrc).toContain("endImpersonation(sessionId, admin.id,");
+  });
+});

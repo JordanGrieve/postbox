@@ -11,7 +11,7 @@ import {
 } from "@/db/schema";
 import { TICKETS_PAGE_SIZE } from "@/lib/data";
 import { previewText, relativeTime } from "@/lib/tickets";
-import type { MailRow } from "@/components/mail/types";
+import type { ContactNoteDTO, InboxView, MailRow } from "@/components/mail/types";
 
 /**
  * Reads the mail client needs that lib/data.ts does not expose.
@@ -34,9 +34,10 @@ import type { MailRow } from "@/components/mail/types";
  * The inbox's two tabs (18 Nov 2026): "To reply" is `inbox` (open
  * conversations) and "Done" is `closed`. The only views the interface
  * offers; any other ?folder= lands on To reply rather than on a list nobody
- * can navigate out of.
+ * can navigate out of. The type lives in components/mail/types.ts, beside the
+ * components that use it.
  */
-export type InboxView = "inbox" | "closed";
+export type { InboxView, ContactNoteDTO };
 
 export function parseInboxView(value: string | undefined): InboxView {
   return value === "closed" ? "closed" : "inbox";
@@ -216,13 +217,6 @@ export async function getContactFacts(
     );
   return { firstSeenIso: null, ticketCount: fallback?.n ?? 0 };
 }
-
-export type ContactNoteDTO = {
-  id: number;
-  body: string;
-  authorLabel: string;
-  createdAtIso: string;
-};
 
 /**
  * Internal notes about a contact, newest first.

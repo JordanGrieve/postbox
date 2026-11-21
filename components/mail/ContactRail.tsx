@@ -13,7 +13,7 @@ import {
 } from "@/lib/sheet-drag";
 import type { ContactCard } from "./types";
 import ContactNotes from "./ContactNotes";
-import type { ContactNoteDTO } from "@/app/(dashboard)/queries";
+import type { ContactNoteDTO } from "./types";
 import { detectEmailTypo, describeEmailTypo } from "@/lib/email-typo";
 
 /**

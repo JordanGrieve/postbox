@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { resolveViewer } from "@/lib/viewer";
+import { parseId } from "@/lib/ids";
 import { initials } from "@/lib/ticket-format";
 import { getSubscriberDetail } from "../queries";
 import {
@@ -47,8 +48,9 @@ export default async function SubscriberDetailPage({
   if (!viewer.workspace) redirect(viewer.isAdmin ? "/admin" : "/no-access");
   const workspace = viewer.workspace;
 
-  const subscriberId = Number((await params).id);
-  if (!Number.isInteger(subscriberId) || subscriberId < 1) notFound();
+  // int4 digits only (lib/ids.ts): a huge id used to reach Postgres and 500.
+  const subscriberId = parseId((await params).id);
+  if (subscriberId === null) notFound();
 
   const detail = await getSubscriberDetail(workspace.id, subscriberId);
   if (!detail) notFound();

@@ -41,6 +41,7 @@ import {
   type ScheduleState,
 } from "./composer-model";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import CampaignList, { type PendingNav } from "./CampaignList";
 import AudienceReadout from "./AudienceReadout";
 import PreviewCard from "./PreviewCard";
@@ -260,6 +261,7 @@ export default function Composer({
   const preheaderRef = useRef<HTMLInputElement>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
   const lastFocused = useRef<FieldKey>("body");
+  const router = useRouter();
 
   const editable = isEditableStatus(draft.status);
 
@@ -1083,14 +1085,17 @@ export default function Composer({
     } else if (fix === "signup") {
       // Nobody has confirmed yet. The fix is the signup form, which lives on
       // the Install screen — not anything on this page.
-      window.location.assign("/settings/install");
+      router.push("/settings/install");
     } else if (fix === "queue") {
       document.getElementById("nl-recipients")?.scrollIntoView({ block: "start", behavior: "smooth" });
     } else if (fix === "body") {
       bodyRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
       bodyRef.current?.focus();
     } else {
-      window.location.assign("/settings");
+      // Client navigation (was window.location.assign until 21 Nov 2026; a
+      // full load bought nothing: there is no unload guard to trigger, and
+      // unsaved edits are lost either way, as on any link out of here).
+      router.push("/settings");
     }
   }
 

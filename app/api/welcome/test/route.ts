@@ -16,7 +16,9 @@ import { sendWelcomeEmail } from "@/lib/welcome-store";
  * them was invisible outside a Vercel log nobody on this project can read.
  * A feature whose failure mode is silence is a feature nobody can support.
  *
- * The reason IS returned here, unlike every other send in the product. That
+ * The reason IS returned here (the kind of refusal, never the provider's raw
+ * error text, which is logged instead), unlike every other send in the
+ * product. That
  * is safe precisely because this one goes to the authenticated caller's own
  * address — there is no stranger to leak anything to, and the person reading
  * it is the only person who can fix it.
@@ -85,13 +87,17 @@ export async function POST() {
 
   if (result.sent) return json({ ok: true, sent: true, to });
 
+  // The provider's raw error goes to the log, not the browser (21 Nov 2026):
+  // the reason above says what kind of failure it was, and the raw text can
+  // name our sending account or configuration.
+  if (result.detail) {
+    console.error("[welcome/test] %s: %s", result.reason, result.detail);
+  }
+
   return json({
     ok: true,
     sent: false,
     reason: result.reason,
     message: EXPLAIN[result.reason] ?? "It could not be sent.",
-    // Only ever present for send_failed, and only ever seen by the caller
-    // asking about their own address. See WelcomeSendResult.detail.
-    ...(result.detail ? { detail: result.detail } : {}),
   });
 }

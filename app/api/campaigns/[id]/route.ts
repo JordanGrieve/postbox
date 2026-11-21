@@ -1,5 +1,6 @@
 import { auth } from "@clerk/nextjs/server";
 import { json } from "@/lib/http";
+import { parseId } from "@/lib/ids";
 import { getWorkspaceEntitlement } from "@/lib/billing-query";
 import { checkAllowance, emailAllowance as emailAllowanceFor } from "@/lib/usage";
 import { usedThisMonth } from "@/lib/usage-store";
@@ -43,8 +44,9 @@ export async function GET(
   const { userId } = await auth();
   if (!userId) return json({ error: "Unauthorized" }, { status: 401 });
 
-  const campaignId = Number((await ctx.params).id);
-  if (!Number.isInteger(campaignId)) {
+  // int4 digits only (lib/ids.ts): 99999999999 used to reach Postgres and 500.
+  const campaignId = parseId((await ctx.params).id);
+  if (campaignId === null) {
     return json({ error: "Invalid campaign id" }, { status: 400 });
   }
 
@@ -103,8 +105,9 @@ export async function PATCH(
   const { userId } = await auth();
   if (!userId) return json({ error: "Unauthorized" }, { status: 401 });
 
-  const campaignId = Number((await ctx.params).id);
-  if (!Number.isInteger(campaignId)) {
+  // int4 digits only (lib/ids.ts): 99999999999 used to reach Postgres and 500.
+  const campaignId = parseId((await ctx.params).id);
+  if (campaignId === null) {
     return json({ error: "Invalid campaign id" }, { status: 400 });
   }
 
@@ -214,8 +217,9 @@ export async function DELETE(
   const { userId } = await auth();
   if (!userId) return json({ error: "Unauthorized" }, { status: 401 });
 
-  const campaignId = Number((await ctx.params).id);
-  if (!Number.isInteger(campaignId)) {
+  // int4 digits only (lib/ids.ts): 99999999999 used to reach Postgres and 500.
+  const campaignId = parseId((await ctx.params).id);
+  if (campaignId === null) {
     return json({ error: "Invalid campaign id" }, { status: 400 });
   }
 

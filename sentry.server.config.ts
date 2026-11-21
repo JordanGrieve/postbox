@@ -1,4 +1,5 @@
 import * as Sentry from "@sentry/nextjs";
+import { scrubEvent } from "./lib/sentry-scrub";
 
 /**
  * Node.js server runtime. Loaded from instrumentation.ts's register().
@@ -26,4 +27,10 @@ Sentry.init({
 
   environment: process.env.VERCEL_ENV ?? process.env.NODE_ENV,
   release: process.env.VERCEL_GIT_COMMIT_SHA,
+
+  // Tokens, keys and addresses travel in some URLs here; lib/sentry-scrub.ts
+  // takes them out of everything that carries a URL.
+  beforeSend: (event) => scrubEvent(event),
+  beforeSendTransaction: (event) => scrubEvent(event),
+  beforeBreadcrumb: (crumb) => scrubEvent(crumb),
 });
