@@ -137,6 +137,27 @@ describe("the sender's name on an emailed enquiry", () => {
     });
   });
 
+  it("stores the enquiry with the sender's mail client's line wrapping undone", async () => {
+    // 22 Nov 2026 desktop journey test: "Could we bring our" / "own cake…".
+    await POST(
+      new Request("http://postbox.test/api/inbound", {
+        method: "POST",
+        headers: { "x-webhook-secret": SECRET },
+        body: JSON.stringify({
+          from: "ann@example.com",
+          to: ["bakery@inbound.test"],
+          subject: "Birthday cake",
+          text: "Hi, we're coming in on Saturday for my mum's birthday. Could we bring our\nown cake, or do you do one? Thanks, Ann",
+          message_id: "<ann-2@example.com>",
+          headers: {},
+        }),
+      }),
+    );
+    expect(vi.mocked(data.createTicket).mock.calls[0][0]).toMatchObject({
+      body: "Hi, we're coming in on Saturday for my mum's birthday. Could we bring our own cake, or do you do one? Thanks, Ann",
+    });
+  });
+
   it("keeps a name `from` already carries", async () => {
     await enquiry({ From: '"Header Name" <ann@example.com>' }, "Ann From-Field <ann@example.com>");
     expect(vi.mocked(data.createTicket).mock.calls[0][0]).toMatchObject({ customerName: "Ann From-Field" });

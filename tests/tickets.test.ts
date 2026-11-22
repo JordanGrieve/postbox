@@ -6,6 +6,7 @@ import {
   detectOrderId,
   classifyInbound,
   stripQuotedReply,
+  unwrapHardWrappedText,
   initials,
   relativeTime,
   previewText,
@@ -117,6 +118,61 @@ describe("stripQuotedReply", () => {
   it("never returns empty — falls back to the original", () => {
     const quoteOnly = "On Sat, Jul 11, 2026 at 1:52 PM B <x@y.z> wrote:\n> hi";
     expect(stripQuotedReply(quoteOnly)).toBe(quoteOnly);
+  });
+});
+
+describe("unwrapHardWrappedText", () => {
+  /*
+    22 Nov 2026 desktop journey test: Gmail's plain-text part breaks lines at
+    about 72 characters, and the conversation showed the break mid-sentence —
+    "Could we bring our" / "own cake, or do you do one?".
+  */
+  it("joins a line the sender's mail client wrapped", () => {
+    expect(
+      unwrapHardWrappedText(
+        "Hi, we're coming in on Saturday for my mum's birthday. Could we bring our\nown cake, or do you do one? Thanks, Jordan",
+      ),
+    ).toBe(
+      "Hi, we're coming in on Saturday for my mum's birthday. Could we bring our own cake, or do you do one? Thanks, Jordan",
+    );
+  });
+
+  it("unwraps a whole paragraph and keeps the paragraph break", () => {
+    const text = [
+      "We'd like to book the back room for a private party of twenty on the",
+      "13th of December, from about seven until late. Could you send me the",
+      "set menu options and let me know about a deposit?",
+      "",
+      "Thanks,",
+      "Jordan",
+    ].join("\n");
+    expect(unwrapHardWrappedText(text)).toBe(
+      "We'd like to book the back room for a private party of twenty on the 13th of December, from about seven until late. Could you send me the set menu options and let me know about a deposit?\n\nThanks,\nJordan",
+    );
+  });
+
+  it("keeps a break the next word would have fitted before", () => {
+    // A long line ended by hand: "Thanks" fits in the width, so the break
+    // was the writer's, not the client's.
+    const text =
+      "Could we book a table for six on Saturday evening at about 7:30 please?\nThanks\nJordan\n\nThis line is long enough to set the wrapping width of this email to seventy-8.";
+    expect(text.split("\n")[0].length + 1 + "Thanks".length).toBeLessThanOrEqual(
+      text.split("\n")[4].length,
+    );
+    expect(unwrapHardWrappedText(text)).toBe(text);
+  });
+
+  it("leaves short-line messages, lists and unwrapped mail alone", () => {
+    const address = "Amoria\n18 Avonbank\nHamilton\nML3 7PD";
+    expect(unwrapHardWrappedText(address)).toBe(address);
+    const list = [
+      "These are the dishes we would like for the table on Saturday evening:",
+      "- the risotto",
+      "- two steaks",
+    ].join("\n");
+    expect(unwrapHardWrappedText(list)).toBe(list);
+    const oneLine = "A paragraph a client never wrapped, ".repeat(6).trim();
+    expect(unwrapHardWrappedText(oneLine)).toBe(oneLine);
   });
 });
 

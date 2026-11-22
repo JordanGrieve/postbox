@@ -126,3 +126,49 @@ export function stripQuotedReply(text: string): string {
   const result = kept.join("\n").trim();
   return result || text.trim();
 }
+
+/** Clients hard-wrap plain text at 72–78 characters; past 80 is not a wrap. */
+const MAX_WRAP_WIDTH = 80;
+/** Below this the message has no wrapped lines to undo. */
+const MIN_WRAP_WIDTH = 60;
+
+/**
+ * Undo the line breaks a mail client put into a plain-text email.
+ *
+ * Gmail and most desktop clients break the text part at about 72 characters,
+ * so an enquiry showed "Could we bring our" / "own cake…" on two lines with
+ * room to spare (desktop journey test, 22 Nov 2026).
+ *
+ * The wrap width is the longest line of 80 characters or fewer. A line is
+ * joined to the next only when the next line's first word would NOT have
+ * fitted on it, which is exactly why a client breaks there. A writer's own
+ * break ("…please?" then "Thanks") leaves room for the next word, so it stays.
+ * Blank lines, list items and quoted lines are never joined onto.
+ */
+export function unwrapHardWrappedText(text: string): string {
+  const lines = text.split(/\r?\n/);
+  const width = Math.max(
+    0,
+    ...lines.map((l) => l.trimEnd().length).filter((n) => n <= MAX_WRAP_WIDTH),
+  );
+  if (width < MIN_WRAP_WIDTH) return text;
+
+  const out: string[] = [];
+  // The previous PHYSICAL line, since out's last entry may already be joined.
+  let prevLine: string | null = null;
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    const firstWord = line.trimStart().split(/\s/)[0];
+    const wrapped =
+      prevLine !== null &&
+      prevLine.trim() !== "" &&
+      !prevLine.trimStart().startsWith(">") &&
+      line.trim() !== "" &&
+      !/^\s*([-*•>]|\d+[.)])\s/.test(line) &&
+      prevLine.length + 1 + firstWord.length > width;
+    if (wrapped) out[out.length - 1] = `${out[out.length - 1]} ${line.trimStart()}`;
+    else out.push(line);
+    prevLine = line;
+  }
+  return out.join("\n");
+}

@@ -21,6 +21,7 @@ import {
   parseTicketRefFromAddress,
   previewText,
   stripQuotedReply,
+  unwrapHardWrappedText,
 } from "@/lib/tickets";
 import { db } from "@/db";
 import { tickets } from "@/db/schema";
@@ -126,7 +127,7 @@ export async function POST(req: Request) {
   }
   sender.name = sender.name.slice(0, 120);
   const subject = (asString(data.subject) || "(no subject)").slice(0, 200);
-  const body = stripQuotedReply(extractBody(data)).slice(0, 20_000);
+  const body = unwrapHardWrappedText(stripQuotedReply(extractBody(data))).slice(0, 20_000);
   const recipients = normalizeRecipients(data.to);
   const messageId = extractMessageId(data);
 
