@@ -61,7 +61,7 @@
 
 .psb-sub {
   margin: 0;
-  max-width: 54ch;
+  max-width: 46ch;
   font-size: 0.8125rem;
   line-height: 1.65;
   color: var(--muted-2);

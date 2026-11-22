@@ -438,8 +438,8 @@
   font-size: 0.84375rem;
   color: var(--text-2);
   /* 107 characters before this — the widest block of text in the product.
-     54ch is the house reading width; see .ct-unset and STYLE-GUIDE.md. */
-  max-width: 54ch;
+     46ch is the house reading width; see .ct-unset and STYLE-GUIDE.md. */
+  max-width: 46ch;
 }
 
 /* ── section furniture ───────────────────────────────────────── */

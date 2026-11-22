@@ -45,12 +45,13 @@ export default function LegalLayout({
           longest prose in the product and the only pages a stranger reads
           end to end.
 
-          620 leaves 572px, which is 54ch in Plus Jakarta Sans and lands at
-          roughly 79. Same reading width as .pbm-bubble and .ct-unset; the
-          number differs only because this column pads and those do not.
+          It then became 620px, chosen as "54ch", but 54ch was measured at
+          82–90 characters on real sentences (22 Nov 2026). It is now the
+          house 46ch plus the 48px of padding, in ch so it follows the text
+          size — the same reading width as .pbm-bubble and .ct-unset.
         */
         style={{
-          maxWidth: 620,
+          maxWidth: "calc(46ch + 48px)",
           margin: "0 auto",
           padding: "28px 24px 72px",
           fontSize: "0.90625rem",

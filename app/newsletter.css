@@ -213,7 +213,7 @@
 
 .nl-sub {
   margin: 0;
-  max-width: 54ch;
+  max-width: 46ch;
   font-size: 0.8125rem;
   line-height: 1.65;
   color: var(--muted-2);
@@ -1409,7 +1409,7 @@ body:has(.pbi-banner):has(.pbt-slot) .nl-main {
 
 .nl-ov-sub {
   margin: 0;
-  max-width: 54ch;
+  max-width: 46ch;
   font-size: 0.84375rem;
   line-height: 1.5;
   color: var(--muted-2);

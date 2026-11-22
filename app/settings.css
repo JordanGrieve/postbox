@@ -138,9 +138,9 @@
 
 .stg-sub {
   margin: 0;
-  /* 54ch is the house 80 characters (STYLE-GUIDE §3). 62ch measured 89 a
-     line on desktop (gap run, 22 Nov 2026), over 1.4.8's 80. */
-  max-width: 54ch;
+  /* 46ch is the house reading width (STYLE-GUIDE §3). 62ch measured 89 a
+     line on desktop and 54ch still 82 (22 Nov 2026), over 1.4.8's 80. */
+  max-width: 46ch;
   font-size: 0.8125rem;
   line-height: 1.65;
   color: var(--muted-2);
@@ -160,7 +160,7 @@
 
 .stg-section-sub {
   margin: -4px 0 0;
-  max-width: 54ch;
+  max-width: 46ch;
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.55;
@@ -278,7 +278,7 @@
 
 .stg-biz-note {
   /* 110 characters a line on Auto-reply before this (gap run, 22 Nov 2026). */
-  max-width: 54ch;
+  max-width: 46ch;
   font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.5;
@@ -441,7 +441,7 @@
 
 .stg-biz-status-sub {
   margin: 2px 0 0;
-  max-width: 54ch;
+  max-width: 46ch;
   font-size: 0.78125rem;
   line-height: 1.5;
   color: var(--muted);
@@ -735,14 +735,13 @@
 /*
   The reading width, applied to the text and not to the container.
 
-  62ch matches .stg-sub on the other settings tabs. In this face that is
-  comfortably inside the 80-character line 1.4.8 asks for — see the note in
-  STYLE-GUIDE.md §3 about 54ch/70ch, which is the same arithmetic.
+  The same width as .stg-sub on the other settings tabs: the house 46ch
+  (STYLE-GUIDE.md §3), inside the 80-character line 1.4.8 asks for.
 */
 .sti-sub,
 .sti-help {
-  /* 54ch, the house 80 characters; 62ch measured 89–104 (22 Nov 2026). */
-  max-width: 54ch;
+  /* 62ch measured 89–104 characters and 54ch still 82–90 (22 Nov 2026). */
+  max-width: 46ch;
 }
 
 .sti-title {
@@ -1753,7 +1752,7 @@
 
 .stg-al-none-body {
   margin: 6px 0 0;
-  max-width: 54ch;
+  max-width: 46ch;
   font-size: 0.78125rem;
   line-height: 1.65;
   color: var(--text-3);
@@ -1766,7 +1765,7 @@
 
 .stg-al-note {
   margin: 0;
-  max-width: 54ch;
+  max-width: 46ch;
   font-size: 0.78125rem;
   line-height: 1.7;
   color: var(--muted-2);

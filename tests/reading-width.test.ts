@@ -5,15 +5,17 @@ import { join } from "node:path";
 /**
  * No block of text wider than 80 characters (WCAG 1.4.8, AAA).
  *
- * In Plus Jakarta Sans a `ch` is 0.73em, so 54ch is about 80 average
- * characters, and 54ch is the house reading width (STYLE-GUIDE.md §3). The
- * "70ch reads as 70 characters" assumption is the trap: it is about 100.
+ * The house reading width is 46ch (STYLE-GUIDE.md §3). A `ch` is the width of
+ * "0", and in Plus Jakarta Sans real sentences fit far more characters than
+ * that suggests: "70ch" ran to about 100 characters, and 54ch — long believed
+ * to be "about 80" — was MEASURED at 82–90 on the live Settings pages
+ * (desktop journey test, 22 Nov 2026). 46ch puts that worst line at about 77.
  *
- * The 22 Nov 2026 gap run measured Settings help text at 89–110 characters a
- * line on desktop. It was set to 62ch, or set to nothing, and the same scan
- * found six more stylesheets at 60–68ch. Every reading width is 54ch or less
- * now, and this keeps it so. Narrower is fine: a 46ch caption is a choice.
+ * The same day's gap run first found Settings text at 89–110 characters (62ch,
+ * or no limit at all) and six more stylesheets at 60–68ch. Narrower than 46ch
+ * is fine: a caption may choose it.
  */
+const HOUSE_WIDTH_CH = 46;
 
 function walk(dir: string, found: string[] = []): string[] {
   for (const e of readdirSync(join(process.cwd(), dir), { withFileTypes: true })) {
@@ -26,7 +28,7 @@ function walk(dir: string, found: string[] = []): string[] {
 }
 
 describe("reading width", () => {
-  it("no stylesheet lets text run wider than 54ch", () => {
+  it(`no stylesheet lets text run wider than ${HOUSE_WIDTH_CH}ch`, () => {
     const files = [...walk("app"), ...walk("components")];
     expect(files.length, "no stylesheets found").toBeGreaterThan(15);
 
@@ -39,12 +41,19 @@ describe("reading width", () => {
         const m = /max-width:\s*([\d.]+)ch/.exec(code);
         if (!m) return;
         widths++;
-        if (Number(m[1]) > 54) offenders.push(`${file}:${i + 1}  max-width: ${m[1]}ch`);
+        if (Number(m[1]) > HOUSE_WIDTH_CH) offenders.push(`${file}:${i + 1}  max-width: ${m[1]}ch`);
       });
     }
 
     // The canary: a scan that matched nothing would pass while checking nothing.
     expect(widths, "no ch reading widths were found").toBeGreaterThan(10);
-    expect(offenders, "wider than 54ch is over 80 characters in this face").toEqual([]);
+    expect(offenders, `wider than ${HOUSE_WIDTH_CH}ch can pass 80 characters in this face`).toEqual([]);
+  });
+
+  it("the legal column, set inline, is the house width plus its padding", () => {
+    // A px width (620) was chosen as "54ch" and is out of reach of the scan
+    // above, so it is pinned here.
+    const layout = readFileSync(join(process.cwd(), "app/(legal)/layout.tsx"), "utf8");
+    expect(layout).toContain(`maxWidth: "calc(${HOUSE_WIDTH_CH}ch + 48px)"`);
   });
 });

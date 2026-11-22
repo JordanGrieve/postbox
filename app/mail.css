@@ -2429,10 +2429,10 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
 .pbm-transcript-note,
 .pbm-composer-foot,
 .pbm-thread-email {
-  /* 54ch, not 70: measured live, this face's "0" is 0.73em wide, so 70ch of
-     13.5px text was 692px — about 100 average characters a line. 54ch is
-     ~534px, which is 80 of them. */
-  max-width: 54ch;
+  /* 46ch, not 70: measured live, 70ch of 13.5px text was 692px — about 100
+     characters a line — and 54ch still reached 90 on real sentences
+     (22 Nov 2026). 46ch keeps the worst line under 80 (STYLE-GUIDE §3). */
+  max-width: 46ch;
 }
 .pbm-bubble-foot {
   max-width: 46ch;

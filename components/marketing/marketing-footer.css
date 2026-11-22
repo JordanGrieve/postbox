@@ -29,10 +29,10 @@
   margin: 0;
 }
 
-/* 54ch is about 80 characters in this face (STYLE-GUIDE.md §3). Unbounded,
+/* 46ch keeps a line under 80 characters in this face (STYLE-GUIDE.md §3). Unbounded,
    the "run by" sentence was one 108-character line on a desktop (1.4.8). */
 .mkt-footer-who {
-  max-width: 54ch;
+  max-width: 46ch;
 }
 
 .mkt-footer a {

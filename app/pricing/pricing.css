@@ -26,9 +26,9 @@
 .prc-sub.prc-note {
   font-size: 0.875rem;
   margin-top: -20px;
-  /* Smaller text in the same 620px box ran to 89 characters a line; 54ch is
-     about 80 in this face (1.4.8). */
-  max-width: 54ch;
+  /* Smaller text in the same 620px box ran to 89 characters a line; 46ch,
+     the house reading width, keeps it under 80 (1.4.8). */
+  max-width: 46ch;
 }
 
 .prc-grid {
@@ -235,7 +235,7 @@
      rather than under the whole row. */
   margin: 0;
   padding: 0 40px 20px 2px;
-  max-width: 54ch;
+  max-width: 46ch;
 }
 
 @media (max-width: 720px) {

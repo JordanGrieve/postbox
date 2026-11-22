@@ -94,9 +94,13 @@ in `rem` only — `tests/type-scale.test.ts` fails CI on a `px` font-size.
 | Counts in pills | 0.6875rem | 800 |
 
 - Body line-height **1.5**. Headings may be tighter.
-- Reading width **54ch**. In this face `ch` is 0.73em, so 54ch ≈ 80 average
-  characters; the `70ch` that reads as "70 characters" is 100. Applied to
-  `.pbm-bubble`, `.pbm-transcript-note`, `.pbm-thread-email`.
+- Reading width **46ch**. `ch` is the width of "0", and real sentences in
+  this face fit far more characters than that: the `70ch` that reads as
+  "70 characters" is 100, and 54ch, long taken as "about 80", measured 82–90
+  on the live Settings pages (22 Nov 2026). 46ch keeps the worst line near 77.
+  Every `max-width` in `ch` is 46 or less; `tests/reading-width.test.ts`
+  fails on anything wider. A column sized in px (the legal pages) is
+  `calc(46ch + its padding)`, so it follows the same rule.
 - Never `text-align: justify`. Never `letter-spacing` below −0.5px on body.
 
 ## 4. Targets and spacing
@@ -249,7 +253,8 @@ and a `noteAt()` in the element it names.
 - Six themes was "the design". It is two.
 - "Three folders then More" hid eight. Only the four look-up folders hide.
 - A 44px circle for a cross's hit area. It is a square.
-- `70ch` for 80 characters. It is 54ch in this face.
+- `70ch` for 80 characters. It is 46ch in this face.
+- 54ch for 80 characters. That was the rule until it was measured at 90.
 
 ### Theme toggle (Settings → General)
 
