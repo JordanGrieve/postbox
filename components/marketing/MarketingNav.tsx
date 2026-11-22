@@ -37,7 +37,7 @@ export default function MarketingNav({
 }) {
   return (
     <header className="home-nav">
-      <Link href="/" aria-label="Postbox home">
+      <Link href="/" className="home-nav-home" aria-label="Postbox home">
         <PostboxLockup />
       </Link>
       {/* Named, because the footer has a nav too ("Footer"): two unnamed

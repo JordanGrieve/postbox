@@ -165,6 +165,16 @@ describe("the newsletter composer renders", () => {
     });
   }
 
+  it("headings step down one level at a time from the h1", () => {
+    // 22 Nov 2026 desktop journey test: the card titles were h3 directly
+    // under the page's h1 — "Start from", "The email" — skipping h2.
+    const levels = [...renderToStaticMarkup(views.composer!).matchAll(/<h([1-6])[\s>]/g)].map((m) => Number(m[1]));
+    expect(levels[0]).toBe(1);
+    for (let i = 1; i < levels.length; i++) {
+      expect(levels[i], `heading ${i} after h${levels[i - 1]}`).toBeLessThanOrEqual(levels[i - 1] + 1);
+    }
+  });
+
   it("the Preheader label reads as two words to a screen reader", () => {
     // 22 Nov 2026: JSX dropped the line break between "Preheader" and its
     // optional tag, so the field's accessible name was "Preheaderoptional".

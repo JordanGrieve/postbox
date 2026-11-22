@@ -168,7 +168,16 @@ export default function SchedulePanel({
 
   return (
     <section className="nl-card">
-      <h3 className="nl-card-title">Schedule this campaign</h3>
+      {/* Named for what the card is about now: it said "Schedule this
+          campaign" above "Sent to 1 person" (desktop journey test,
+          22 Nov 2026). */}
+      <h2 className="nl-card-title">
+        {status === "sending"
+          ? "Sending"
+          : status === "sent" || status === "failed"
+            ? "How it went"
+            : "Schedule this campaign"}
+      </h2>
 
       {/* How long the queue will take — only while there is a queue to
           take. A sent campaign showed "1 queued — one pass's worth" under

@@ -1237,7 +1237,7 @@ export default function Composer({
             */}
             {draft.id === null && editable && (
               <section className="nl-card">
-                <h3 className="nl-card-title">Start from</h3>
+                <h2 className="nl-card-title">Start from</h2>
                 <div className="nl-seg" role="group" aria-label="Start from a template">
                   {CAMPAIGN_TEMPLATES.map((t) => (
                     <button
@@ -1272,7 +1272,7 @@ export default function Composer({
             )}
 
             <section className="nl-card">
-              <h3 className="nl-card-title">The email</h3>
+              <h2 className="nl-card-title">The email</h2>
 
               <div className="nl-field">
                 <label className="nl-label" htmlFor="nl-name">
@@ -1364,7 +1364,7 @@ export default function Composer({
             </section>
 
             <section className="nl-card">
-              <h3 className="nl-card-title">Body</h3>
+              <h2 className="nl-card-title">Body</h2>
 
               <div
                 className="nl-tokens"
@@ -1424,7 +1424,7 @@ export default function Composer({
 
             {/* ── Audience ───────────────────────────────────── */}
             <section className="nl-card">
-              <h3 className="nl-card-title">Audience</h3>
+              <h2 className="nl-card-title">Audience</h2>
 
               {/*
                 No list picker. A campaign goes to everyone in the workspace

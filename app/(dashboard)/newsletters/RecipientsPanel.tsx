@@ -37,7 +37,7 @@ export default function RecipientsPanel({
 
   return (
     <section className="nl-card" data-chasing={chasing || undefined}>
-      <h3 className="nl-card-title" id="nl-recipients">Recipients</h3>
+      <h2 className="nl-card-title" id="nl-recipients">Recipients</h2>
 
       <div className="nl-queue-row">
         <button
@@ -139,7 +139,10 @@ export default function RecipientsPanel({
           {queue.message}
         </p>
       )}
-      {queue.kind === "done" && (
+      {/* Only while it is still true: once the campaign has started
+          sending, "all sitting at queued" sat under "Sent to 1 person"
+          (desktop journey test, 22 Nov 2026). */}
+      {queue.kind === "done" && (status === "draft" || status === "scheduled") && (
         <p className="nl-note" role="status">
           {queue.inserted === 0
             ? "Nothing new to queue — every eligible recipient already had a row."

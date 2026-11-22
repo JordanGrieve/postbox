@@ -21,7 +21,7 @@ export default function PreviewCard({
     <section className="nl-card nl-card--preview">
       <div className="nl-preview-head">
         <div>
-          <h3 className="nl-card-title">Preview</h3>
+          <h2 className="nl-card-title">Preview</h2>
         </div>
         <div className="nl-seg" role="group" aria-label="Preview width">
           <button

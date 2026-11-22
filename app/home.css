@@ -273,12 +273,24 @@
   }
 }
 
+/* 44px tall, like Sign in and Start free trial beside them: these were 37px
+   and the logo link 40px — the only public controls under 2.5.5 (desktop
+   journey test, 22 Nov 2026). */
 .home-nav-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min, 44px);
   color: var(--text-4);
   font-size: 0.875rem;
   font-weight: 600;
   padding: 8px 12px;
   border-radius: 9px;
+}
+
+.home-nav-home {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min, 44px);
 }
 
 .home-nav-link:hover {

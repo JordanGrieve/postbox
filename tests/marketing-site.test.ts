@@ -159,6 +159,29 @@ describe("the product shots and tiles show the app as it is", () => {
   });
 });
 
+describe("the top bar's links are 44px targets", () => {
+  /*
+    22 Nov 2026 desktop journey test: Features, Pricing and Contact were 37px
+    tall and the Postbox logo link 40px, beside a Sign in and Start free trial
+    that were 44 — the only controls on the public site under 2.5.5.
+  */
+  const CSS = read("app/home.css");
+  const rule = (sel: string) => {
+    const at = CSS.indexOf(`${sel} {`);
+    expect(at, `${sel} rule`).toBeGreaterThan(-1);
+    return CSS.slice(at, CSS.indexOf("}", at));
+  };
+
+  it("the page links are at least 44px tall", () => {
+    expect(rule(".home-nav-link")).toContain("min-height: var(--tap-min, 44px)");
+  });
+
+  it("so is the logo link home", () => {
+    expect(NAV).toMatch(/className="home-nav-home"[^>]*aria-label="Postbox home"|aria-label="Postbox home"[^>]*className="home-nav-home"/);
+    expect(rule(".home-nav-home")).toContain("min-height: var(--tap-min, 44px)");
+  });
+});
+
 describe("newsletter signup is described as it works", () => {
   /*
     22 Nov 2026 journey test: the homepage said subscribers "confirm their own
