@@ -70,12 +70,16 @@ export type MergeValues = Record<string, string>;
  *
  * Newlines are preserved — only runs of spaces/tabs inside a line collapse.
  * URLs are substituted verbatim and are not touched by the tidy pass.
+ *
+ * `{{first_name}}` is the same token as `{first_name}`. It is the spelling
+ * most other email tools use, and matching only the inner pair sent
+ * "Hi {Robin}," to a real subscriber (mobile journey test, 22 Nov 2026).
  */
 export function renderTemplate(template: string, values: MergeValues): string {
   const substituted = (template ?? "").replace(
-    /\{\s*([a-z0-9_]+)\s*\}/gi,
-    (_match, name: string) => {
-      const value = values[name.toLowerCase()];
+    /\{\{\s*([a-z0-9_]+)\s*\}\}|\{\s*([a-z0-9_]+)\s*\}/gi,
+    (_match, doubled: string | undefined, single: string | undefined) => {
+      const value = values[(doubled ?? single ?? "").toLowerCase()];
       return typeof value === "string" ? value.trim() : "";
     },
   );

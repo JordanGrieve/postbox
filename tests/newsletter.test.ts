@@ -78,6 +78,15 @@ describe("merge-tag substitution", () => {
     expect(renderTemplate("Hi { first_name },", VALUES)).toBe("Hi Alex,");
   });
 
+  it("takes the double-brace spelling other email tools use as the same token", () => {
+    // 22 Nov 2026 mobile journey test: "Hi {{first_name}}," went to a real
+    // subscriber as "Hi {Robin}," — the inner braces were substituted and the
+    // outer pair passed through.
+    expect(renderTemplate("Hi {{first_name}},", VALUES)).toBe("Hi Alex,");
+    expect(renderTemplate("Hi {{ first_name }},", VALUES)).toBe("Hi Alex,");
+    expect(renderTemplate("Hi {{firstname}},", VALUES)).toBe("Hi,");
+  });
+
   it("NEVER lets an unknown token reach a recipient", () => {
     // The whole point: 40,000 people reading "{firstname}" is unrecoverable.
     expect(renderTemplate("Hi {firstname},", VALUES)).toBe("Hi,");
