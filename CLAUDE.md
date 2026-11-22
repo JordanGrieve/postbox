@@ -14,4 +14,4 @@ Two skills in `.claude/skills/` belong to this repo. Use them before writing cod
 
 Keep them current. When a fix moves a helper or changes where something lives, update the skill in the same change. A stale row sends the next agent to the wrong file.
 
-The `clerk*` entries next to them are installed from `skills-lock.json` (`npx skills add`). They are not committed; don't edit them.
+The `clerk*` and `neon*` entries next to them are installed from `skills-lock.json` (`npx skills add`; the Neon ones also via `neon skills update`). They are not committed; don't edit them. The Neon MCP server is configured in `.mcp.json` (OAuth, no key in the file).
