@@ -27,6 +27,43 @@
     0 24px 60px -18px var(--shadow-2);
 }
 
+/*
+ * Light only: blend in. The panes were pure white on the warm-grey page,
+ * under a border and a deep shadow, so the window read as a screenshot pasted
+ * on (Jordan, 22 Nov 2026: "make the light mode product shots blend in too").
+ * They take the same lift as the hero and closing band (30–40% --surface into
+ * --app-bg), a hairline border and a shallower shadow. Dark is untouched; it
+ * already sat in the page.
+ *
+ * --pshot-pane is resolved on the frame, from the page's --surface, and the
+ * body then reads it AS --surface — so every pane, card and field inside
+ * follows without each rule naming it, and nothing refers to itself.
+ */
+:root[data-theme="light"] .pshot-frame {
+  --pshot-pane: color-mix(in srgb, var(--surface) 40%, var(--app-bg));
+  background: var(--pshot-pane);
+  border-color: var(--border-soft);
+  box-shadow:
+    0 1px 2px var(--shadow),
+    0 18px 44px -26px var(--shadow-2);
+}
+:root[data-theme="light"] .pshot-body {
+  --surface: var(--pshot-pane);
+}
+@media not (prefers-color-scheme: dark) {
+  :root:not([data-theme]) .pshot-frame {
+    --pshot-pane: color-mix(in srgb, var(--surface) 40%, var(--app-bg));
+    background: var(--pshot-pane);
+    border-color: var(--border-soft);
+    box-shadow:
+      0 1px 2px var(--shadow),
+      0 18px 44px -26px var(--shadow-2);
+  }
+  :root:not([data-theme]) .pshot-body {
+    --surface: var(--pshot-pane);
+  }
+}
+
 .pshot-bar {
   position: relative;
   display: flex;
