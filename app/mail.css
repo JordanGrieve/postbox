@@ -2218,6 +2218,9 @@ html[data-tips-hidden] .pbm-icon-btn[data-tip]::after {
 
 .pbn-add {
   align-self: flex-start;
+  /* 44px like every control: it was 31, and only appears once a note is
+     typed, so page sweeps never saw it (gap run, 22 Nov 2026). */
+  min-height: var(--tap-min, 44px);
   padding: 6px 13px;
   border: none;
   border-radius: 9px;

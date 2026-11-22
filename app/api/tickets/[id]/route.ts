@@ -8,7 +8,7 @@ import { upsertContact, createTicket } from "@/lib/data";
 import { resolveIngestKey } from "@/lib/forms";
 import { notifyWorkspace } from "@/lib/notify";
 import { maybeSendAutoReply } from "@/lib/auto-reply-send";
-import { formErrorPage, formSuccessPage } from "@/lib/form-response-pages";
+import { formErrorPage, formReturnUrl, formSuccessPage } from "@/lib/form-response-pages";
 import { readFields, wantsHtml } from "@/lib/request-fields";
 
 /**
@@ -183,7 +183,7 @@ export async function POST(
   // A native form submit (Mode A) navigates the browser here — show a tidy
   // confirmation page instead of raw JSON. Fetch/JSON callers get JSON.
   if (wantsHtml(req)) {
-    return htmlSuccess(workspace.name);
+    return htmlSuccess(req, workspace.name);
   }
 
   return json(
@@ -208,7 +208,7 @@ export async function POST(
  */
 function honeypotSuccess(req: Request, workspaceName: string): Response {
   if (wantsHtml(req)) {
-    return htmlSuccess(workspaceName);
+    return htmlSuccess(req, workspaceName);
   }
   return json(
     { ok: true, ticket: { id: 0, status: "open" } },
@@ -218,7 +218,7 @@ function honeypotSuccess(req: Request, workspaceName: string): Response {
 
 function badRequest(req: Request, error: string): Response {
   if (wantsHtml(req)) {
-    return new Response(formErrorPage(error), {
+    return new Response(formErrorPage(error, formReturnUrl(req.headers.get("referer"))), {
       status: 400,
       headers: { "Content-Type": "text/html; charset=utf-8", ...CORS_HEADERS },
     });
@@ -226,8 +226,8 @@ function badRequest(req: Request, error: string): Response {
   return json({ ok: false, error }, { status: 400, headers: CORS_HEADERS });
 }
 
-function htmlSuccess(workspaceName: string): Response {
-  return new Response(formSuccessPage(workspaceName), {
+function htmlSuccess(req: Request, workspaceName: string): Response {
+  return new Response(formSuccessPage(workspaceName, formReturnUrl(req.headers.get("referer"))), {
     status: 201,
     headers: { "Content-Type": "text/html; charset=utf-8", ...CORS_HEADERS },
   });

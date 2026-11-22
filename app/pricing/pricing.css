@@ -235,7 +235,7 @@
      rather than under the whole row. */
   margin: 0;
   padding: 0 40px 20px 2px;
-  max-width: 68ch;
+  max-width: 54ch;
 }
 
 @media (max-width: 720px) {

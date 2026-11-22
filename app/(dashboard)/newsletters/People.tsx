@@ -6,7 +6,7 @@ import {
   type StatusCounts,
   type SubscriberRow,
 } from "../subscribers/queries";
-import { STATUS_LABEL } from "../subscribers/labels";
+import { STATUS_LABEL, sourceLabel } from "../subscribers/labels";
 import type { SubscriberStatus } from "@/db/schema";
 import "../../subscribers.css";
 
@@ -131,7 +131,7 @@ export default function People({
                     <span className="psb-chip" data-status={s.status}>
                       {STATUS_LABEL[s.status]}
                     </span>
-                    <span className="psb-source">{s.source ?? "source unknown"}</span>
+                    <span className="psb-source">{sourceLabel(s.source)}</span>
                     <span className="psb-when" title="Subscribed">
                       {relativeTime(s.subscribedAt, now)}
                     </span>

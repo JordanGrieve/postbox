@@ -8,6 +8,7 @@ import {
   CONSENT_METHOD_LABEL,
   STATUS_LABEL,
   WEAK_CONSENT_METHODS,
+  sourceLabel,
 } from "../labels";
 import "../../../subscribers.css";
 
@@ -190,7 +191,7 @@ export default async function SubscriberDetailPage({
                   // evidence, and its absence blocks nothing.
                   "Not recorded"
                 ) : (
-                  <span className="psb-mono">{s.source}</span>
+                  sourceLabel(s.source)
                 )}
               </dd>
 

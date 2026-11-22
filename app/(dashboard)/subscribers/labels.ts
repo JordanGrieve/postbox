@@ -32,5 +32,20 @@ export const CONSENT_METHOD_LABEL: Record<ConsentMethod, string> = {
   manual: "Added by hand",
 };
 
+/**
+ * Where an address came from, for people. `subscribers.source` is free text
+ * ("signup_form", "footer_form", "shopify_import"), and the People list showed
+ * it raw until the 22 Nov 2026 gap run. A value that is also a consent method
+ * reads the same as it does there; anything else loses its separators.
+ */
+export function sourceLabel(source: string | null): string {
+  const raw = (source ?? "").trim();
+  if (!raw) return "Source unknown";
+  const known = Object.entries(CONSENT_METHOD_LABEL).find(([method]) => method === raw);
+  if (known) return known[1];
+  const words = raw.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
+}
+
 /** Methods that carry no first-party proof of the opt-in by themselves. */
 export const WEAK_CONSENT_METHODS: ConsentMethod[] = ["import", "manual"];

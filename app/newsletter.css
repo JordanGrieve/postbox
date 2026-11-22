@@ -213,7 +213,7 @@
 
 .nl-sub {
   margin: 0;
-  max-width: 66ch;
+  max-width: 54ch;
   font-size: 0.8125rem;
   line-height: 1.65;
   color: var(--muted-2);

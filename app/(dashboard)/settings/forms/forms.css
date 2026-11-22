@@ -52,7 +52,7 @@
   font-size: 0.8125rem;
   line-height: 1.55;
   color: var(--muted);
-  max-width: 60ch;
+  max-width: 54ch;
 }
 .pbf-note--off {
   flex: 1;
