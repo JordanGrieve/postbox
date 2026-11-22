@@ -59,14 +59,7 @@ export default async function FormsSettingsPage() {
       <section className="pbf-card pbf-card--default">
         <div className="pbf-row">
           <div className="pbf-main">
-            <p className="pbf-name">
-              Your original form key
-              <span className="pbf-badge">always works</span>
-            </p>
-            <p className="pbf-note">
-              What your site posts with today. Enquiries on this key are not
-              tied to a named form, which is why some say “—” below.
-            </p>
+            <p className="pbf-name">Main form</p>
           </div>
           <p className="pbf-count">
             {counts.unattributed}{" "}
@@ -95,9 +88,7 @@ export default async function FormsSettingsPage() {
             </button>
           </div>
           <p className="pbf-hint">
-            You will get a key to paste into that page. The{" "}
-            <Link href="/settings/install">install screen</Link> has the full
-            snippet.
+            <Link href="/settings/install">Setup steps</Link>
           </p>
         </form>
       </section>

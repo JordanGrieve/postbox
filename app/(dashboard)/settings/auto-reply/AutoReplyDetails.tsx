@@ -158,11 +158,13 @@ export default function AutoReplyDetails({
           <h2 className="stg-biz-status-title">
             Auto-reply is {config.enabled ? "on" : "off"}
           </h2>
-          <p className="stg-biz-status-sub">
-            {config.enabled
-              ? "Everyone who gets in touch gets one, as set below."
-              : "Customers won’t get an automatic reply until you turn it on."}
-          </p>
+          {/* When it is on, the rows below say who gets one; only "off" needs
+              saying (settings review, 22 Nov 2026). */}
+          {!config.enabled && (
+            <p className="stg-biz-status-sub">
+              Customers won’t get an automatic reply until you turn it on.
+            </p>
+          )}
           {toggle.error && (
             <p className="stg-identity-warn stg-biz-error" role="alert">
               {toggle.error}

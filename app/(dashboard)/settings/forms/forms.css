@@ -38,15 +38,6 @@
   gap: 8px;
   flex-wrap: wrap;
 }
-.pbf-badge {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent-text);
-}
-
 .pbf-note {
   margin: 0;
   font-size: 0.8125rem;
@@ -170,6 +161,13 @@
   margin: 8px 0 0;
   font-size: 0.78125rem;
   color: var(--muted);
+}
+
+/* A link on its own line is a target, not a word in a sentence: 44px. */
+.pbf-hint a {
+  display: inline-flex;
+  align-items: center;
+  min-height: var(--tap-min, 44px);
 }
 
 /*

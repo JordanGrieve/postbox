@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { resolveViewer } from "@/lib/viewer";
 import { sortTeam, seatLimit } from "@/lib/team";
@@ -165,27 +166,21 @@ export default async function TeamSettingsPage({
       <section className="stg-section">
         <h2 className="stg-section-title">Add someone</h2>
           <p className="stg-section-sub">
-            {overLimit ? (
+            {team.length} of {limit} {limit === 1 ? "person" : "people"} on
+            your plan.
+            {overLimit && (
               <>
-                Your plan includes {limit}{" "}
-                {limit === 1 ? "person" : "people"} and this workspace has{" "}
-                {team.length}. <b>Nobody has been signed out</b> — everyone here
-                keeps working as normal. You just can&rsquo;t add anyone new
-                until you&rsquo;re back within the plan.
-              </>
-            ) : (
-              <>
-                Your plan includes {limit}{" "}
-                {limit === 1 ? "person" : "people"}, and that&rsquo;s everyone.
+                {" "}
+                <b>Nobody has been signed out</b>; you can&rsquo;t add anyone
+                until you&rsquo;re back within it.
               </>
             )}{" "}
             {nextPlan && nextPlan.limits.seats > limit ? (
-              <>
-                {nextPlan.name} includes {nextPlan.limits.seats} — you can
-                upgrade in Settings → Billing, or remove somebody first.
-              </>
+              <Link href="/settings/billing" className="stg-biz-inline">
+                Upgrade to {nextPlan.name} for {nextPlan.limits.seats}
+              </Link>
             ) : (
-              <>Remove somebody before adding another.</>
+              <>Remove somebody to add another.</>
             )}
           </p>
       </section>

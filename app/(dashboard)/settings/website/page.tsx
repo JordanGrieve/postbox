@@ -49,8 +49,8 @@ export default async function WebsiteEmailPage() {
           empty={!last.contactForm}
           note={
             last.contactForm
-              ? `Messages from your website arrive in your inbox. Last one: ${timeAgo(last.contactForm)}.`
-              : "Add the form to your website and its messages arrive in your inbox."
+              ? `Last message ${timeAgo(last.contactForm)}.`
+              : "Add the form to your website to get its messages here."
           }
           action={
             <RowLink href="/settings/install" label="Setup steps for your contact form">
@@ -63,7 +63,7 @@ export default async function WebsiteEmailPage() {
           value={last.signup ? "Connected" : "Ready to add"}
           note={
             last.signup
-              ? `New subscribers join your list from your website. Last one: ${timeAgo(last.signup)}.`
+              ? `Last sign-up ${timeAgo(last.signup)}.`
               : "Collects newsletter subscribers from your website."
           }
           action={
@@ -75,7 +75,6 @@ export default async function WebsiteEmailPage() {
         <InfoRow
           label="Forms"
           value="A separate form for each page"
-          note="Each form gets its own key, so you can see which page a message came from."
           action={
             <RowLink href="/settings/forms" label="Manage your forms">
               Manage
@@ -86,7 +85,7 @@ export default async function WebsiteEmailPage() {
           label="Forward your email here"
           value={w.inboundEmail}
           mono
-          note="Optional. Forward your shop email to this and it lands in your inbox. Anything containing an order number, like #1001, is marked as an order."
+          note="Optional. Order numbers like #1001 are marked as orders."
           action={
             <CopyButton
               value={w.inboundEmail}
@@ -101,7 +100,6 @@ export default async function WebsiteEmailPage() {
         <InfoRow
           label="Your replies come from"
           value={`${w.name} <${EMAIL_FROM_ADDRESS}>`}
-          note="Uses your business name. When customers reply, it comes back to the same conversation."
         />
       </RowGroup>
 
@@ -109,7 +107,7 @@ export default async function WebsiteEmailPage() {
         <InfoRow
           label="Download everything"
           value="Every message, conversation and contact, as one file"
-          note="It includes your customers’ personal details, so keep it somewhere safe."
+          note="Contains customer details, so keep it safe."
           action={
             // A plain anchor: this is a file from an API route, not a page.
             <a

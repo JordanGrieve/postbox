@@ -567,7 +567,7 @@ describe("the signed-in screens that had no harness", () => {
     } satisfies Awaited<ReturnType<typeof lastArrivals>>);
     const html = record("website", renderToStaticMarkup(await WebsitePage()));
     expect(html).toContain("Connected");
-    expect(html).toContain("Last one: 1 day ago.");
+    expect(html).toContain("Last message 1 day ago.");
     expect(html).toContain("Ready to add");
     expect(html).toContain(WORKSPACE.inboundEmail);
     expect(html).toContain('href="/api/workspace/export"');
