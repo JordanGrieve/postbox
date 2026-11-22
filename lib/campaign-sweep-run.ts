@@ -126,6 +126,8 @@ export async function runCampaignSweep(options?: {
         // module must stay safe to reach from a client component.
         appUrl: APP_URL,
         unsubscribeMailto: envelope.envelope.unsubscribeMailto,
+        // Replies land in the workspace's own inbox (see OutboundCampaignEmail).
+        replyTo: campaign.inboundEmail,
         sender: {
           workspaceName: campaign.workspaceName,
           legalName: campaign.legalName,

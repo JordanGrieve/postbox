@@ -73,6 +73,7 @@ export type ResendSendFn = (
   payload: {
     from: string;
     to: string[];
+    replyTo?: string;
     subject: string;
     text: string;
     html: string;
@@ -371,6 +372,7 @@ export function createResendDeliverer(
     const payload = {
       from: email.from,
       to: [email.to],
+      ...(email.replyTo ? { replyTo: email.replyTo } : {}),
       subject: email.subject,
       text: email.text,
       html: email.html,

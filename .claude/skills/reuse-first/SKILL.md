@@ -50,6 +50,7 @@ how the send path and the sweep path drift apart.
 | The public site's call to action | `TRIAL_CTA` / `TRIAL_HREF` / `TRIAL_NOTE` in `lib/marketing-copy.ts` | a per-page button reading `OPEN_SIGNUP` |
 | Public footer (who runs Postbox, contact) | `components/marketing/MarketingFooter.tsx`; the facts are `OPERATOR_*` and `PUBLIC_CONTACT_EMAIL` in `lib/config.ts` | a footer per page |
 | Which workspace an inbound address belongs to | `workspaceForInboundAddress` in `lib/inbound-address.ts` (routes hello@ to Postbox's own workspace) | calling `getWorkspaceByInboundEmail` directly from a route |
+| Which conversation a reply belongs to when it has no ticket+ address | `findTicketByReferencedMessageIds` in `lib/data.ts` (In-Reply-To / References; one match or none) | matching on sender + subject, which a forged From could use |
 
 ## If a near-match exists
 

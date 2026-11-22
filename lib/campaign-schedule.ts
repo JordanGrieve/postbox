@@ -355,7 +355,10 @@ export function describeDrain(recipients: number, perSweep: number): string {
   const rows = recipients.toLocaleString();
 
   if (sweeps <= 1) {
-    return `${rows} queued — one sweep’s worth. The sweep runs ${SWEEP_CADENCE}, so the first run after the scheduled time would work through all of them.`;
+    // "Send now" runs the first pass itself, so for a list this size it is
+    // straight away; only a later time waits for a sweep. Saying only the
+    // cadence read as "up to an hour" for a send that took seconds.
+    return `${rows} queued — one pass’s worth. Send now sends them straight away; a later time waits for the next sweep, which runs ${SWEEP_CADENCE}.`;
   }
 
   const per = perSweep.toLocaleString();

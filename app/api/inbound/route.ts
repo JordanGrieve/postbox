@@ -11,6 +11,7 @@ import {
   upsertContact,
   backfillOutboundMessageId,
   messageIdExists,
+  findTicketByReferencedMessageIds,
 } from "@/lib/data";
 import { notifyWorkspace } from "@/lib/notify";
 import { maybeSendAutoReply } from "@/lib/auto-reply-send";
@@ -226,6 +227,44 @@ export async function POST(req: Request) {
   }
   if (duplicate) return json({ ok: true, duplicate: true });
 
+  // 3) A reply that reached us without its per-ticket address — sent to our
+  //    From (replies@) by a client that ignored Reply-To. Until 22 Nov 2026
+  //    this fell through to "ignored" and the customer's reply vanished. Its
+  //    In-Reply-To / References name Message-IDs the conversation holds, and
+  //    only people in that conversation know them. See
+  //    findTicketByReferencedMessageIds.
+  const referenced = referencedMessageIds(data);
+  if (referenced.length > 0) {
+    const ticket = await findTicketByReferencedMessageIds(referenced);
+    if (ticket) {
+      if (messageId && (await messageIdExists(messageId, ticket.workspaceId))) {
+        return json({ ok: true, duplicate: true });
+      }
+      const limited = await inboundLimited(ticket.workspaceId, sender.email);
+      if (limited) return limited;
+      await addMessage({
+        ticketId: ticket.id,
+        direction: "inbound",
+        body: body || "(empty message)",
+        status: "open",
+        messageId,
+      });
+      const workspace = await getWorkspaceById(ticket.workspaceId);
+      if (workspace) {
+        await notifyWorkspace({ workspace, ticket, kind: "reply", body });
+      }
+      return json({ ok: true, threadedInto: ticket.id });
+    }
+    // A reply to something, matching nothing: said out loud in the logs
+    // rather than acknowledged as if it were noise. The sender is left out,
+    // as in inboundLimited: it is a customer's address.
+    console.warn(
+      "[inbound] unrouted reply: %d referenced id(s) matched no single conversation",
+      referenced.length,
+    );
+    return json({ ok: true, ignored: true, reason: "unrouted-reply" });
+  }
+
   // Nothing matched — acknowledge so Resend doesn't retry endlessly.
   return json({ ok: true, ignored: true });
 }
@@ -352,6 +391,20 @@ function extractHeaderValue(
     }
   }
   return "";
+}
+
+/**
+ * The Message-IDs a reply points back at: In-Reply-To first, then each
+ * References entry, normalised and de-duplicated. Capped, because the header
+ * is the sender's to write and becomes a query.
+ */
+function referencedMessageIds(data: Record<string, unknown>): string[] {
+  const raw = [
+    extractHeaderValue(data, "in-reply-to"),
+    extractHeaderValue(data, "references"),
+  ].join(" ");
+  const ids = (raw.match(/<[^<>\s]+>/g) ?? []).map((id) => normalizeMsgId(id));
+  return [...new Set(ids)].slice(0, 20);
 }
 
 /** Ensure an id is wrapped in angle brackets, RFC-style. */

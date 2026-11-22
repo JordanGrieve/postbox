@@ -74,7 +74,9 @@
 .psb-filters {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  /* 12px between rows so each chip's grown hit area (below) never reaches
+     into the row under it — STYLE-GUIDE.md §4. */
+  gap: 12px 8px;
   min-width: 0;
 }
 
@@ -94,6 +96,15 @@
   font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
+  position: relative;
+}
+
+/* The 44px target (2.5.5): the chip is 33px, so its hit area grows 6px above
+   and below without the drawing changing. Journey test, 22 Nov 2026. */
+.psb-filter::after {
+  content: "";
+  position: absolute;
+  inset: -6px 0;
 }
 
 .psb-filter:hover {

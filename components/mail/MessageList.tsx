@@ -83,7 +83,12 @@ export default function MessageList({
       aria-label="Message list"
     >
       <div className="pbm-list-head">
-        <h1 className="pbm-list-title">Inbox</h1>
+        {/* h2 beside an open conversation, whose customer name is the h1. */}
+        {hideOnMobile ? (
+          <h2 className="pbm-list-title">Inbox</h2>
+        ) : (
+          <h1 className="pbm-list-title">Inbox</h1>
+        )}
 
         {/* Links, not buttons: each tab is its own URL, so a refresh, the
             back button and a shared link all land on the same tab. */}

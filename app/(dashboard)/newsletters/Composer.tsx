@@ -1135,9 +1135,10 @@ export default function Composer({
                 ← Newsletters
               </Link>
             )}
-            <h2 className="nl-title">
+            {/* h1: the page had none (journey test, 22 Nov 2026). */}
+            <h1 className="nl-title">
               {draft.id === null ? "New campaign" : draft.name || "Untitled"}
-            </h2>
+            </h1>
           </div>
           <div className="nl-head-actions">
             {saved && !dirty && (

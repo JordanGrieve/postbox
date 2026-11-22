@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import {
   renderCampaign,
   emailAccent,
@@ -43,6 +45,16 @@ function render(brand: Brand, templateKey = "branded") {
 describe("the accent a message is actually sent with", () => {
   it("falls back to the Postbox default when nothing is chosen", () => {
     expect(emailAccent(null, "#ffffff")).toBe(DEFAULT_EMAIL_ACCENT);
+  });
+
+  it("defaults to Postbox's own green, the light theme's --accent", () => {
+    // 22 Nov 2026: the default was still the retired terracotta (#c14a22), so
+    // a new workspace's welcome email and newsletters carried an orange
+    // masthead and unsubscribe link no screen in the product uses any more.
+    const css = readFileSync(join(process.cwd(), "app/globals.css"), "utf8");
+    const light = css.match(/--accent:\s*(#[0-9a-fA-F]{6});/);
+    expect(light?.[1]).toBeTruthy();
+    expect(DEFAULT_EMAIL_ACCENT.toLowerCase()).toBe(light![1].toLowerCase());
   });
 
   it("ships a default that passes the same bar clients are held to", () => {

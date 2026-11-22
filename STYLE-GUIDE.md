@@ -210,7 +210,11 @@ Transitions 160ms ease; sheet and drawer 220ms. Do not write your own
    hidden block revealed by script, which delays the main content. A new
    static page goes in `STATIC_ROUTES` in that test.
 2. Add it to the matching render harness (`tests/*-views-render.test.tsx`) so
-   it can be rendered with no login and swept by the probes.
+   it can be rendered with no login and swept by the probes. Every page has
+   exactly one `h1`, including on a phone, where panes are hidden: the
+   22 Nov 2026 journey test found none on the newsletter writer, on search,
+   and on a conversation (whose only `h1` was the hidden list's "Inbox").
+   A page whose top is a control, like search, gets a `.pbm-sr` one.
 3. Run it through the runner at 375 and 1280, in **both** themes, passing
    `?theme=` explicitly — a page with no theme renders in whatever the pane
    prefers, which on 8 Sep 2026 cost an hour of tuning the wrong palette.

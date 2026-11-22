@@ -271,6 +271,30 @@ export async function listWorkspaceSummaries(): Promise<WorkspaceSummary[]> {
 }
 
 /**
+ * The one conversation that holds any of these Message-IDs, for a reply that
+ * arrived without its per-ticket address (sent to our From, replies@, by a
+ * client that ignored Reply-To). Null when none does, or when they span more
+ * than one ticket: a reply is threaded on evidence, never guessed.
+ *
+ * Message-IDs are known only to the people in the conversation — the
+ * customer's own, and ours as the customer's client saw them — which is what
+ * makes this safe across workspaces where a guessable ticket id is not.
+ */
+export async function findTicketByReferencedMessageIds(
+  messageIds: string[],
+): Promise<Ticket | null> {
+  if (messageIds.length === 0) return null;
+  const rows = await db
+    .selectDistinct({ ticketId: ticketMessages.ticketId, workspaceId: tickets.workspaceId })
+    .from(ticketMessages)
+    .innerJoin(tickets, eq(ticketMessages.ticketId, tickets.id))
+    .where(sql`${ticketMessages.messageId} IN (${sql.join(messageIds.map((id) => sql`${id}`), sql`, `)})`)
+    .limit(2);
+  if (rows.length !== 1) return null;
+  return getTicket(rows[0].workspaceId, rows[0].ticketId);
+}
+
+/**
  * Has this email already been ingested INTO THIS WORKSPACE? Webhook
  * deliveries are retried on timeouts even after we processed them — matching
  * on Message-ID makes ingestion idempotent.

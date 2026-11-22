@@ -156,6 +156,20 @@
   background: var(--accent-grad);
   color: var(--on-accent);
   white-space: nowrap;
+  position: relative;
+}
+
+/*
+  The 44px target (2.5.5), grown rather than drawn: the button is 31px tall
+  and a 44px block would tower over the step's two lines of text. Each step
+  is far taller than 44px, so neighbouring hit areas never meet. Journey test,
+  22 Nov 2026. Same for .pbo-dismiss below.
+*/
+.pbo-go::after,
+.pbo-dismiss::after {
+  content: "";
+  position: absolute;
+  inset: -7px 0;
 }
 
 .pbo-go:hover {
@@ -200,6 +214,7 @@
   color: var(--muted);
   cursor: pointer;
   border-radius: 8px;
+  position: relative;
 }
 /* Hover darkens the ink; no underline on a button (17 Nov 2026). */
 .pbo-dismiss:hover {

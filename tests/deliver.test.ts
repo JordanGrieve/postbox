@@ -39,6 +39,7 @@ function outbound(
   return {
     to: "sam@example.com",
     from: "Acme <news@news.postbox.help>",
+    replyTo: null,
     subject: "Hello there",
     text: "Body text",
     html: "<p>Body text</p>",

@@ -60,7 +60,7 @@ export function softwareJsonLd() {
     applicationCategory: "BusinessApplication",
     operatingSystem: "Web",
     url: `${APP_URL}/`,
-    description: `A shared inbox for your website's contact form and support email, with confirmed opt-in newsletters. ${TRIAL_DAYS}-day free trial.`,
+    description: `A shared inbox for your website's contact form and support email, and newsletters to people who signed up. ${TRIAL_DAYS}-day free trial.`,
     publisher: { "@id": ORG_ID },
     offers: PLANS.map((plan) => ({
       "@type": "Offer",

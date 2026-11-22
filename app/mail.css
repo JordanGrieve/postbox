@@ -528,7 +528,10 @@
 }
 
 .pbm-search {
-  height: 42px;
+  /* 46, the phone height: the input stretches to the bar's inside, and at 42
+     that was 40px — under the 44px target on desktop (journey test, 22 Nov
+     2026). */
+  height: 46px;
   border-radius: 14px;
   background: var(--surface);
   border: 1px solid var(--border);

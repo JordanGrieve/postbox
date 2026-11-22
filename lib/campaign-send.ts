@@ -1000,6 +1000,14 @@ function* chunks<T>(items: readonly T[], size: number): Generator<T[]> {
 export type OutboundCampaignEmail = {
   to: string;
   from: string;
+  /**
+   * Where a subscriber's reply goes: the workspace's inbound address, so it
+   * lands in its inbox as a conversation. Required (null to omit) so no send
+   * path can leave it out by forgetting. Until 22 Nov 2026 none set it, and a
+   * reply went to the From address on news.postbox.help, which has no MX —
+   * every reply to every newsletter bounced.
+   */
+  replyTo: string | null;
   subject: string;
   text: string;
   html: string;
@@ -1115,6 +1123,8 @@ export async function sendCampaignBatch(input: {
   appUrl: string;
   /** Monitored mailto for List-Unsubscribe, or null to omit it. */
   unsubscribeMailto: string | null;
+  /** The workspace's inbound address, for Reply-To — see OutboundCampaignEmail. */
+  replyTo: string | null;
   /**
    * Legal name and postal address for the CAN-SPAM footer. Refused below when
    * the address is absent.
@@ -1322,6 +1332,7 @@ export async function sendCampaignBatch(input: {
         // The client's name over the shared verified address — see
         // campaignFromHeader. The ADDRESS is unchanged.
         from: campaignFromHeader(input.workspaceName, input.from),
+        replyTo: input.replyTo,
         subject: rendered.subject,
         text: rendered.text,
         html: rendered.html,
@@ -1391,6 +1402,8 @@ export type DueCampaign = {
   /** Branding, carried the same way. Nullable, and never a reason to refuse. */
   brandAccentHex: string | null;
   brandSignOff: string | null;
+  /** The workspace's inbound address, for the newsletter's Reply-To. */
+  inboundEmail: string;
 };
 
 /**
@@ -1480,6 +1493,7 @@ export async function claimDueCampaigns(
       postalAddress: workspaces.postalAddress,
       brandAccentHex: workspaces.brandAccentHex,
       brandSignOff: workspaces.brandSignOff,
+      inboundEmail: workspaces.inboundEmail,
     })
     .from(campaigns)
     .innerJoin(workspaces, eq(workspaces.id, campaigns.workspaceId))

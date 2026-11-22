@@ -212,6 +212,9 @@ export async function POST(
       // sender line is the first thing anybody reads — a test that showed a
       // different one would hide exactly the detail it exists to show.
       from: campaignFromHeader(workspace.name, envelope.envelope.from),
+      // The same Reply-To as the real send, so replying to the test shows the
+      // client where their subscribers' replies will land.
+      replyTo: workspace.inboundEmail,
       // Prefixed so a test can never be mistaken for the real campaign sitting
       // in the same inbox. The BODY is left exactly as it will be sent — the
       // point is to inspect the real thing.

@@ -159,6 +159,37 @@ describe("the product shots and tiles show the app as it is", () => {
   });
 });
 
+describe("newsletter signup is described as it works", () => {
+  /*
+    22 Nov 2026 journey test: the homepage said subscribers "confirm their own
+    address by clicking a link we email them", pricing sold "confirmed opt-in",
+    and the onboarding step waited for somebody to "confirm by email". Signup
+    is single opt-in by default (db/schema.ts, requireSignupConfirmation), so
+    a new subscriber got a welcome email and no link at all.
+  */
+  const SOURCES = {
+    home: PAGES.home,
+    pricingPage: PAGES.pricing,
+    plans: read("lib/pricing.ts"),
+    structuredData: read("lib/structured-data.ts"),
+    onboarding: read("lib/onboarding.ts"),
+  };
+  const PROMISES = [
+    "confirmed opt-in",
+    "confirm their own address",
+    "confirm by email",
+    "confirms their address by email",
+    "and confirmed.",
+  ];
+
+  for (const [name, text] of Object.entries(SOURCES)) {
+    it(`${name} never promises a confirmation email`, () => {
+      const lower = text.replace(/\s+/g, " ").toLowerCase();
+      expect(PROMISES.filter((p) => lower.includes(p))).toEqual([]);
+    });
+  }
+});
+
 describe("the homepage can be served from the CDN", () => {
   it("does not read the session itself", () => {
     // Its header comment explains why it no longer calls auth(); only the code counts.

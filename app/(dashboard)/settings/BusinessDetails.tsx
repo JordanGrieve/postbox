@@ -6,7 +6,7 @@ import {
   SIGN_OFF_MAX,
   emailAccent,
 } from "@/lib/newsletter";
-import { THEMES } from "@/lib/theme";
+import { THEMES, themeAttr } from "@/lib/theme";
 import ThemePicker from "./ThemePicker";
 import { EditorActions, SettingRow, escapeCloses, useSave, type Done } from "./SettingRow";
 
@@ -59,7 +59,11 @@ type Patch = Partial<{
 export default function BusinessDetails(props: BusinessDetailsProps) {
   const { name, legalName, postalAddress, brandAccentHex, brandSignOff, theme } = props;
   const accent = brandAccentHex ?? DEFAULT_EMAIL_ACCENT;
-  const themeLabel = THEMES.find((t) => t.key === theme)?.label ?? "Light";
+  // Resolved the way ThemeApplier resolves it, so this names the palette the
+  // app is actually showing. A new workspace stores the legacy column default
+  // "terracotta", which is dark; this used to fall back to "Light" for it.
+  const shown = themeAttr(theme);
+  const themeLabel = THEMES.find((t) => t.key === shown)?.label ?? "Dark";
 
   return (
     <dl className="stg-biz">
@@ -182,7 +186,7 @@ export default function BusinessDetails(props: BusinessDetailsProps) {
           <div className="stg-biz-editor">
             {/* Saves the moment a theme is picked, as it always has: the
                 whole app repaints, which is its own confirmation. */}
-            <ThemePicker value={theme} />
+            <ThemePicker value={shown} />
             <div className="stg-biz-actions">
               <button type="button" className="stg-button" onClick={() => done(false)}>
                 Done

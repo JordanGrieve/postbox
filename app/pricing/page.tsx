@@ -24,7 +24,7 @@ const PRICES = PLANS.map((p) => formatPrice(p.price));
 export const metadata: Metadata = pageMetadata({
   path: "/pricing",
   title: `Pricing: shared inbox from ${PRICES[0]} a month`,
-  description: `${PLANS.length} plans for small businesses: ${PRICES.slice(0, -1).join(", ")} and ${PRICES.at(-1)} a month. Shared support inbox, auto-replies and confirmed opt-in newsletters. ${TRIAL_DAYS}-day free trial, no card.`,
+  description: `${PLANS.length} plans for small businesses: ${PRICES.slice(0, -1).join(", ")} and ${PRICES.at(-1)} a month. Shared support inbox, auto-replies and newsletters with recorded consent. ${TRIAL_DAYS}-day free trial, no card.`,
 });
 
 /**

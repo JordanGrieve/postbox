@@ -65,6 +65,18 @@ describe("BusinessDetails — read mode", () => {
     expect(screen.getByText("Light")).toBeTruthy();
   });
 
+  it("names the theme the app actually shows, for a stored legacy value", () => {
+    // 22 Nov 2026 journey test: a new workspace stores the column default
+    // "terracotta", which themeAttr paints DARK — and this line said "Light",
+    // with neither option ticked in the picker.
+    render(<BusinessDetails {...EMPTY} theme="terracotta" />);
+    expect(screen.getByText("Dark")).toBeTruthy();
+    expect(screen.queryByText("Light")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Change postbox appearance" }));
+    const dark = screen.getByRole("radio", { name: /Dark/ }) as HTMLInputElement;
+    expect(dark.checked).toBe(true);
+  });
+
   it("says Change, not Add, once a value exists, and drops the warning", () => {
     render(
       <BusinessDetails

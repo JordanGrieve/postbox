@@ -816,10 +816,12 @@ export type Brand = {
 export const NO_BRAND: Brand = { accentHex: null, signOff: null };
 
 /**
- * The accent Postbox uses when a client has not picked one. Measured 4.83:1 on
- * white, so it passes the same bar every client colour is held to.
+ * The accent Postbox uses when a client has not picked one: the light theme's
+ * --accent, Postbox's own green (tests/newsletter-brand.test.ts keeps the two
+ * in step). It was the retired terracotta #c14a22 until 22 Nov 2026. About
+ * 10:1 on white, well past the bar every client colour is held to.
  */
-export const DEFAULT_EMAIL_ACCENT = "#c14a22";
+export const DEFAULT_EMAIL_ACCENT = "#174a33";
 
 export const SIGN_OFF_MAX = 120;
 

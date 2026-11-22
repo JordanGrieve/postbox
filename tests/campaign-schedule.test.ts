@@ -328,6 +328,16 @@ describe("throughput arithmetic agrees with the deployed cron", () => {
     expect(text).toContain("at least");
   });
 
+  it("says Send now goes straight away, for a list that fits in one pass", () => {
+    // 22 Nov 2026 journey test: queuing one recipient said only that "the
+    // sweep runs about once an hour", and the campaign then went out within
+    // seconds of Send now — the schedule route runs the first pass itself.
+    const text = describeDrain(1, 75);
+    expect(text).toContain("Send now");
+    expect(text).toContain("straight away");
+    expect(text).toContain(SWEEP_CADENCE);
+  });
+
   it("handles the small and empty cases without inventing a number", () => {
     expect(sweepsToDrain(0, 75)).toBe(0);
     expect(sweepsToDrain(-5, 75)).toBe(0);

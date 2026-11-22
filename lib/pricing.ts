@@ -94,7 +94,7 @@ export const PLANS: Plan[] = [
     limits: { seats: 3, ticketsPerMonth: 2000, subscribers: 1000, emailsPerMonth: 15_000 },
     features: [
       "Everything in Starter",
-      "Newsletters with confirmed opt-in",
+      "Newsletters with recorded consent",
       "Up to 1,000 subscribers",
       "Signup forms for your website",
       "Up to 3 people",

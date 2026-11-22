@@ -52,6 +52,10 @@ export default async function SearchPage({
   return (
     <>
       <section className="pbm-results" aria-label="Search results">
+        {/* The page's h1, for screen readers: the search box is what sighted
+            people need at the top, and the page had no h1 at all (journey
+            test, 22 Nov 2026). */}
+        <h1 className="pbm-sr">Search</h1>
         <div className="pbm-results-head">
           <SearchField initialQuery={results.query} autoFocus />
           <p className="pbm-results-meta" role="status">

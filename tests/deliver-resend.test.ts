@@ -30,6 +30,7 @@ function outbound(
   return {
     to: "sam@example.com",
     from: "Acme <news@news.postbox.help>",
+    replyTo: null,
     subject: "This week at Acme",
     text: "Body text",
     html: "<p>Body text</p>",
@@ -277,6 +278,25 @@ describe("a successful send", () => {
         "<mailto:unsub@postbox.help>, <https://postbox.help/u/TOKEN-SAM>",
       "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
     });
+  });
+
+  it("sets Reply-To to the workspace's inbox, so a subscriber's reply arrives", async () => {
+    // 22 Nov 2026: newsletters left from newsletter@news.postbox.help with no
+    // Reply-To, and news.postbox.help has no MX. A subscriber who replied — to
+    // a newsletter that said "book a table by replying" — got "Address not
+    // found". The reply now goes to the workspace's inbound address and
+    // becomes a conversation in its inbox.
+    const { send, calls } = recordingSend();
+    const deliver = createResendDeliverer({ apiKey: "re_test", send });
+    await deliver(outbound({ replyTo: "acme-1a2b3c@postbox.help" }));
+    expect(calls[0].payload.replyTo).toBe("acme-1a2b3c@postbox.help");
+  });
+
+  it("omits Reply-To entirely when there is none, rather than sending a blank", async () => {
+    const { send, calls } = recordingSend();
+    const deliver = createResendDeliverer({ apiKey: "re_test", send });
+    await deliver(outbound({ replyTo: null }));
+    expect("replyTo" in calls[0].payload).toBe(false);
   });
 
   it("sends exactly one address per call, never a batch", async () => {

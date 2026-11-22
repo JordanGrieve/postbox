@@ -212,7 +212,7 @@ export function onboardingSteps(f: OnboardingFacts): OnboardingStep[] {
        */
       title: "Share your signup link",
       detail:
-        "Put the form on your site or post the link. It ticks when the first person confirms their address by email — that confirmation is what makes them a subscriber.",
+        "Put the form on your site or post the link. It ticks when your first subscriber joins.",
       done: f.hasSubscriber,
       href: "/settings/install",
       optional: true,

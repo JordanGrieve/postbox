@@ -330,6 +330,8 @@ describe("the signed-in screens that had no harness", () => {
     );
     expect(html).toContain("Marcus Bell");
     expect(html.length).toBeGreaterThan(1000);
+    // The page had no h1 (journey test, 22 Nov 2026).
+    expect(html.match(/<h1[\s>]/g)?.length ?? 0).toBe(1);
   });
 
   it("/settings/billing — on a trial, with Stripe not configured", async () => {

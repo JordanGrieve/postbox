@@ -370,6 +370,31 @@ describe("every client-facing mail view renders", () => {
     }
   });
 
+  it("a conversation page has exactly one h1, and it is the conversation's", () => {
+    // 22 Nov 2026 journey test: the only h1 was the list's "Inbox", and on a
+    // phone the list is hidden beside an open conversation — so the
+    // conversation page had no h1 at all. The thread's customer name is the
+    // h1 now, and the list beside it steps down to h2.
+    const h1s = (html: string) => html.match(/<h1[\s>]/g)?.length ?? 0;
+    const beside = renderToStaticMarkup(
+      <MessageList
+        rows={rows}
+        view="inbox"
+        counts={{ toReply: 57, done: 12 }}
+        page={1}
+        pageCount={3}
+        total={57}
+        hideOnMobile
+      />,
+    );
+    const thread = renderToStaticMarkup(views.thread!);
+    expect(h1s(beside)).toBe(0);
+    expect(h1s(thread)).toBe(1);
+    expect(thread).toMatch(/<h1 class="pbm-thread-name"/);
+    // The inbox on its own keeps its h1.
+    expect(h1s(renderToStaticMarkup(views.inbox!))).toBe(1);
+  });
+
   it("the awkward fixtures actually reach the markup", () => {
     /*
       The canary. Every assertion above is satisfied by a component that

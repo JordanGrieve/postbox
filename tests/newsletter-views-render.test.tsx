@@ -165,6 +165,10 @@ describe("the newsletter composer renders", () => {
     });
   }
 
+  it("the composer has an h1 (it had none until 22 Nov 2026)", () => {
+    expect(renderToStaticMarkup(views.composer!)).toMatch(/<h1 class="nl-title"/);
+  });
+
   it("the campaigns reach the markup", () => {
     // The canary: a list that silently dropped its rows would pass every
     // length assertion above.

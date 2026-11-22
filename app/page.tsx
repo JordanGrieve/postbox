@@ -180,9 +180,9 @@ export default function LandingPage() {
                 A newsletter, without another tool to pay for
               </h2>
               <p className="home-show-body">
-                Customers sign up from a form on your own website and confirm
-                by email. You write the newsletter in Postbox and send it to
-                everyone who said yes.
+                Customers sign up from a form on your own website and get a
+                welcome email straight away. You write the newsletter in
+                Postbox and send it to everyone who said yes.
               </p>
               <p className="home-show-body">
                 Already have a list somewhere else? Send it one last email with
@@ -307,15 +307,21 @@ export default function LandingPage() {
  * what is recorded, what is refused, what happens to a bounce — and there is
  * no screen that shows a consent record being kept. Rewritten 21 Nov 2026 to
  * lead with what it does for the business, not with the mechanism.
+ *
+ * 22 Nov 2026: these promised a confirmation email that never comes (see
+ * tests/marketing-site.test.ts for the exact wording). Signup is single opt-in by
+ * default — Jordan's call, 14 Sep 2026, see requireSignupConfirmation in
+ * db/schema.ts — so a journey test subscribed and was simply on the list.
+ * The claims are now the ones that hold in both modes.
  */
 const NEWSLETTER_POINTS = [
   {
     title: "Only people who said yes",
-    body: "Subscribers confirm their own address by clicking a link we email them. No bought lists, nobody added by hand — which is exactly what keeps you out of spam folders.",
+    body: "People join by filling in your signup form themselves. No bought lists, nobody added by hand — which is exactly what keeps you out of spam folders.",
   },
   {
     title: "Proof, if anyone asks",
-    body: "For every subscriber Postbox keeps how and when they signed up and confirmed. If a customer ever asks why they are on your list, you can show them.",
+    body: "For every subscriber Postbox keeps when they signed up and the page they did it on. If a customer ever asks why they are on your list, you can show them.",
   },
   {
     title: "Unsubscribing takes one click",

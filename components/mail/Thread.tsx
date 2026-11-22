@@ -197,7 +197,11 @@ export default function Thread({
             <Icon name="back" size={17} strokeWidth={2.2} />
           </Link>
           <div className="pbm-thread-who">
-            <p className="pbm-thread-name">{ticket.customerName}</p>
+            {/* The page's h1. The list beside it drops to h2 while a
+                conversation is open (MessageList hideOnMobile), because on a
+                phone the list is hidden and its "Inbox" h1 went with it —
+                the conversation had no h1 at all (journey test, 22 Nov 2026). */}
+            <h1 className="pbm-thread-name">{ticket.customerName}</h1>
             <p className="pbm-thread-email">{ticket.customerEmail}</p>
           </div>
           <div className="pbm-thread-actions">
