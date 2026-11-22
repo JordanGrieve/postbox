@@ -3,6 +3,9 @@ import { json } from "@/lib/http";
 import { resolveViewer } from "@/lib/viewer";
 import { rateLimitDurable } from "@/lib/rate-limit-store";
 import { createBugReport, readBugReportFields } from "@/lib/bug-reports";
+import { listAdmins } from "@/lib/admin";
+import { sendBugReportAlert } from "@/lib/email";
+import { APP_URL, EMAIL_FROM_ADDRESS } from "@/lib/config";
 
 /**
  * POST /api/bug-reports — "Report a bug" from the account menu.
@@ -50,6 +53,24 @@ export async function POST(req: Request) {
     page: fields.page,
     userAgent: req.headers.get("user-agent")?.slice(0, 300) ?? null,
   });
+
+  // Tell the operators. Best effort, as for access requests: the report is
+  // saved either way, and a mail outage must not turn "Send report" into an
+  // error. The rate limit above also bounds these emails.
+  try {
+    const admins = await listAdmins();
+    await sendBugReportAlert({
+      to: admins.map((a) => a.email),
+      from: EMAIL_FROM_ADDRESS,
+      reporterEmail: viewer.email,
+      workspaceName: viewer.workspace?.name ?? null,
+      message: fields.message,
+      page: fields.page,
+      consoleUrl: `${APP_URL}/admin?section=bugs`,
+    });
+  } catch (err) {
+    console.error("[bug-reports] could not alert the operators:", err);
+  }
 
   return json({ ok: true });
 }

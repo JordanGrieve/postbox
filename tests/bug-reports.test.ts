@@ -14,6 +14,9 @@ vi.mock("@/db", () => ({ db: {} }));
 vi.mock("@clerk/nextjs/server", () => ({ auth: vi.fn() }));
 vi.mock("@/lib/viewer", () => ({ resolveViewer: vi.fn() }));
 vi.mock("@/lib/rate-limit-store", () => ({ rateLimitDurable: vi.fn() }));
+vi.mock("@/lib/config", () => ({ APP_URL: "https://postbox.test", EMAIL_FROM_ADDRESS: "replies@postbox.test" }));
+vi.mock("@/lib/admin", () => ({ listAdmins: vi.fn() }));
+vi.mock("@/lib/email", () => ({ sendBugReportAlert: vi.fn() }));
 vi.mock("@/lib/bug-reports", async (importOriginal) => ({
   ...(await importOriginal<typeof import("../lib/bug-reports")>()),
   createBugReport: vi.fn(async () => undefined),
@@ -25,6 +28,10 @@ const { POST } = await import("../app/api/bug-reports/route");
 const { auth } = await import("@clerk/nextjs/server");
 const { resolveViewer } = await import("@/lib/viewer");
 const { rateLimitDurable } = await import("@/lib/rate-limit-store");
+const { listAdmins } = await import("@/lib/admin");
+const { sendBugReportAlert } = await import("@/lib/email");
+type Admins = Awaited<ReturnType<typeof listAdmins>>;
+type AlertResult = Awaited<ReturnType<typeof sendBugReportAlert>>;
 
 type Viewer = Awaited<ReturnType<typeof resolveViewer>>;
 type AuthResult = Awaited<ReturnType<typeof auth>>;
@@ -66,6 +73,40 @@ describe("POST /api/bug-reports", () => {
       agentEmail: "owner@bakery.test",
     } satisfies Viewer);
     vi.mocked(rateLimitDurable).mockResolvedValue(allowed);
+    vi.mocked(listAdmins).mockResolvedValue([
+      { id: 1, email: "jordan@postbox.test" },
+      { id: 2, email: "ops@postbox.test" },
+    ] satisfies Partial<Admins[number]>[] as Admins);
+    vi.mocked(sendBugReportAlert).mockResolvedValue({ sent: true } satisfies AlertResult);
+  });
+
+  it("emails every operator about a new report, replying to the reporter", async () => {
+    await post({ message: "Newsletter preview is blank", page: "/newsletters/write" });
+    expect(vi.mocked(sendBugReportAlert).mock.calls[0][0]).toEqual({
+      to: ["jordan@postbox.test", "ops@postbox.test"],
+      from: "replies@postbox.test",
+      reporterEmail: "owner@bakery.test",
+      workspaceName: "Bakery",
+      message: "Newsletter preview is blank",
+      page: "/newsletters/write",
+      consoleUrl: "https://postbox.test/admin?section=bugs",
+    });
+  });
+
+  it("still files the report when the alert cannot be sent", async () => {
+    vi.mocked(sendBugReportAlert).mockRejectedValue(new Error("Resend is down"));
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    const res = await post({ message: "Broken" });
+    expect(res.status).toBe(200);
+    expect(bugs.createBugReport).toHaveBeenCalled();
+    error.mockRestore();
+  });
+
+  it("sends no alert for a report it refused", async () => {
+    await post({ message: "" });
+    vi.mocked(rateLimitDurable).mockResolvedValue({ ...allowed, ok: false, remaining: 0 });
+    await post({ message: "again" });
+    expect(sendBugReportAlert).not.toHaveBeenCalled();
   });
 
   it("refuses a visitor who is not signed in", async () => {

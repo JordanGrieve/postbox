@@ -255,6 +255,59 @@ Replying to this email reaches them.
   return { sent: true, id: data?.id };
 }
 
+/**
+ * Tell the operators about a new "Report a bug" (account menu, 22 Nov 2026),
+ * so it is read the same day rather than when somebody next opens the
+ * console. Shaped like sendAccessRequestAlert: plain text, the reporter's own
+ * words as text, Reply-To the reporter so answering reaches them.
+ */
+export async function sendBugReportAlert(input: {
+  to: string[];
+  from: string;
+  reporterEmail: string;
+  workspaceName: string | null;
+  message: string;
+  page: string | null;
+  consoleUrl: string;
+}): Promise<SendResult> {
+  if (!hasKey() || input.to.length === 0) {
+    return { sent: false, error: "Email sending is not configured." };
+  }
+
+  const where = input.workspaceName ?? "no workspace";
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  const { data, error } = await resend.emails.send({
+    from: `Postbox <${input.from}>`,
+    to: input.to,
+    replyTo: input.reporterEmail,
+    subject: `Bug report: ${where}`,
+    text: `${input.reporterEmail} (${where}) reported a bug${input.page ? ` on ${input.page}` : ""}:
+
+${input.message}
+
+Read it and mark it fixed here:
+${input.consoleUrl}
+
+Replying to this email reaches them.
+
+— Postbox`,
+  });
+
+  if (error) {
+    if (isProviderRateLimit(error)) {
+      console.error(
+        "[email] bug-report alert REFUSED BY THE PROVIDER'S RATE LIMIT — every tenant's transactional mail is affected:",
+        error,
+      );
+    } else {
+      console.error("[email] bug-report alert failed:", error);
+    }
+    return { sent: false, error: error.message };
+  }
+  for (let i = 0; i < input.to.length; i += 1) await recordTransactionalSend();
+  return { sent: true, id: data?.id };
+}
+
 
 /**
  * Branded HTML version of the invite (inline styles only — email clients).
