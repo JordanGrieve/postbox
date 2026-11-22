@@ -32,16 +32,31 @@ describe("reading width", () => {
     const files = [...walk("app"), ...walk("components")];
     expect(files.length, "no stylesheets found").toBeGreaterThan(15);
 
+    /*
+      Wider than 46ch only where the text was MEASURED live at 80 characters
+      or fewer, every line of it. 46ch is a rule of thumb that holds for any
+      sentence; these are particular texts somebody counted.
+    */
+    const MEASURED: Record<string, number> = {
+      // Pricing FAQ answers: 49ch of text (plus the 42px padding inside the
+      // box) measured 78 at most on 22 Nov 2026; 50ch measured 82. Jordan
+      // wanted them to "take up more space" on desktop.
+      "app/pricing/pricing.css": 49,
+    };
+
     let widths = 0;
     const offenders: string[] = [];
     for (const file of files) {
       const lines = readFileSync(join(process.cwd(), file), "utf8").split("\n");
       lines.forEach((line, i) => {
         const code = line.replace(/\/\*.*?\*\//g, "");
-        const m = /max-width:\s*([\d.]+)ch/.exec(code);
+        // Plain `46ch` or the ch term of a `calc(46ch + padding)`.
+        const m = /max-width:\s*(?:calc\(\s*)?([\d.]+)ch/.exec(code);
         if (!m) return;
         widths++;
-        if (Number(m[1]) > HOUSE_WIDTH_CH) offenders.push(`${file}:${i + 1}  max-width: ${m[1]}ch`);
+        const n = Number(m[1]);
+        if (n <= HOUSE_WIDTH_CH || n === MEASURED[file.split("\\").join("/")]) return;
+        offenders.push(`${file}:${i + 1}  max-width: ${m[1]}ch`);
       });
     }
 

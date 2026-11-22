@@ -76,7 +76,6 @@ describe("every route has a skeleton", () => {
     "/",
     "/pricing",
     "/contact",
-    "/demo",
     "/(legal)/privacy",
     "/(legal)/terms",
     "/s/done",

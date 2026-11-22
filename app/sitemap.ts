@@ -40,11 +40,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       priority: 0.7,
     },
     {
-      url: `${APP_URL}/demo`,
-      changeFrequency: "yearly",
-      priority: 0.7,
-    },
-    {
       url: `${APP_URL}/terms`,
       changeFrequency: "yearly",
       priority: 0.3,

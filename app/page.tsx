@@ -8,7 +8,7 @@ import FeatureBento from "@/components/marketing/FeatureBento";
 import { OPERATOR_LOCATION, OPERATOR_NAME } from "@/lib/config";
 import { PLANS, TRIAL_DAYS, formatPrice } from "@/lib/pricing";
 import { pageMetadata } from "@/lib/page-metadata";
-import { DEMO_CTA, DEMO_HREF, TRIAL_CTA, TRIAL_HREF, TRIAL_NOTE } from "@/lib/marketing-copy";
+import { TRIAL_CTA, TRIAL_HREF, TRIAL_NOTE } from "@/lib/marketing-copy";
 import {
   organizationJsonLd,
   softwareJsonLd,
@@ -77,9 +77,6 @@ export default function LandingPage() {
             <div className="home-cta-row">
               <Link className="home-btn home-btn--primary" href={TRIAL_HREF}>
                 {TRIAL_CTA}
-              </Link>
-              <Link className="home-btn home-btn--ghost" href={DEMO_HREF}>
-                {DEMO_CTA}
               </Link>
               <Link className="home-btn home-btn--ghost" href="/pricing">
                 See pricing
@@ -290,14 +287,9 @@ export default function LandingPage() {
                 see real enquiries arrive.
               </p>
             </div>
-            <div className="home-cta-row">
-              <Link className="home-btn home-btn--primary" href={TRIAL_HREF}>
-                {TRIAL_CTA}
-              </Link>
-              <Link className="home-btn home-btn--ghost" href={DEMO_HREF}>
-                {DEMO_CTA}
-              </Link>
-            </div>
+            <Link className="home-btn home-btn--primary" href={TRIAL_HREF}>
+              {TRIAL_CTA}
+            </Link>
           </div>
         </section>
       </main>
@@ -338,5 +330,20 @@ const NEWSLETTER_POINTS = [
   {
     title: "Bad addresses clean themselves up",
     body: "Addresses that bounce or mark you as spam are dropped automatically, and your postal address goes in every message, as the law requires.",
+  },
+  /*
+    Six, not four, so the grid fills two rows of three (Jordan, 22 Nov 2026).
+    Both are true of the send path as it stands: a campaign's Reply-To is the
+    workspace's inbound address (lib/campaign-send.ts), and renderTemplate
+    fills {first_name} with "there" when no name is known and deletes any
+    token it does not recognise (lib/merge-tags.ts).
+  */
+  {
+    title: "Replies land in your inbox",
+    body: "When a customer replies to a newsletter, it arrives in your Postbox inbox as a conversation, ready for your team to answer like any other enquiry.",
+  },
+  {
+    title: "Never “Hi {first_name}”",
+    body: "Each reader is greeted by name. Anyone without one gets “Hi there”, so a customer never sees a placeholder or a stray bracket.",
   },
 ];

@@ -43,11 +43,26 @@ describe("there is a way in", () => {
     expect(PAGES.pricing.match(/href=\{TRIAL_HREF\}/g)?.length).toBeGreaterThanOrEqual(2);
     expect(PAGES.pricing).not.toMatch(/OPEN_SIGNUP \? "\/sign-up" : "\/contact"/);
   });
+});
 
-  it("offers a demo from the hero and the closing band", () => {
-    // Jordan, 16 Nov 2026: "request a demo" on the landing page.
-    expect(PAGES.home.match(/href=\{DEMO_HREF\}/g)?.length).toBeGreaterThanOrEqual(2);
-    expect(PAGES.home).toContain("{DEMO_CTA}");
+describe("the homepage's newsletter points", () => {
+  it("fill whole rows of three, so none sits alone on a row", () => {
+    // 22 Nov 2026: four points laid out three and one (Jordan: "maybe 5 or 6?").
+    const block = PAGES.home.slice(PAGES.home.indexOf("const NEWSLETTER_POINTS"));
+    const array = block.slice(0, block.indexOf("];"));
+    const count = array.match(/title: "/g)?.length ?? 0;
+    expect(count).toBe(6);
+  });
+});
+
+describe("the pricing FAQ", () => {
+  const css = read("app/pricing/pricing.css");
+
+  it("opens and closes with a transition, not a jump", () => {
+    // Jordan, 22 Nov 2026: "a bit slower when opening and closing".
+    expect(css).toMatch(/interpolate-size:\s*allow-keywords/);
+    expect(css).toMatch(/\.prc-faq-item::details-content\s*\{[^}]*transition:[^}]*block-size/);
+    expect(css).toMatch(/\.prc-faq-item\[open\]::details-content\s*\{[^}]*block-size:\s*auto/);
   });
 });
 

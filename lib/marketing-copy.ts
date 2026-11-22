@@ -24,15 +24,6 @@ import { OPEN_SIGNUP } from "./config";
 export const TRIAL_HREF = "/sign-up";
 export const TRIAL_CTA = "Start free trial";
 
-/**
- * "Request a demo" (Jordan, 16 Nov 2026). A demo request is a contact-form
- * enquiry into Postbox's own workspace, told apart by its subject — so it
- * arrives, is answered and is threaded exactly like every client's enquiries.
- */
-export const DEMO_HREF = "/demo";
-export const DEMO_CTA = "Request a demo";
-export const DEMO_SUBJECT = "Demo request";
-
 export const TRIAL_NOTE = OPEN_SIGNUP
   ? "No card needed. Set up in a couple of minutes."
   : "No card needed. We set up each business by hand: sign up, tell us your business name, and we'll email you when your inbox is ready, usually within a day.";

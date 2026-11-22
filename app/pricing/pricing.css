@@ -162,7 +162,7 @@
  */
 /* Full column width, like the plan cards above it (Jordan, 21 Nov 2026: it
    should "take up the same width as the other elements"). The ANSWERS keep
-   their reading width (.prc-faq-a, 68ch); only the rows and rules span. */
+   their reading width (.prc-faq-a, 49ch); only the rows and rules span. */
 .prc-faq {
   display: flex;
   flex-direction: column;
@@ -214,7 +214,8 @@
   border-right: 2px solid currentColor;
   border-bottom: 2px solid currentColor;
   transform: rotate(45deg);
-  transition: transform 160ms ease;
+  /* Turns with the answer opening below it. */
+  transition: transform 320ms ease;
   opacity: 0.65;
 }
 .prc-faq-item[open] .prc-faq-mark {
@@ -235,7 +236,35 @@
      rather than under the whole row. */
   margin: 0;
   padding: 0 40px 20px 2px;
-  max-width: 46ch;
+  /* The padding sits inside the box, so the text gets 49ch: measured live at
+     78 characters a line at most (1.4.8 allows 80; 50ch measured 82). It was
+     46ch including the padding, which Jordan found too narrow on desktop
+     (22 Nov 2026). Pinned in tests/reading-width.test.ts. */
+  max-width: calc(49ch + 42px);
+}
+
+/*
+  Open and close as a slide, not a jump (Jordan, 22 Nov 2026: "a bit slower").
+  ::details-content is the box <details> hides; letting block-size animate to
+  `auto` needs interpolate-size, and content-visibility must be allowed to
+  switch at the END of a close or the text vanishes before the box shrinks.
+  Browsers without ::details-content open instantly, as before. Reduced motion
+  is the blanket rule at the end of globals.css.
+*/
+.prc-faq {
+  interpolate-size: allow-keywords;
+}
+
+.prc-faq-item::details-content {
+  block-size: 0;
+  overflow: hidden;
+  transition:
+    block-size 320ms ease,
+    content-visibility 320ms ease allow-discrete;
+}
+
+.prc-faq-item[open]::details-content {
+  block-size: auto;
 }
 
 @media (max-width: 720px) {
