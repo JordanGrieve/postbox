@@ -1315,7 +1315,7 @@ export default function Composer({
 
               <div className="nl-field">
                 <label className="nl-label" htmlFor="nl-preheader">
-                  Preheader
+                  Preheader{" "}
                   <span className="nl-optional">optional</span>
                 </label>
                 <input

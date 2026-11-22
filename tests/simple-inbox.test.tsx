@@ -69,6 +69,18 @@ describe("the list", () => {
     expect(card.getAttribute("href")).toBe("/tickets/7?page=1");
   });
 
+  it("a card previews what the customer said, not our auto-reply", () => {
+    // 22 Nov 2026 mobile journey test: with auto-reply on, Dana's and Riley's
+    // cards read "Hi Dana, Thanks for getting in touch…" — our own
+    // acknowledgement, the newest message — instead of their question. The
+    // preview is the customer's newest message, falling back to the newest of
+    // any direction only when the customer has written none.
+    const q = read("app/(dashboard)/queries.ts");
+    const at = q.indexOf("lastBody: sql");
+    const sub = q.slice(at, q.indexOf(")`", at));
+    expect(sub).toMatch(/ORDER BY \(m\.direction = 'inbound'\) DESC, m\.sent_at DESC/);
+  });
+
   it("only To reply and Done are reachable; any other ?folder= lands on To reply", () => {
     expect(parseInboxView("closed")).toBe("closed");
     for (const v of [undefined, "inbox", "trash", "starred", "archived", "snoozed", "sent", "all"]) {

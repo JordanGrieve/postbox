@@ -113,6 +113,20 @@ describe("the inline pass cannot fail the request", () => {
     expect(body).not.toContain("return json(");
   });
 
+  it("returns the campaign as it is AFTER the inline pass, not as it was armed", () => {
+    /*
+     * 22 Nov 2026 mobile journey test: the route returned the row from
+     * scheduleCampaign — status "scheduled" — even when the inline pass had
+     * already sent everyone and settled it to "sent". The composer drew from
+     * it, so a finished campaign showed "Scheduled · 13:39 · Cancel" under
+     * "1 sent just now. That was everybody".
+     */
+    const pass = SCHEDULE.indexOf("runCampaignSweep(");
+    const reread = SCHEDULE.indexOf("getCampaign(workspace.id, campaignId)");
+    expect(reread).toBeGreaterThan(pass);
+    expect(SCHEDULE).toMatch(/campaign: current \?\? result/);
+  });
+
   it("reports what it managed rather than claiming a send", () => {
     /*
      * `sent` carries the server's own counts. The screen says "3 sent just

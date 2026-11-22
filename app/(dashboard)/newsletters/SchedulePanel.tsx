@@ -170,7 +170,10 @@ export default function SchedulePanel({
     <section className="nl-card">
       <h3 className="nl-card-title">Schedule this campaign</h3>
 
-      {recipientCount > 0 && (
+      {/* How long the queue will take — only while there is a queue to
+          take. A sent campaign showed "1 queued — one pass's worth" under
+          "That was everybody" (22 Nov 2026). */}
+      {recipientCount > 0 && (status === "draft" || status === "scheduled") && (
         <p className="nl-note">
           {describeDrain(recipientCount, recipientsPerSweep)}
         </p>
@@ -274,6 +277,19 @@ export default function SchedulePanel({
             </p>
           )}
         </>
+      ) : status === "sent" ? (
+        /*
+          Gone. The fact, and nothing to press: it used to fall through to
+          the arming form below — a checklist and a greyed-out "Send now"
+          for a campaign that had already been sent (22 Nov 2026).
+        */
+        <div className="nl-status-row" role="status">
+          <span className="nl-status-dot" aria-hidden />
+          <span className="nl-status-text">
+            Sent to {recipientCount.toLocaleString()}{" "}
+            {recipientCount === 1 ? "person" : "people"}.
+          </span>
+        </div>
       ) : status === "scheduled" ? (
         /*
           Armed. One status row — when, and for how many — with the

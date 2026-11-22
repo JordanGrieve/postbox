@@ -116,7 +116,7 @@ export type TicketListRow = {
   subject: string;
   status: TicketStatus;
   updatedAt: Date;
-  /** Body of the newest message — the card's preview. */
+  /** Body of the customer's newest message (else the newest) — the card's preview. */
   lastBody: string | null;
 };
 
@@ -140,10 +140,14 @@ export const listMailPage = cache(
         subject: tickets.subject,
         status: tickets.status,
         updatedAt: tickets.updatedAt,
+        // The customer's newest message, or the newest of any direction when
+        // they have written none. Newest-of-all showed our own auto-reply
+        // ("Hi Dana, Thanks for getting in touch…") on every acknowledged
+        // card instead of what the customer asked (22 Nov 2026).
         lastBody: sql<string | null>`(
           SELECT m.body FROM ticket_messages m
           WHERE m.ticket_id = ${outerTicketId}
-          ORDER BY m.sent_at DESC, m.id DESC
+          ORDER BY (m.direction = 'inbound') DESC, m.sent_at DESC, m.id DESC
           LIMIT 1
         )`,
       })

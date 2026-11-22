@@ -33,7 +33,7 @@ export type MailRow = {
   email: string;
   /** Not drawn on the card, but searched by the list's search box. */
   subject: string;
-  /** First line of the newest message. Empty string when the ticket has none. */
+  /** First line of the customer's newest message (else the newest). Empty string when the ticket has none. */
   preview: string;
   /** Compact relative time, e.g. "12m", "3h", "2d". */
   time: string;

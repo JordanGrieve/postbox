@@ -3,7 +3,7 @@ import { json } from "@/lib/http";
 import { parseId } from "@/lib/ids";
 import { activeWorkspace } from "@/lib/viewer";
 import { recordOperatorAction } from "@/lib/operator-actions";
-import { cancelCampaignSchedule, scheduleCampaign } from "@/lib/campaign-send";
+import { cancelCampaignSchedule, getCampaign, scheduleCampaign } from "@/lib/campaign-send";
 import { parseScheduleTime } from "@/lib/campaign-schedule";
 import { mailableSender } from "@/lib/newsletter";
 import { runCampaignSweep } from "@/lib/campaign-sweep-run";
@@ -196,9 +196,25 @@ export async function POST(
     }
   }
 
+  /*
+    The campaign as it is NOW. After an inline pass that reached everyone it is
+    `sent`, not the `scheduled` row scheduleCampaign returned before the pass —
+    and the composer draws from this, so returning the stale row left a
+    finished campaign showing "Scheduled · Cancel" (22 Nov 2026). Best-effort:
+    a failed re-read falls back to the armed row, as before.
+  */
+  let current: Awaited<ReturnType<typeof getCampaign>> = null;
+  if (when.immediate) {
+    try {
+      current = await getCampaign(workspace.id, campaignId);
+    } catch (err) {
+      console.error("[schedule] could not re-read the campaign:", err);
+    }
+  }
+
   return json({
     ok: true,
-    campaign: result,
+    campaign: current ?? result,
     immediate: when.immediate,
     /**
      * What the inline pass managed, or null when there was not one (a future

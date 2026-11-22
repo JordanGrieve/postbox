@@ -165,6 +165,12 @@ describe("the newsletter composer renders", () => {
     });
   }
 
+  it("the Preheader label reads as two words to a screen reader", () => {
+    // 22 Nov 2026: JSX dropped the line break between "Preheader" and its
+    // optional tag, so the field's accessible name was "Preheaderoptional".
+    expect(renderToStaticMarkup(views.composer!)).toMatch(/Preheader <span class="nl-optional"/);
+  });
+
   it("the composer has an h1 (it had none until 22 Nov 2026)", () => {
     expect(renderToStaticMarkup(views.composer!)).toMatch(/<h1 class="nl-title"/);
   });

@@ -55,6 +55,15 @@ export const clerkAppearance = {
       from its docs.
     */
     footerActionLink: { color: "var(--accent-text)" },
+    /*
+      The 44px target (2.5.5), as everywhere else in the product
+      (STYLE-GUIDE.md §4). Clerk draws these at 32px, and they are the first
+      controls a new customer touches (mobile journey test, 22 Nov 2026).
+      tests/clerk-appearance.test.ts pins all three.
+    */
+    socialButtonsBlockButton: { minHeight: "var(--tap-min, 44px)" },
+    formFieldInput: { minHeight: "var(--tap-min, 44px)" },
+    formButtonPrimary: { minHeight: "var(--tap-min, 44px)" },
   },
   options: {
     // Google is the only provider configured, so a full-width block button
