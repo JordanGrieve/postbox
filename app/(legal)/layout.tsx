@@ -2,6 +2,15 @@ import Link from "next/link";
 import { PostboxLockup } from "@/components/Logo";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
 
+/*
+  The one column the header and the prose share. A ch is relative to the
+  font size, so the two must carry the same size as well as the same width or
+  they are different boxes: on 22 Nov 2026 the prose went to 46ch while the
+  header kept 620px, and the logo sat 42px left of the text.
+*/
+const COLUMN_WIDTH = "calc(46ch + 48px)";
+const COLUMN_FONT_SIZE = "0.90625rem";
+
 /** Shared chrome for the public legal pages. */
 export default function LegalLayout({
   children,
@@ -20,7 +29,8 @@ export default function LegalLayout({
         /* Matches the prose column below, or the lockup floats off its own
            left margin. */
         style={{
-          maxWidth: 620,
+          maxWidth: COLUMN_WIDTH,
+          fontSize: COLUMN_FONT_SIZE,
           margin: "0 auto",
           padding: "22px 24px 0",
         }}
@@ -51,10 +61,10 @@ export default function LegalLayout({
           size — the same reading width as .pbm-bubble and .ct-unset.
         */
         style={{
-          maxWidth: "calc(46ch + 48px)",
+          maxWidth: COLUMN_WIDTH,
           margin: "0 auto",
           padding: "28px 24px 72px",
-          fontSize: "0.90625rem",
+          fontSize: COLUMN_FONT_SIZE,
           lineHeight: 1.7,
         }}
       >

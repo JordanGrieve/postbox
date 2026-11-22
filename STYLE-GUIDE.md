@@ -99,8 +99,12 @@ in `rem` only — `tests/type-scale.test.ts` fails CI on a `px` font-size.
   "70 characters" is 100, and 54ch, long taken as "about 80", measured 82–90
   on the live Settings pages (22 Nov 2026). 46ch keeps the worst line near 77.
   Every `max-width` in `ch` is 46 or less; `tests/reading-width.test.ts`
-  fails on anything wider. A column sized in px (the legal pages) is
-  `calc(46ch + its padding)`, so it follows the same rule.
+  fails on anything wider, and on text capped in px wider than 33.6em at its
+  own font size (the homepage's 620px subtitle was 82). A column sized
+  inline (the legal pages) is `calc(46ch + its padding)`, and its header
+  shares the width AND the font size, because a ch follows the font. Text
+  with no cap at all cannot be found from the stylesheet: the live line
+  count in the journey test is what found the contact page's 91.
 - Never `text-align: justify`. Never `letter-spacing` below −0.5px on body.
 
 ## 4. Targets and spacing

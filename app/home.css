@@ -490,7 +490,9 @@
   line-height: 1.7;
   color: var(--text-4);
   margin: 0 0 32px;
-  max-width: 620px;
+  /* 46ch, the house reading width. 620px measured 82 characters a line
+     (desktop journey test, 22 Nov 2026). */
+  max-width: 46ch;
 }
 
 /* ── feature grid ────────────────────────────────────────────── */

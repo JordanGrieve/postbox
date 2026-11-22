@@ -144,6 +144,8 @@
 
 .ct-fine {
   margin: 0;
+  /* Uncapped, the small print ran 91 characters a line (22 Nov 2026). */
+  max-width: 46ch;
   color: var(--muted-2);
   font-size: 0.8125rem;
   line-height: 1.6;
