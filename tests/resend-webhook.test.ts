@@ -70,6 +70,16 @@ describe("the Resend delivery webhook is not world-writable", () => {
   });
 });
 
+describe("our own Message-ID is learned from the provider", () => {
+  it("stores it on sent/delivered, after the signature check", () => {
+    // Journey retest, 22 Nov 2026: a reply to replies@ named only our
+    // Message-ID, which we never knew (SES assigns it), so it matched nothing.
+    const learn = SRC.indexOf("learnSentMessageId(");
+    expect(learn).toBeGreaterThan(SRC.indexOf("verifySvixSignature(raw,"));
+    expect(SRC).toMatch(/type === "email\.sent" \|\| type === "email\.delivered"/);
+  });
+});
+
 describe("the update is keyed by the provider's id", () => {
   it("always filters on provider_message_id", () => {
     // The id is globally unique and is what makes this safe without a

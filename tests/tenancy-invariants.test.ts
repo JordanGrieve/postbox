@@ -1119,6 +1119,16 @@ function builderWrites(): BuilderWrite[] {
  */
 const BUILDER_EXEMPT: Exemption[] = [
   {
+    file: "lib/sent-message-id.ts",
+    match: /\.set\(\{ messageId \}\)/,
+    why:
+      "learnSentMessageId: keyed by the provider's message id, which is " +
+      "globally unique and is what the signed delivery webhook names — the " +
+      "same key, and the same reasoning, as the route's own status update " +
+      "(tests/resend-webhook.test.ts). It only fills a null messageId, with " +
+      "the value the provider reports for that same send.",
+  },
+  {
     file: "lib/data.ts",
     match: /\.set\(\{ messageId \}\)/,
     why:

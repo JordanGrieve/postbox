@@ -2,6 +2,7 @@ import { and, eq, isNull, or, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { ticketMessages } from "@/db/schema";
 import { verifySvixSignature } from "@/lib/svix";
+import { learnSentMessageId } from "@/lib/sent-message-id";
 import { RANK, statusForEvent, shouldSuppressAddress } from "@/lib/delivery-events";
 import {
   applyCampaignFeedback,
@@ -125,6 +126,17 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   const next = statusForEvent(type);
+
+  // Learn the Message-ID the customer's client will see on our reply, so a
+  // reply to it can be threaded even when it skips the per-ticket address.
+  // Best-effort: a failure here must never cost the status update below.
+  if (type === "email.sent" || type === "email.delivered") {
+    try {
+      await learnSentMessageId(providerId);
+    } catch (err) {
+      console.error("[resend-webhook] could not learn Message-ID:", err);
+    }
+  }
 
   if (next) {
     /*
