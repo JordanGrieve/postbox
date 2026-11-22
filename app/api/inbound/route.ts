@@ -115,6 +115,15 @@ export async function POST(req: Request) {
   // Length caps: email is attacker-controlled input; don't let one message
   // bloat the database.
   const sender = extractAddress(data.from);
+  // Resend's `from` on a received email is the bare address; the display name
+  // is only in the raw From header. Taken from there when `from` has none —
+  // and only when the header names the SAME address, so a mismatched header
+  // can never put one person's name on another's mail. Until 22 Nov 2026
+  // every emailed enquiry was filed under its address.
+  if (!sender.name) {
+    const header = extractAddress(extractHeaderValue(data, "from"));
+    if (header.name && header.email === sender.email) sender.name = header.name;
+  }
   sender.name = sender.name.slice(0, 120);
   const subject = (asString(data.subject) || "(no subject)").slice(0, 200);
   const body = stripQuotedReply(extractBody(data)).slice(0, 20_000);

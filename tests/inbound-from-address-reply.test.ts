@@ -77,10 +77,70 @@ function replyToFromAddress(headers: Record<string, string>) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  // clearAllMocks keeps implementations; the enquiry tests below make every
+  // address the bakery's, which must not leak into the replies@ ones.
+  vi.mocked(data.getWorkspaceByInboundEmail).mockReset();
   process.env.INBOUND_WEBHOOK_SECRET = SECRET;
   delete process.env.RESEND_WEBHOOK_SIGNING_SECRET;
   vi.mocked(rateLimitDurable).mockResolvedValue(allowed);
   vi.mocked(data.getWorkspaceById).mockResolvedValue(bakery);
+});
+
+describe("the sender's name on an emailed enquiry", () => {
+  /*
+    22 Nov 2026 desktop journey test: Resend's `from` on a received email is
+    the bare address; the display name is only in the raw From header
+    ("Jordan Grieve" <…>). The route read only `from`, so every emailed
+    enquiry was filed under its address — the conversation heading, the card
+    and the contact all said "jordangrieve.dev@gmail.com".
+  */
+  function enquiry(headers: Record<string, string>, from = "ann@example.com") {
+    return POST(
+      new Request("http://postbox.test/api/inbound", {
+        method: "POST",
+        headers: { "x-webhook-secret": SECRET },
+        body: JSON.stringify({
+          from,
+          to: ["bakery@inbound.test"],
+          subject: "Private hire",
+          text: "Could we hire the back room?",
+          message_id: "<ann-1@example.com>",
+          headers,
+        }),
+      }),
+    );
+  }
+
+  beforeEach(() => {
+    // Every enquiry below is addressed to the bakery alone.
+    vi.mocked(data.getWorkspaceByInboundEmail).mockResolvedValue(bakery);
+    vi.mocked(data.createTicket).mockImplementation(
+      async (t) => ({ id: 101, workspaceId: t.workspaceId }) satisfies Partial<Ticket> as Ticket,
+    );
+  });
+
+  it("takes the name from the From header when `from` is a bare address", async () => {
+    const res = await enquiry({ From: '"Ann Smith" <ann@example.com>' });
+    expect(res.status).toBe(201);
+    expect(vi.mocked(data.createTicket).mock.calls[0][0]).toMatchObject({
+      customerName: "Ann Smith",
+      customerEmail: "ann@example.com",
+    });
+    expect(vi.mocked(data.upsertContact).mock.calls[0]).toEqual([42, "Ann Smith", "ann@example.com"]);
+  });
+
+  it("never takes a name from a header that names a different address", async () => {
+    await enquiry({ From: '"Somebody Else" <other@example.com>' });
+    expect(vi.mocked(data.createTicket).mock.calls[0][0]).toMatchObject({
+      customerName: "ann@example.com",
+      customerEmail: "ann@example.com",
+    });
+  });
+
+  it("keeps a name `from` already carries", async () => {
+    await enquiry({ From: '"Header Name" <ann@example.com>' }, "Ann From-Field <ann@example.com>");
+    expect(vi.mocked(data.createTicket).mock.calls[0][0]).toMatchObject({ customerName: "Ann From-Field" });
+  });
 });
 
 describe("a reply sent to replies@", () => {
