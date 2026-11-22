@@ -125,6 +125,14 @@
   cursor: pointer;
 }
 
+/* Desktop: about three times its natural width, so the one action on the
+   page reads as the end of the form rather than a small afterthought. */
+@media (min-width: 641px) {
+  .ct-button {
+    min-width: 17.5rem;
+  }
+}
+
 .ct-button:hover {
   filter: brightness(1.06);
 }

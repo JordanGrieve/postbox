@@ -233,6 +233,12 @@ only (the sidebar uses the `--nav` family), so they blend into the page in
 light and dark; the traffic lights are the one literal.
 `tests/marketing-site.test.ts` fails on the features known to be gone.
 
+Callouts on the shots name an anchor (`at: "delivered"`), not a position:
+each is drawn inside the element it points at, so it follows that element at
+every width. Percentages of the frame were measured at one width and drifted
+onto the text at every other. A new callout means a new `AnnotationAnchor`
+and a `noteAt()` in the element it names.
+
 ## 7. Things that look like rules and are not
 
 - `--tap-min` was 24px "because a mail client is dense". It is 44.

@@ -125,21 +125,17 @@ export default function LandingPage() {
                 focus="inbox"
                 annotations={[
                   /*
-                    Measured, not guessed (21 Nov 2026, after the shot was
-                    redrawn to match the app): each dot lands ~8px past the
-                    end of what it names — the "from contact form" line on
-                    the second card, and the list's "Inbox" title.
+                    Each callout is drawn inside the thing it names, so it
+                    follows it at every width (ProductShot, AnnotationAnchor).
                   */
                   {
                     text: "Where it came from",
-                    top: "61.4%",
-                    left: "72.5%",
+                    at: "contact-form-source",
                     from: "right",
                   },
                   {
                     text: "One list, every channel",
-                    top: "13.1%",
-                    left: "60.2%",
+                    at: "list-title",
                     from: "right",
                   },
                 ]}
@@ -167,11 +163,10 @@ export default function LandingPage() {
                 focus="thread"
                 annotations={[
                   {
-                    // Points at "Delivered" in the reply's status line.
+                    // Above "Delivered", in the gap between the messages.
                     text: "Confirmed by the mail provider",
-                    top: "56%",
-                    left: "44.8%",
-                    from: "left",
+                    at: "delivered",
+                    from: "above",
                   },
                 ]}
               />
@@ -200,10 +195,10 @@ export default function LandingPage() {
                 focus="newsletter"
                 annotations={[
                   {
-                    // Points at the email's "Unsubscribe" link.
+                    // Just before "Unsubscribe", hanging left into the empty
+                    // space under the composer's fields.
                     text: "One-click unsubscribe, always",
-                    top: "75.8%",
-                    left: "34.6%",
+                    at: "unsubscribe",
                     from: "left",
                   },
                 ]}

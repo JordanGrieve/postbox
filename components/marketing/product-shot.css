@@ -420,41 +420,106 @@
 /* ── annotations ─────────────────────────────────────────────── */
 
 /*
- * A pill that carries its own background and border, so its legibility never
- * depends on the UI behind it. The dot is the pointing; the pill is the
- * explaining.
+ * A small tooltip on a leader line. The note is rendered inside the element
+ * it names (.pshot-anchor), so its DOT sits just beside that element at every
+ * width; the label hangs off to the side named by data-from, so it never sits
+ * on what it points at. Inverted ink (--text ground, --surface ink) so it
+ * reads as a label laid over the window, not as more of the window, in both
+ * themes, with no border. Redrawn 22 Nov 2026; the bordered, shadowed pill
+ * before it read as chunky.
  */
+.pshot-anchor {
+  position: relative;
+}
 .pshot-note {
   position: absolute;
-  transform: translate(-50%, -50%);
   z-index: 2;
-  padding: 7px 11px;
-  border-radius: 8px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  box-shadow: 0 6px 18px var(--shadow);
-  font-size: 0.78125rem;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--text);
-  white-space: nowrap;
+  width: 0;
+  height: 0;
+  top: 50%;
 }
+.pshot-note[data-from="right"] {
+  left: calc(100% + 9px);
+}
+.pshot-note[data-from="left"] {
+  left: -9px;
+}
+.pshot-note[data-from="above"] {
+  top: -8px;
+  left: 50%;
+}
+/* The dot. */
+.pshot-note::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-text);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+/* The leader line, from the dot to the label. */
 .pshot-note::after {
   content: "";
   position: absolute;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--accent-text);
-  box-shadow: 0 0 0 4px var(--accent-soft);
-  transform: translateY(-50%);
+  top: -0.5px;
+  width: 14px;
+  height: 1px;
+  background: var(--text);
+  opacity: 0.55;
 }
 .pshot-note[data-from="left"]::after {
-  right: -13px;
+  right: 6px;
 }
 .pshot-note[data-from="right"]::after {
-  left: -13px;
+  left: 6px;
+}
+.pshot-note-label {
+  position: absolute;
+  top: 0;
+  transform: translateY(-50%);
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: var(--text);
+  color: var(--surface);
+  box-shadow: 0 2px 8px var(--shadow);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: 0.005em;
+  white-space: nowrap;
+}
+.pshot-note[data-from="left"] .pshot-note-label {
+  right: 20px;
+}
+.pshot-note[data-from="right"] .pshot-note-label {
+  left: 20px;
+}
+.pshot-note[data-from="above"]::after {
+  left: -0.5px;
+  top: -20px;
+  width: 1px;
+  height: 14px;
+}
+.pshot-note[data-from="above"] .pshot-note-label {
+  top: auto;
+  bottom: 20px;
+  right: -14px;
+  transform: none;
+}
+
+/* The callouts' words for screen readers (see ProductShot). */
+.pshot-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* ── focused crops ───────────────────────────────────────────── */
@@ -493,6 +558,11 @@
 }
 .pshot-body[data-focus="thread"] .pshot-thread-name {
   font-size: 0.875rem;
+}
+/* Room above the reply's status line for the "Delivered" callout, which
+   hangs above its dot so it covers neither message. */
+.pshot-body[data-focus="thread"] .pshot-meta--out {
+  margin-top: 48px;
 }
 .pshot-body[data-focus="thread"] .pshot-bubble {
   padding: 11px 14px;
@@ -601,14 +671,30 @@
 /* ── narrow screens ──────────────────────────────────────────── */
 
 /*
- * Below 860px the floating labels go (they would cover what they name) and
- * the full shot drops its sidebar; below 560px it is one pane. The crops keep
+ * At 900px and below the floating labels go, and below 860px the full shot
+ * drops its sidebar; below 560px it is one pane. The crops keep
  * the pane they exist to show.
  */
-@media (max-width: 860px) {
+/* Side by side but narrow: the inbox crop drops its sidebar, or the "Where it
+   came from" callout runs off the window's edge. */
+@media (max-width: 1100px) {
+  .pshot-body[data-focus="inbox"] {
+    grid-template-columns: 1fr;
+  }
+  .pshot-body[data-focus="inbox"] .pshot-side {
+    display: none;
+  }
+}
+
+/* The callouts go at 900px, where the homepage stacks each shot under its
+   copy (home.css) and the prose beside it is right above. */
+@media (max-width: 900px) {
   .pshot-note {
     display: none;
   }
+}
+
+@media (max-width: 860px) {
   .pshot-body {
     grid-template-columns: 190px 1fr;
   }

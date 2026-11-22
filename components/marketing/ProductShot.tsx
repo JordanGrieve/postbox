@@ -39,14 +39,28 @@ import "./product-shot.css";
  * nothing here may carry information the page states nowhere else.
  */
 
+/**
+ * The things a callout can point at. Each is rendered INSIDE the element it
+ * names, so the dot follows that element at every width and wrap. They were
+ * percentages of the frame until 22 Nov 2026, measured at 1280px; at 920px
+ * every dot had drifted onto the text it was meant to sit beside.
+ */
+export type AnnotationAnchor =
+  | "list-title"
+  | "contact-form-source"
+  | "delivered"
+  | "unsubscribe";
+
 export type Annotation = {
   /** What it points at. Kept to a few words — this is a label, not a sentence. */
   text: string;
-  /** Percentages of the shot's box, so the callout tracks the thing it names as the shot scales. */
-  top: string;
-  left: string;
-  /** Which side the little connector sits on. */
-  from?: "left" | "right";
+  at: AnnotationAnchor;
+  /**
+   * Where the label sits: "right" of the thing (the dot just after it),
+   * "left" of it (the dot just before it), or "above" it on a vertical
+   * leader, for something with content on both sides.
+   */
+  from: "left" | "right" | "above";
 };
 
 /** The list's cards. All invented; see the note above. */
@@ -135,6 +149,22 @@ export default function ProductShot({
   focus?: ShotFocus;
   className?: string;
 }) {
+  /*
+    The callout drawn at an anchor, if one was asked for there. It sits in the
+    aria-hidden body with everything else it is drawn on; the same words are
+    given to screen readers once, after the body.
+  */
+  const noteAt = (at: AnnotationAnchor) => {
+    const a = annotations.find((n) => n.at === at);
+    if (!a) return null;
+    return (
+      <span className="pshot-note" data-from={a.from}>
+        <span className="pshot-note-label">{a.text}</span>
+      </span>
+    );
+  };
+  const firstFormCard = CARDS.findIndex((c) => c.source === "from contact form");
+
   return (
     <div
       className={`pshot-frame ${className}`.trim()}
@@ -191,7 +221,11 @@ export default function ProductShot({
               <div className="pshot-email-foot">
                 <p>
                   Don&rsquo;t want these emails?{" "}
-                  <span className="pshot-email-link">Unsubscribe</span>.
+                  <span className="pshot-email-link pshot-anchor">
+                    Unsubscribe
+                    {noteAt("unsubscribe")}
+                  </span>
+                  .
                 </p>
                 {/* Obviously invented (21 Nov 2026). */}
                 <p>Open Door Bakery, 1 Example Street, Anytown</p>
@@ -234,7 +268,10 @@ export default function ProductShot({
           </div>
 
           <div className="pshot-list">
-            <p className="pshot-list-title">Inbox</p>
+            <p className="pshot-list-title pshot-anchor">
+              Inbox
+              {noteAt("list-title")}
+            </p>
             <div className="pshot-tabs">
               <span className="pshot-tab" data-on>
                 To reply <b>4</b>
@@ -244,7 +281,7 @@ export default function ProductShot({
               </span>
             </div>
             <div className="pshot-search">Search messages&hellip;</div>
-            {CARDS.map((c) => (
+            {CARDS.map((c, i) => (
               <article
                 key={c.name}
                 className="pshot-card"
@@ -255,7 +292,10 @@ export default function ProductShot({
                   <span className="pshot-card-when">{c.when}</span>
                 </div>
                 <p className="pshot-card-preview">{c.preview}</p>
-                <p className="pshot-card-source">{c.source}</p>
+                <p className="pshot-card-source pshot-anchor">
+                  {c.source}
+                  {i === firstFormCard && noteAt("contact-form-source")}
+                </p>
               </article>
             ))}
           </div>
@@ -280,7 +320,10 @@ export default function ProductShot({
                 You &middot; 9:50 am &middot;{" "}
                 {/* The label doing real work: a delivery the provider
                     confirmed, not just "sent". */}
-                <span className="pshot-meta-ok">Delivered</span>
+                <span className="pshot-meta-ok pshot-anchor">
+                  Delivered
+                  {noteAt("delivered")}
+                </span>
               </p>
               <div className="pshot-bubble pshot-bubble--out">
                 Caught it just in time — it hadn&rsquo;t gone to packing yet.
@@ -298,21 +341,17 @@ export default function ProductShot({
       )}
 
       {/*
-        Callouts sit OUTSIDE the aria-hidden body so their text is still read,
-        and are positioned in percentages so they follow what they point at as
-        the shot scales. Hidden below 860px, where the section's prose carries
-        the same points.
+        The callouts' words, for screen readers: the drawn ones are inside the
+        aria-hidden body. Hidden visually at every width (the drawn ones go at
+        900px and below, where the section's prose carries the same points).
       */}
-      {annotations.map((a) => (
-        <span
-          key={a.text}
-          className="pshot-note"
-          style={{ top: a.top, left: a.left }}
-          data-from={a.from ?? "left"}
-        >
-          {a.text}
-        </span>
-      ))}
+      {annotations.length > 0 && (
+        <ul className="pshot-sr">
+          {annotations.map((a) => (
+            <li key={a.at}>{a.text}</li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }
