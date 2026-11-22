@@ -1219,7 +1219,7 @@ export default function Composer({
 
         {!editable && (
           <p className="nl-note nl-note--warn">
-            This campaign is <b>{STATUS_LABELS[draft.status]}</b> and can no
+            This campaign is <b>{STATUS_LABELS[draft.status].toLowerCase()}</b> and can no
             longer be edited. Changing the subject of a campaign that has
             recipients would mean two different emails went out under one name.
           </p>

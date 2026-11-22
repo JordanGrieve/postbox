@@ -15,7 +15,7 @@ vi.mock("next/navigation", () => ({
   useParams: () => ({}),
 }));
 
-import { writeFileSync, mkdirSync, copyFileSync } from "node:fs";
+import { writeFileSync, mkdirSync, copyFileSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import Composer from "../app/(dashboard)/newsletters/Composer";
 import type { CampaignRowDTO } from "../app/(dashboard)/newsletters/Composer";
@@ -164,6 +164,20 @@ describe("the newsletter composer renders", () => {
       expect(html.length, `${name} rendered nothing`).toBeGreaterThan(400);
     });
   }
+
+  it("the not-editable note puts the status mid-sentence in lower case", () => {
+    // 22 Nov 2026 mobile journey test: "This campaign is Sent and can no
+    // longer be edited" — the status label dropped in as-is. The composer only
+    // reaches this state after loading a sent campaign in the browser, so the
+    // sentence is read from source; SchedulePanel already lowercases its own.
+    const src = readFileSync(
+      join(process.cwd(), "app/(dashboard)/newsletters/Composer.tsx"),
+      "utf8",
+    );
+    const at = src.indexOf("and can no");
+    expect(at).toBeGreaterThan(-1);
+    expect(src.slice(at - 120, at)).toContain("STATUS_LABELS[draft.status].toLowerCase()");
+  });
 
   it("headings step down one level at a time from the h1", () => {
     // 22 Nov 2026 desktop journey test: the card titles were h3 directly
