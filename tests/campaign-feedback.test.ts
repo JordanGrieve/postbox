@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { suppressionReasonFor } from "../lib/campaign-feedback";
+import { canMarkDelivered, suppressionReasonFor } from "../lib/campaign-feedback";
 import { shouldSuppressAddress } from "../lib/delivery-events";
 
 /**
@@ -155,5 +155,38 @@ describe("feedback that fits nobody is counted", () => {
     const at = LIB.indexOf('reason: "unmapped_message_id"');
     expect(at).toBeGreaterThan(-1);
     expect(LIB.slice(at, at + 200)).toContain("messageId: id");
+  });
+});
+
+describe("a delivered newsletter is recorded as delivered", () => {
+  /*
+    22 Nov 2026 journey retest: Resend reported a newsletter delivered and
+    the recipient row stayed at "sent" with no delivered_at, because the
+    webhook only ever advanced ticket messages. The row is the per-send log,
+    so it now records the delivery too.
+  */
+  it("moves a row from sent to delivered, and from nothing else", () => {
+    expect(canMarkDelivered("sent")).toBe(true);
+    // Queued and failed rows never reached the provider; bounced and
+    // complained are terminal and more serious, and a late or duplicate
+    // "delivered" must not paper over them.
+    for (const s of ["queued", "failed", "bounced", "complained", "delivered"] as const) {
+      expect(canMarkDelivered(s)).toBe(false);
+    }
+  });
+
+  it("is wired into the webhook on email.delivered, after the signature check", () => {
+    const call = ROUTE.indexOf("markCampaignDelivered(");
+    expect(call).toBeGreaterThan(ROUTE.indexOf("verifySvixSignature(raw,"));
+    expect(ROUTE.slice(call - 200, call)).toContain('type === "email.delivered"');
+  });
+
+  it("keys the write by the provider's id and only from sent", () => {
+    const at = LIB.indexOf("export async function markCampaignDelivered");
+    expect(at).toBeGreaterThan(-1);
+    const body = LIB.slice(at, at + 1400);
+    expect(body).toContain("eq(campaignRecipients.providerMessageId, id)");
+    expect(body).toContain(`eq(campaignRecipients.status, "sent")`);
+    expect(body).toContain("deliveredAt");
   });
 });

@@ -6,6 +6,7 @@ import { learnSentMessageId } from "@/lib/sent-message-id";
 import { RANK, statusForEvent, shouldSuppressAddress } from "@/lib/delivery-events";
 import {
   applyCampaignFeedback,
+  markCampaignDelivered,
   recordUnattributableFeedback,
 } from "@/lib/campaign-feedback";
 
@@ -136,6 +137,13 @@ export async function POST(req: Request): Promise<Response> {
     } catch (err) {
       console.error("[resend-webhook] could not learn Message-ID:", err);
     }
+  }
+
+  // A newsletter delivered: the recipient row records it, as the ticket
+  // message below does for a reply. Ids are unique per send, so at most one
+  // of the two matches; the other is a no-op.
+  if (type === "email.delivered") {
+    await markCampaignDelivered(providerId);
   }
 
   if (next) {

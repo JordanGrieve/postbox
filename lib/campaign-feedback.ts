@@ -2,7 +2,7 @@ import "server-only";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { campaignRecipients, campaigns, ticketMessages } from "@/db/schema";
-import type { SuppressionReason } from "@/db/schema";
+import type { RecipientStatus, SuppressionReason } from "@/db/schema";
 import { suppressAddress } from "./suppressions";
 import { recordFeedbackDrop } from "./feedback-log";
 
@@ -153,6 +153,47 @@ export async function applyCampaignFeedback(input: {
     email: row.email,
     suppressed: suppression.created,
   };
+}
+
+/**
+ * May a "delivered" event move a recipient row with this status?
+ *
+ * Only from `sent`. Queued and failed rows never reached the provider, and
+ * bounced and complained are terminal and more serious — a late or
+ * redelivered "delivered" must not paper over them. Pure, so the rule is
+ * tested without a database; markCampaignDelivered puts the same rule in its
+ * WHERE so the database arbitrates races.
+ */
+export function canMarkDelivered(status: RecipientStatus): boolean {
+  return status === "sent";
+}
+
+/**
+ * Record that the provider delivered a newsletter.
+ *
+ * Until 22 Nov 2026 the delivery webhook only advanced ticket messages, so a
+ * delivered newsletter's row stayed at "sent" with no delivered_at — the
+ * per-send log never recorded a single delivery. Keyed by the provider's
+ * message id, which is globally unique and is what the signed webhook names:
+ * the same key that carries tenancy for the ticket-message update beside it.
+ * Idempotent: a redelivered event finds the row already past `sent`.
+ */
+export async function markCampaignDelivered(
+  providerMessageId: string,
+): Promise<boolean> {
+  const id = providerMessageId.trim();
+  if (!id) return false;
+  const updated = await db
+    .update(campaignRecipients)
+    .set({ status: "delivered", deliveredAt: new Date() })
+    .where(
+      and(
+        eq(campaignRecipients.providerMessageId, id),
+        eq(campaignRecipients.status, "sent"),
+      ),
+    )
+    .returning({ id: campaignRecipients.id });
+  return updated.length > 0;
 }
 
 /**

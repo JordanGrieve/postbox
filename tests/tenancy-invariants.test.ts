@@ -1119,6 +1119,16 @@ function builderWrites(): BuilderWrite[] {
  */
 const BUILDER_EXEMPT: Exemption[] = [
   {
+    file: "lib/campaign-feedback.ts",
+    match: /status: "delivered", deliveredAt/,
+    why:
+      "markCampaignDelivered: keyed by the provider's message id, globally " +
+      "unique and named by the signed delivery webhook — the same key that " +
+      "carries tenancy for the route's ticket-message update. It only moves " +
+      "a row from sent to delivered, so a forged id cannot change anything " +
+      "but a delivery timestamp on a send that really was made.",
+  },
+  {
     file: "lib/sent-message-id.ts",
     match: /\.set\(\{ messageId \}\)/,
     why:
