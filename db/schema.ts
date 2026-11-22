@@ -1748,7 +1748,9 @@ export type AdminActionKind =
    * below). Approving one is "workspace_created", because that is what it
    * does; the row's detail names the request.
    */
-  | "access_request_declined";
+  | "access_request_declined"
+  /** A bug report marked fixed in the console's Bug reports pane. */
+  | "bug_report_fixed";
 
 /**
  * Somebody signed in with no workspace asked for one.
@@ -1798,6 +1800,38 @@ export const accessRequests = pgTable(
 
 export type AccessRequestStatus = "pending" | "approved" | "declined";
 export type AccessRequest = typeof accessRequests.$inferSelect;
+
+/**
+ * "Report a bug" from the account menu (Jordan, 22 Nov 2026). Read and marked
+ * fixed by operators in the console's Bug reports pane.
+ *
+ * `workspace_id` is the workspace the reporter was in, and null for an
+ * operator reporting from outside one. Not a foreign key: closing a workspace
+ * must not erase the bugs its people found.
+ */
+export const bugReports = pgTable(
+  "bug_reports",
+  {
+    id: serial("id").primaryKey(),
+    workspaceId: integer("workspace_id"),
+    reporterClerkId: text("reporter_clerk_id").notNull(),
+    reporterEmail: text("reporter_email").notNull(),
+    /** What they wrote. Shown as text, never as HTML. */
+    message: text("message").notNull(),
+    /** The path they were on, without its query string. */
+    page: text("page"),
+    userAgent: text("user_agent"),
+    status: text("status").$type<BugReportStatus>().notNull().default("open"),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    resolvedAt: timestamp("resolved_at", { withTimezone: true }),
+    /** Not a foreign key, for the same reason as access_requests. */
+    resolvedByAdminId: integer("resolved_by_admin_id"),
+  },
+  (t) => [index("bug_reports_status_idx").on(t.status, t.createdAt)],
+);
+
+export type BugReportStatus = "open" | "fixed";
+export type BugReport = typeof bugReports.$inferSelect;
 
 /**
  * WHICH client records an operator actually opened, during an impersonation.

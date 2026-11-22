@@ -22,7 +22,8 @@ import {
   OverviewSection,
 } from "../app/(admin)/admin/sections";
 import { RequestsSection } from "../app/(admin)/admin/requests-section";
-import type { AccessRequest } from "../db/schema";
+import type { AccessRequest, BugReport } from "../db/schema";
+import { BugReportsSection } from "../app/(admin)/admin/bug-reports-section";
 
 /**
  * Every pane of the admin console renders.
@@ -446,6 +447,51 @@ describe("the Requests pane", () => {
     expect(html).toContain('aria-label="Decline the request from owner@opendoorbakery.co.uk"');
     expect(html).toContain('aria-label="Workspace name for hello@amoria.example"');
     expect(html).toContain("We get about ten emails a day");
+  });
+});
+
+describe("the Bug reports pane", () => {
+  const report = (over: Partial<BugReport>) =>
+    ({
+      id: 1,
+      workspaceId: 42,
+      reporterClerkId: "user_1",
+      reporterEmail: "owner@opendoorbakery.co.uk",
+      message: "The Send button did nothing\n<script>alert(1)</script>",
+      page: "/tickets/9",
+      userAgent: "Mozilla/5.0 (iPhone)",
+      status: "open",
+      createdAt: new Date("2026-11-22T21:00:00Z"),
+      resolvedAt: null,
+      resolvedByAdminId: null,
+      ...over,
+    }) satisfies BugReport;
+
+  it("says plainly when nothing is open", () => {
+    const html = renderToStaticMarkup(
+      <BugReportsSection open={[]} fixed={[]} workspaceNames={new Map()} />,
+    );
+    expect(html).toContain("No open bug reports");
+    expect(html).not.toContain("Mark fixed");
+  });
+
+  it("shows whose it is, where, and the message as text, with Mark fixed", () => {
+    const html = renderToStaticMarkup(
+      <BugReportsSection
+        open={[report({})]}
+        fixed={[report({ id: 2, status: "fixed", workspaceId: null })]}
+        workspaceNames={new Map([[42, "Open Door Bakery"]])}
+      />,
+    );
+    expect(html).toContain("Open Door Bakery");
+    expect(html).toContain("on /tickets/9");
+    expect(html).toContain("&lt;script&gt;");
+    // React adds a <script> of its own for form replay; the client's must not.
+    expect(html).not.toContain("<script>alert(1)");
+    expect(html).toContain('aria-label="Mark the report from owner@opendoorbakery.co.uk fixed"');
+    expect(html).toContain("Recently fixed");
+    expect(html).toContain("no workspace");
+    expect(html).toContain(">Reopen<");
   });
 });
 

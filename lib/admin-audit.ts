@@ -342,6 +342,8 @@ export function describeAdminAction(action: AdminActionKind): string {
       return "Changed a client setting";
     case "access_request_declined":
       return "Declined a request for access";
+    case "bug_report_fixed":
+      return "Marked a bug report fixed";
   }
 }
 

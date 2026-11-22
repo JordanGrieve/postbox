@@ -232,6 +232,13 @@
       "when": 1795297885500,
       "tag": "0032_access_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1795384063844,
+      "tag": "0033_bug_reports",
+      "breakpoints": true
     }
   ]
 }

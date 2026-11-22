@@ -445,6 +445,13 @@ const NON_TENANT_TABLES = [
    * keyed on their Clerk id; operators read the pending queue.
    */
   "access_requests",
+  /*
+   * bug_reports are an operator queue, like access_requests. A reporter only
+   * writes (POST /api/bug-reports, no read-back); operators read them all in
+   * the console. workspace_id is a nullable note of where the reporter was —
+   * an operator can report from outside any workspace — never a scope.
+   */
+  "bug_reports",
   "workspaces",
   "admins",
   "impersonation_sessions",

@@ -18,6 +18,12 @@ import {
 } from "@/lib/access-requests";
 import { RequestsSection } from "./requests-section";
 import {
+  countOpenBugReports,
+  listOpenBugReports,
+  listRecentlyFixedBugReports,
+} from "@/lib/bug-reports";
+import { BugReportsSection } from "./bug-reports-section";
+import {
   agentCountsByWorkspace,
   campaignDeliveryTotals,
   providerAllowance,
@@ -69,6 +75,9 @@ const PANE: Record<Section, { title: string }> = {
   },
   requests: {
     title: "Requests",
+  },
+  bugs: {
+    title: "Bug reports",
   },
   overview: {
     title: "Overview",
@@ -131,7 +140,7 @@ export default async function AdminHomePage({
   // every console render makes, and dropping it here would change more than
   // the sign-out card.
   await resolveViewer();
-  const [accounts, rejections, drops, usage, pendingRequests] = await Promise.all([
+  const [accounts, rejections, drops, usage, pendingRequests, openBugs] = await Promise.all([
     listWorkspaceSummaries(),
     // Fetched for every section rather than only Deliverability: it is three
     // aggregated rows, and a conditional read here would mean the console's
@@ -148,11 +157,18 @@ export default async function AdminHomePage({
     // The menu shows how many are waiting on every pane, so somebody asking
     // for access is noticed from wherever the console is open.
     countPendingAccessRequests(),
+    // Same, for "Report a bug": the menu count is visible from every pane.
+    countOpenBugReports(),
   ]);
 
   const section = parseSection(params.section);
   const requests =
     section === "requests" ? await listPendingAccessRequests() : [];
+  const [bugsOpen, bugsFixed] =
+    section === "bugs"
+      ? await Promise.all([listOpenBugReports(), listRecentlyFixedBugReports()])
+      : [[], []];
+  const workspaceNames = new Map(accounts.map((w) => [w.id, w.name]));
   const filter = parseFilter(params.filter);
   const q = (params.q ?? "").trim();
 
@@ -299,6 +315,12 @@ export default async function AdminHomePage({
               label="Requests"
               count={pendingRequests > 0 ? pendingRequests : undefined}
             />
+            <NavRow
+              query={query}
+              to="bugs"
+              label="Bug reports"
+              count={openBugs > 0 ? openBugs : undefined}
+            />
             <NavRow query={query} to="billing" label="Billing" />
             <NavRow query={query} to="deliverability" label="Deliverability" />
           </div>
@@ -366,6 +388,9 @@ export default async function AdminHomePage({
                   the viewer still reads them; there is just no screen for
                   adding or removing one. */}
               {section === "requests" && <RequestsSection requests={requests} />}
+              {section === "bugs" && (
+                <BugReportsSection open={bugsOpen} fixed={bugsFixed} workspaceNames={workspaceNames} />
+              )}
               {section === "overview" && (
                 <OverviewSection accounts={accounts} gates={gates} />
               )}

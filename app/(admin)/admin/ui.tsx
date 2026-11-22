@@ -17,6 +17,8 @@ export const SECTIONS = [
   "accounts",
   // People who signed in with no workspace and asked for one (21 Nov 2026).
   "requests",
+  // "Report a bug" from the account menu (22 Nov 2026).
+  "bugs",
   "overview",
   "billing",
   "deliverability",

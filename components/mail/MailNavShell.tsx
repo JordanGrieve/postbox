@@ -8,6 +8,7 @@ import { usePathname } from "next/navigation";
 // Not Clerk's <SignOutButton>: an operator signing out from inside a client
 // workspace has an open audit row to close first. See the component's header.
 import AuditedSignOutButton from "@/components/AuditedSignOutButton";
+import ReportBugModal, { ReportBugItem } from "./ReportBug";
 // Not "@/lib/tickets": that reaches lib/config, which is server-only. See the
 // header of lib/ticket-format.ts.
 import { initials } from "@/lib/ticket-format";
@@ -53,6 +54,8 @@ export default function MailNavShell({
 }) {
   const [navOpen, setNavOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  // Outside the menu, which unmounts when it closes (components/mail/ReportBug.tsx).
+  const [bugOpen, setBugOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const settingsSection = settingsSectionFor(pathname);
@@ -302,6 +305,12 @@ export default function MailNavShell({
           </button>
           {menuOpen && (
             <div className="pbm-menu" role="menu">
+              <ReportBugItem
+                onSelect={() => {
+                  setMenuOpen(false);
+                  setBugOpen(true);
+                }}
+              />
               <AuditedSignOutButton
                 role="menuitem"
                 className="pbm-menu-item pbm-menu-item--danger"
@@ -310,6 +319,7 @@ export default function MailNavShell({
               </AuditedSignOutButton>
             </div>
           )}
+          <ReportBugModal open={bugOpen} onClose={() => setBugOpen(false)} />
         </div>
 
         {/*

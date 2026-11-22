@@ -23,6 +23,7 @@ import {
   setSignupConfirmation,
 } from "@/lib/data";
 import { provisionWorkspace, generateApiKey, ownerClerkId } from "@/lib/workspace";
+import { getBugReport, markBugReportFixed, reopenBugReport } from "@/lib/bug-reports";
 import { sendInviteEmail } from "@/lib/email";
 import { APP_URL, EMAIL_FROM_ADDRESS } from "@/lib/config";
 import { isValidEmail } from "@/lib/http";
@@ -153,6 +154,43 @@ export async function declineAccessRequestAction(formData: FormData): Promise<vo
 
   revalidatePath("/admin");
   redirect(`${REQUESTS}&declined=${encodeURIComponent(request.email)}`);
+}
+
+const BUGS = "/admin?section=bugs";
+
+/** Bug reports pane: an open report is dealt with. Audited, like a decline. */
+export async function markBugReportFixedAction(formData: FormData): Promise<void> {
+  const actor = await requireAdminRow();
+
+  const id = parseId(formData.get("reportId"));
+  if (id === null) redirect(`${BUGS}&error=${encodeURIComponent("Invalid report.")}`);
+
+  const report = await getBugReport(id);
+  if (!report || report.status !== "open") {
+    redirect(`${BUGS}&error=${encodeURIComponent("That report has already been marked fixed.")}`);
+  }
+
+  await recordAdminAction({
+    action: "bug_report_fixed",
+    actorAdminId: actor.id,
+    actorEmail: actor.email,
+    targetLabel: report.reporterEmail,
+    detail: `bug report #${report.id}`,
+  });
+  await markBugReportFixed(id, actor.id);
+
+  revalidatePath("/admin");
+  redirect(BUGS);
+}
+
+/** Bug reports pane: undo a "Mark fixed" pressed too soon. */
+export async function reopenBugReportAction(formData: FormData): Promise<void> {
+  await requireAdminRow();
+  const id = parseId(formData.get("reportId"));
+  if (id === null) redirect(`${BUGS}&error=${encodeURIComponent("Invalid report.")}`);
+  await reopenBugReport(id);
+  revalidatePath("/admin");
+  redirect(BUGS);
 }
 
 /**
