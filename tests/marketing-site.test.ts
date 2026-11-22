@@ -43,6 +43,12 @@ describe("there is a way in", () => {
     expect(PAGES.pricing.match(/href=\{TRIAL_HREF\}/g)?.length).toBeGreaterThanOrEqual(2);
     expect(PAGES.pricing).not.toMatch(/OPEN_SIGNUP \? "\/sign-up" : "\/contact"/);
   });
+
+  it("offers a demo from the hero and the closing band", () => {
+    // Jordan, 16 Nov 2026: "request a demo" on the landing page.
+    expect(PAGES.home.match(/href=\{DEMO_HREF\}/g)?.length).toBeGreaterThanOrEqual(2);
+    expect(PAGES.home).toContain("{DEMO_CTA}");
+  });
 });
 
 describe("who runs it, on every public page", () => {

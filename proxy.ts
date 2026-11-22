@@ -29,6 +29,8 @@ const isPublicRoute = createRouteMatcher([
     now checks it rather than relying on the comment.
   */
   "/contact",
+  // Request a demo: a contact form for people with no account, like /contact.
+  "/demo",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/api/(.*)",

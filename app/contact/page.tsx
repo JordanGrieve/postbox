@@ -3,7 +3,7 @@ import Link from "next/link";
 import MarketingNav from "@/components/marketing/MarketingNav";
 import MarketingFooter from "@/components/marketing/MarketingFooter";
 import { POSTBOX_CONTACT_KEY, PUBLIC_CONTACT_EMAIL } from "@/lib/config";
-import { HONEYPOT_FIELDS } from "@/lib/subscribe";
+import { CONTACT_HONEYPOT_FIELDS } from "@/lib/subscribe";
 import { pageMetadata } from "@/lib/page-metadata";
 import "../home.css";
 import "./contact.css";
@@ -125,14 +125,14 @@ export default function ContactPage() {
               </label>
 
               {/*
-                The same trap the hosted signup form uses, rendered from the
-                same shared constant so the two can never disagree about the
-                names. A trap the server still checks but the form stopped
-                emitting is a trap that catches nothing, and nothing would fail
-                loudly to say so.
+                The trap POST /api/tickets checks, rendered from the same
+                constant so the two can never disagree about the names. Until
+                22 Nov 2026 this rendered the SIGNUP's names ("website",
+                "company"), which the contact endpoint stopped checking on
+                14 Sep — a trap that caught nothing, and failed silently.
               */}
               <div className="ct-trap" aria-hidden="true">
-                {HONEYPOT_FIELDS.map((field) => (
+                {CONTACT_HONEYPOT_FIELDS.map((field) => (
                   <input
                     key={field}
                     type="text"

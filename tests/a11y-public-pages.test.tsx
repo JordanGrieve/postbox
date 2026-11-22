@@ -6,7 +6,7 @@ import Privacy from "../app/(legal)/privacy/page";
 import Terms from "../app/(legal)/terms/page";
 import Contact from "../app/contact/page";
 import LegalLayout from "../app/(legal)/layout";
-import { HONEYPOT_FIELDS } from "../lib/subscribe";
+import { CONTACT_HONEYPOT_FIELDS } from "../lib/subscribe";
 
 /**
  * Structural accessibility of the pages a stranger can reach.
@@ -300,9 +300,9 @@ describe("/contact with the key configured", () => {
     */
     const ranges = ariaHiddenRanges(html);
     const traps = [...html.matchAll(/<input\b[^>]*>/g)].filter((m) =>
-      HONEYPOT_FIELDS.some((f) => new RegExp(`name="${f}"`).test(m[0])),
+      CONTACT_HONEYPOT_FIELDS.some((f) => new RegExp(`name="${f}"`).test(m[0])),
     );
-    expect(traps.length, "no honeypot field found to check").toBe(HONEYPOT_FIELDS.length);
+    expect(traps.length, "no honeypot field found to check").toBe(CONTACT_HONEYPOT_FIELDS.length);
     for (const t of traps) {
       expect(
         hidden(ranges, t.index),

@@ -104,6 +104,7 @@ import { join } from "node:path";
 import Home from "../app/page";
 import Pricing from "../app/pricing/page";
 import Contact from "../app/contact/page";
+import Demo from "../app/demo/page";
 import Privacy from "../app/(legal)/privacy/page";
 import Terms from "../app/(legal)/terms/page";
 import LegalLayout from "../app/(legal)/layout";
@@ -209,6 +210,11 @@ describe("the pages a stranger can reach render, and can be measured", () => {
   it("contact", async () => {
     const html = record("contact", await render(Contact()));
     expect(html.length).toBeGreaterThan(1000);
+  });
+
+  it("demo", async () => {
+    const html = record("demo", await render(Demo()));
+    expect(html).toContain("See Postbox before you sign up");
   });
 
   it("privacy and terms, inside the layout that gives them their <main>", async () => {
