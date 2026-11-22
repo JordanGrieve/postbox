@@ -81,3 +81,31 @@ export function decideSheetTouch(
   if (Math.abs(dx) > dy) return "scroll";
   return "drag";
 }
+
+/**
+ * Whether a swipe inside an open modal will scroll the modal's own content.
+ *
+ * Jordan, 22 Nov 2026: "when i open a modal, i can scroll behind it". On a
+ * phone, html { overflow: hidden } (globals.css) does not hold: a swipe on the
+ * backdrop, or one that runs past the end of the modal's content, is handed on
+ * to the page underneath. So while a modal is open (components/Modal.tsx), a
+ * touchmove is cancelled unless this says the content itself will move.
+ *
+ * `dy` is the finger's travel since the touch began: positive is down, which
+ * scrolls the content toward its top. Swipes past the TOP of a sheet are still
+ * the drag-to-close gesture; Modal claims those before this is asked.
+ */
+export function modalSwipeScrollsContent(input: {
+  inside: boolean;
+  scrollTop: number;
+  scrollHeight: number;
+  clientHeight: number;
+  dy: number;
+}): boolean {
+  if (!input.inside) return false;
+  const room = input.scrollHeight - input.clientHeight;
+  if (room <= 0) return false;
+  if (input.dy > 0) return input.scrollTop > 0;
+  if (input.dy < 0) return input.scrollTop < room - 1;
+  return true;
+}

@@ -1304,10 +1304,18 @@ summary:focus-visible,
 html:has(.pb-modal[open]) {
   overflow: hidden;
 }
+/* Not enough on its own on a phone; components/Modal.tsx also cancels any
+   swipe that would not scroll the modal's own content. */
+.pb-modal {
+  overscroll-behavior: contain;
+}
 
 .pb-modal-inner {
   max-height: calc(100vh - 50px);
   overflow-y: auto;
+  /* Scrolling to the end of the modal stops there rather than carrying on
+     into the page behind (Jordan, 22 Nov 2026: "i can scroll behind it"). */
+  overscroll-behavior: contain;
   padding: 20px 22px 22px;
   display: flex;
   flex-direction: column;
@@ -1526,6 +1534,22 @@ html:has(.pb-modal[open]) {
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
+}
+
+/*
+  Tapping a text box never zooms the page (Jordan, 22 Nov 2026: "the zoom in
+  is crazy, it should just be like its on whatsapp"). iOS Safari zooms into
+  any focused field whose text is under 16px; the reply box was 13.5px. So on
+  a touch screen every field is 1rem, which overrides each field's own size.
+  NOT maximum-scale=1: that would also stop pinch-to-zoom, which 1.4.4
+  forbids. Pinned in tests/no-focus-zoom.test.ts.
+*/
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  textarea,
+  select {
+    font-size: 1rem !important;
+  }
 }
 
 /*

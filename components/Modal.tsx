@@ -5,6 +5,7 @@ import SheetGrip from "@/components/mail/SheetGrip";
 import { useMediaQuery } from "@/lib/use-media-query";
 import {
   decideSheetTouch,
+  modalSwipeScrollsContent,
   sheetOffset,
   shouldCloseOnRelease,
   type SheetTouch,
@@ -162,6 +163,41 @@ export default function Modal({
     };
   }, [open, sheet]);
 
+  /*
+    Hold the page still while the modal is open. html { overflow: hidden }
+    (globals.css) is not enough on a phone: a swipe on the backdrop, or past
+    the end of the modal's own scroll, is handed on to the page underneath
+    (Jordan, 22 Nov 2026: "i can scroll behind it"). A swipe is let through
+    only when it will scroll something inside the modal — the body, or a
+    textarea in it — and cancelled otherwise. lib/sheet-drag.ts holds the rule.
+  */
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog || !open) return;
+    let startY = 0;
+    const onStart = (e: TouchEvent) => {
+      startY = e.touches[0]?.clientY ?? 0;
+    };
+    const onMove = (e: TouchEvent) => {
+      if (!e.cancelable || e.touches.length !== 1) return;
+      const scroller = scrollerFor(e.target, dialog);
+      const lets = modalSwipeScrollsContent({
+        inside: scroller !== null,
+        scrollTop: scroller?.scrollTop ?? 0,
+        scrollHeight: scroller?.scrollHeight ?? 0,
+        clientHeight: scroller?.clientHeight ?? 0,
+        dy: (e.touches[0]?.clientY ?? startY) - startY,
+      });
+      if (!lets) e.preventDefault();
+    };
+    dialog.addEventListener("touchstart", onStart, { passive: true });
+    dialog.addEventListener("touchmove", onMove, { passive: false });
+    return () => {
+      dialog.removeEventListener("touchstart", onStart);
+      dialog.removeEventListener("touchmove", onMove);
+    };
+  }, [open]);
+
   return (
     /*
       The lint rules below ask for a keyboard twin of a click handler on a
@@ -231,4 +267,18 @@ export default function Modal({
       </div>
     </dialog>
   );
+}
+
+/**
+ * The element a swipe would scroll: the nearest one between the touch and the
+ * dialog that has content to scroll and is allowed to (overflow auto/scroll,
+ * or a textarea). Null when there is none, e.g. a touch on the backdrop.
+ */
+function scrollerFor(target: EventTarget | null, dialog: HTMLElement): HTMLElement | null {
+  for (let el = target instanceof Element ? target : null; el && el !== dialog; el = el.parentElement) {
+    if (!(el instanceof HTMLElement) || el.scrollHeight <= el.clientHeight) continue;
+    const overflowY = getComputedStyle(el).overflowY;
+    if (el instanceof HTMLTextAreaElement || overflowY === "auto" || overflowY === "scroll") return el;
+  }
+  return null;
 }

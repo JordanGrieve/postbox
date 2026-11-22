@@ -5,6 +5,7 @@ import {
   CLOSE_AFTER_PX,
   RUBBER_BAND_LIMIT_PX,
   decideSheetTouch,
+  modalSwipeScrollsContent,
 } from "../lib/sheet-drag";
 
 /**
@@ -130,5 +131,34 @@ describe("a touch that starts on the sheet body", () => {
     // A horizontal swipe is not a dismissal; it is most likely a mis-hit on
     // a swipe row or a selection, and the sheet must not jump for it.
     expect(decideSheetTouch(0, 20, 5)).toBe("scroll");
+  });
+});
+
+/*
+  Jordan, 22 Nov 2026: "when i open a modal, i can scroll behind it" — on his
+  phone. html { overflow: hidden } does not stop it there: a swipe on the
+  backdrop, or past the end of the sheet's own scroll, is handed on to the page.
+  While a modal is open, a swipe is let through only when it will scroll the
+  modal's own content.
+*/
+describe("modalSwipeScrollsContent", () => {
+  const box = { scrollTop: 0, scrollHeight: 600, clientHeight: 300 };
+
+  it("lets a swipe scroll the modal's content when there is room", () => {
+    expect(modalSwipeScrollsContent({ inside: true, ...box, dy: -40 })).toBe(true); // finger up: scroll down
+    expect(modalSwipeScrollsContent({ inside: true, ...box, scrollTop: 150, dy: 40 })).toBe(true);
+  });
+
+  it("stops a swipe on the backdrop", () => {
+    expect(modalSwipeScrollsContent({ inside: false, ...box, dy: -40 })).toBe(false);
+  });
+
+  it("stops a swipe when the content has nothing to scroll", () => {
+    expect(modalSwipeScrollsContent({ inside: true, scrollTop: 0, scrollHeight: 300, clientHeight: 300, dy: -40 })).toBe(false);
+  });
+
+  it("stops a swipe past either end, where it would carry on into the page", () => {
+    expect(modalSwipeScrollsContent({ inside: true, ...box, scrollTop: 0, dy: 40 })).toBe(false);
+    expect(modalSwipeScrollsContent({ inside: true, ...box, scrollTop: 300, dy: -40 })).toBe(false);
   });
 });
