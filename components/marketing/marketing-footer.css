@@ -61,6 +61,12 @@
   gap: 0 18px;
 }
 
+.mkt-footer-guides {
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-soft);
+}
+
 .mkt-footer-copy {
   margin: 8px 0 0;
   color: var(--muted);

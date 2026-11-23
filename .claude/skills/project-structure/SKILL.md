@@ -16,6 +16,7 @@ closest existing feature and mirror it. Never invent a new top-level directory.
 | Operator console screen | `app/(admin)/admin/...` |
 | Legal page | `app/(legal)/<name>/page.tsx` |
 | Marketing / public page | `app/<name>/page.tsx` (e.g. `pricing`, `contact`) |
+| Guide / comparison page (SEO) | An entry in `lib/guides.ts`, plus a three-line `app/<path>/page.tsx` rendering `components/marketing/GuidePage.tsx`; add its path to `proxy.ts` and `STATIC_ROUTES` in `tests/skeletons.test.tsx`. The sitemap, the footer and `/llms.txt` all read the list |
 | HTTP API endpoint | `app/api/<resource>/route.ts` (nested: `app/api/tickets/[id]/status/route.ts`) |
 | Cron endpoint | `app/api/cron/<job>/route.ts` |
 | Webhook receiver | `app/api/webhooks/<provider>/route.ts` |

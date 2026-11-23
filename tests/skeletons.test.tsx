@@ -79,6 +79,14 @@ describe("every route has a skeleton", () => {
     "/(legal)/privacy",
     "/(legal)/terms",
     "/s/done",
+    // The guide pages (lib/guides.ts), 23 Nov 2026.
+    "/shared-inbox",
+    "/contact-form-to-inbox",
+    "/newsletters-for-small-business",
+    "/faq",
+    "/vs/gmail",
+    "/vs/help-scout",
+    "/vs/mailchimp",
   ];
 
   it("the root has no loading.tsx", () => {

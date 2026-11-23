@@ -24,7 +24,8 @@ export function organizationJsonLd() {
     name: "Postbox",
     alternateName: "Postbox shared inbox",
     url: `${APP_URL}/`,
-    logo: `${APP_URL}/icon.svg`,
+    // Raster: Google's logo rich result does not take an SVG (23 Nov 2026).
+    logo: `${APP_URL}/icon-512.png`,
     email: PUBLIC_CONTACT_EMAIL,
     description:
       "A shared support inbox and newsletter service for small businesses in the UK.",

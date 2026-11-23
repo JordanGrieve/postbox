@@ -22,7 +22,7 @@ const splineMono = Spline_Sans_Mono({
   are not indexed. Written for search, 21 Nov 2026: the old title ("support
   tickets that feel like an inbox") contained nothing anybody searches for.
 */
-const TITLE = "Postbox — shared inbox and newsletters for small businesses";
+const TITLE = "Postbox | Shared inbox and newsletters for small businesses";
 const DESCRIPTION =
   "Your website's contact form and support email in one shared inbox your team answers from, with newsletters sent from the same place.";
 

@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { APP_URL } from "@/lib/config";
+import { GUIDES } from "@/lib/guides";
 
 /**
  * The four pages worth indexing.
@@ -49,5 +50,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: "yearly",
       priority: 0.3,
     },
+    // The guide pages (lib/guides.ts), from the same list that builds them.
+    ...GUIDES.map((g) => ({
+      url: `${APP_URL}${g.path}`,
+      changeFrequency: "monthly" as const,
+      priority: 0.6,
+    })),
   ];
 }

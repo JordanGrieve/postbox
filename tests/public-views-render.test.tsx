@@ -110,6 +110,8 @@ import LegalLayout from "../app/(legal)/layout";
 import NoAccess from "../app/no-access/page";
 import type { AccessRequest } from "../db/schema";
 import NotFound from "../app/not-found";
+import GuidePage from "../components/marketing/GuidePage";
+import { GUIDES } from "../lib/guides";
 import SubscribeLayout from "../app/s/layout";
 import CheckInbox from "../app/s/check/page";
 import SubscribeDone from "../app/s/done/page";
@@ -130,6 +132,7 @@ const SHEETS = [
   "components/marketing/feature-bento.css",
   "components/marketing/product-shot.css",
   "components/marketing/marketing-footer.css",
+  "components/marketing/guide.css",
 ];
 
 /*
@@ -209,6 +212,21 @@ describe("the pages a stranger can reach render, and can be measured", () => {
   it("contact", async () => {
     const html = record("contact", await render(Contact()));
     expect(html.length).toBeGreaterThan(1000);
+  });
+
+  it("every guide page (lib/guides.ts)", () => {
+    for (const g of GUIDES) {
+      const name = `guide${g.path.split("/").join("-")}`;
+      const html = record(name, renderToStaticMarkup(<GuidePage guide={g} />));
+      // React escapes an apostrophe in text.
+      const escaped = (s: string) => s.split("'").join("&#x27;");
+      expect(html).toContain(escaped(g.h1));
+      // The answer is the first paragraph on the page: what gets quoted.
+      const answerAt = html.indexOf(escaped(g.answer.slice(0, 40)));
+      expect(answerAt).toBeGreaterThan(0);
+      expect(answerAt).toBeLessThan(html.indexOf("<h2"));
+      expect(html.length).toBeGreaterThan(3000);
+    }
   });
 
   it("privacy and terms, inside the layout that gives them their <main>", async () => {

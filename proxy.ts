@@ -14,6 +14,15 @@ const isPublicRoute = createRouteMatcher([
   "/",
   "/terms",
   "/privacy",
+  // The guide pages (lib/guides.ts). Written out, not a pattern, so a new
+  // top-level route is never public by accident.
+  "/shared-inbox",
+  "/contact-form-to-inbox",
+  "/newsletters-for-small-business",
+  "/faq",
+  "/vs/gmail",
+  "/vs/help-scout",
+  "/vs/mailchimp",
   // The pricing page. Public for the obvious reason — it is a marketing page
   // and the whole point is that people read it before they have an account —
   // but worth a line rather than folding it in silently: it is the first route
@@ -67,6 +76,8 @@ const isPublicRoute = createRouteMatcher([
   "/robots.txt",
   "/sitemap.xml",
   "/opengraph-image",
+  // The plain-text summary for AI assistants (app/llms.txt/route.ts).
+  "/llms.txt",
     // Sentry's tunnelRoute — browser error/trace events POST here and are
   // forwarded to Sentry. Must not require a session.
   "/monitoring(.*)",

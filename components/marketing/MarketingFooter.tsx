@@ -4,6 +4,7 @@ import {
   OPERATOR_TRADING_AS,
   PUBLIC_CONTACT_EMAIL,
 } from "@/lib/config";
+import { GUIDES } from "@/lib/guides";
 import "./marketing-footer.css";
 
 /**
@@ -42,6 +43,15 @@ export default function MarketingFooter() {
           <Link href="/privacy">Privacy</Link>
         </nav>
       </div>
+      {/* Every guide, from every public page: how search engines find them,
+          and how a reader on the homepage finds the comparison they wanted. */}
+      <nav className="mkt-footer-links mkt-footer-guides" aria-label="Guides">
+        {GUIDES.map((g) => (
+          <Link key={g.path} href={g.path}>
+            {g.title}
+          </Link>
+        ))}
+      </nav>
       <p className="mkt-footer-copy">© 2026 Postbox</p>
     </footer>
   );

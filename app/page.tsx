@@ -27,7 +27,7 @@ const TEAM_PLAN = PLANS.find((p) => p.limits.subscribers > 0 && p.limits.seats >
 */
 export const metadata: Metadata = pageMetadata({
   path: "/",
-  title: "Postbox — shared inbox and newsletters for small UK businesses",
+  title: "Postbox | Shared inbox and newsletters for small UK businesses",
   absolute: true,
   description: `Put your website's contact form and support email in one shared inbox your team answers from, and send newsletters from the same place. From ${FROM_PRICE} a month.`,
 });

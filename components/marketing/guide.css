@@ -1,0 +1,227 @@
+/*
+ * The guide pages (components/marketing/GuidePage.tsx). Loaded beside
+ * app/home.css, which supplies the nav, buttons, section rhythm and band.
+ * Tokens only; every text block at the house reading width, 46ch.
+ */
+
+.gd-title {
+  font-size: clamp(1.875rem, 4.4vw, 2.75rem);
+  line-height: 1.12;
+  max-width: 22ch;
+}
+
+.gd-answer {
+  font-size: 1.0625rem;
+  color: var(--text-2);
+}
+
+.gd-note {
+  margin: 12px 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--muted-2);
+  max-width: 46ch;
+}
+
+.gd-section .home-h2 {
+  font-size: clamp(1.375rem, 2.8vw, 1.75rem);
+}
+
+.gd-text {
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--text-3);
+  margin: 0 0 16px;
+  max-width: 46ch;
+}
+
+.gd-points {
+  margin: 4px 0 0;
+  padding-left: 1.25em;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-width: 46ch;
+}
+
+.gd-points li {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--text-3);
+}
+
+.gd-points li::marker {
+  color: var(--accent-text);
+}
+
+/* ── comparison ──────────────────────────────────────────────── */
+
+.gd-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  overflow: hidden;
+  font-size: 0.9375rem;
+  line-height: 1.55;
+}
+
+.gd-table th,
+.gd-table td {
+  text-align: left;
+  vertical-align: top;
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--border-soft);
+  overflow-wrap: anywhere;
+}
+
+.gd-table tbody tr:last-child th,
+.gd-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.gd-table thead th {
+  font-weight: 800;
+  color: var(--text);
+}
+
+.gd-table tbody th {
+  font-weight: 700;
+  color: var(--text);
+  width: 30%;
+}
+
+.gd-table td {
+  color: var(--text-3);
+}
+
+.gd-source {
+  margin: 14px 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted-2);
+  max-width: 46ch;
+}
+
+.gd-source a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/*
+  On a phone, three columns of prose are too narrow to read, so each row
+  becomes a card: the row's label, then each product's answer under its name.
+  The table stays a table for a screen reader.
+*/
+@media (max-width: 640px) {
+  .gd-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .gd-table,
+  .gd-table tbody,
+  .gd-table tr,
+  .gd-table th,
+  .gd-table td {
+    display: block;
+    width: auto;
+  }
+
+  .gd-table tr {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+
+  .gd-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .gd-table th,
+  .gd-table td {
+    padding: 0;
+    border: 0;
+  }
+
+  .gd-table tbody th {
+    width: auto;
+    margin-bottom: 8px;
+  }
+
+  .gd-table td + td {
+    margin-top: 8px;
+  }
+
+  .gd-table td::before {
+    content: attr(data-col);
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent-text);
+  }
+}
+
+/* ── questions ───────────────────────────────────────────────── */
+
+.gd-faq {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--border-soft);
+}
+
+.gd-faq-item {
+  padding: 20px 0 6px;
+  border-bottom: 1px solid var(--border-soft);
+}
+
+.gd-faq-q {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.4;
+  color: var(--text);
+  margin: 0 0 8px;
+  max-width: 46ch;
+}
+
+/* ── more guides ─────────────────────────────────────────────── */
+
+.gd-more {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 10px;
+}
+
+.gd-more a {
+  display: flex;
+  align-items: center;
+  min-height: var(--tap-min, 44px);
+  padding: 10px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.gd-more a:hover {
+  border-color: var(--accent-text);
+}
+
+.gd-more a:focus-visible {
+  outline: 2px solid var(--focus-ring, var(--accent));
+  outline-offset: 2px;
+}
