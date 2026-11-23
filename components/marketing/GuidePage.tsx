@@ -38,7 +38,10 @@ export default function GuidePage({ guide }: { guide: Guide }) {
         </section>
 
         {guide.comparison && (
-          <section className="home-section home-wrap" aria-labelledby="gd-compare">
+          <section
+            className="home-section home-wrap"
+            aria-labelledby="gd-compare"
+          >
             <h2 className="home-h2" id="gd-compare">
               Side by side
             </h2>
@@ -71,25 +74,35 @@ export default function GuidePage({ guide }: { guide: Guide }) {
           </section>
         )}
 
-        {guide.sections.map((s) => (
-          <section className="home-section home-wrap gd-section" key={s.heading}>
-            <h2 className="home-h2">{s.heading}</h2>
-            {s.paragraphs.map((p) => (
-              <p className="gd-text" key={p}>
-                {p}
-              </p>
-            ))}
-            {s.points && (
-              <ul className="gd-points">
-                {s.points.map((p) => (
-                  <li key={p}>{p}</li>
+        {/* Two columns from laptop width (guide.css): each column keeps the
+            46ch reading width, and the page uses the space beside it
+            (Jordan, 23 Nov 2026: "using up the remaining space"). */}
+        {guide.sections.length > 0 && (
+          <div className="home-wrap gd-grid">
+            {guide.sections.map((s) => (
+              <section className="home-section gd-section" key={s.heading}>
+                <h2 className="home-h2">{s.heading}</h2>
+                {s.paragraphs.map((p) => (
+                  <p className="gd-text" key={p}>
+                    {p}
+                  </p>
                 ))}
-              </ul>
-            )}
-          </section>
-        ))}
+                {s.points && (
+                  <ul className="gd-points">
+                    {s.points.map((p) => (
+                      <li key={p}>{p}</li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            ))}
+          </div>
+        )}
 
-        <section className="home-section home-wrap gd-section" aria-labelledby="gd-faq">
+        <section
+          className="home-section home-wrap gd-section"
+          aria-labelledby="gd-faq"
+        >
           <h2 className="home-h2" id="gd-faq">
             {guide.sections.length ? "Questions" : "Answers"}
           </h2>
@@ -119,7 +132,9 @@ export default function GuidePage({ guide }: { guide: Guide }) {
         <section className="home-section home-section--last home-wrap">
           <div className="home-band">
             <div>
-              <h2 className="home-band-title">Try it with your own customers</h2>
+              <h2 className="home-band-title">
+                Try it with your own customers
+              </h2>
               <p className="home-band-sub">
                 Questions first? <Link href="/contact">Get in touch</Link> or
                 see <Link href="/pricing">the plans</Link>.
