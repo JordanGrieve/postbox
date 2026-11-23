@@ -5,6 +5,7 @@ import { GUIDES } from "../lib/guides";
 import { PLANS } from "../lib/pricing";
 import { TITLE_TEMPLATE } from "../lib/page-metadata";
 import sitemap from "../app/sitemap";
+import { APP_URL } from "../lib/config";
 
 /**
  * The guide pages (lib/guides.ts), added 23 Nov 2026 after an SEO/GEO check
@@ -73,7 +74,7 @@ describe("the guides", () => {
   it("are listed in /llms.txt for AI assistants", async () => {
     const { GET } = await import("../app/llms.txt/route");
     const text = await GET().text();
-    for (const g of GUIDES) expect(text).toContain(`https://postbox.help${g.path}`);
+    for (const g of GUIDES) expect(text).toContain(`${APP_URL}${g.path}`);
   });
 
   it("are linked from the footer on every public page", () => {

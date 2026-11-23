@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { PLANS, TRIAL_DAYS } from "../lib/pricing";
+import { APP_URL } from "../lib/config";
 import { organizationJsonLd } from "../lib/structured-data";
 import { metadata as homeMetadata } from "../app/page";
 import { GET as llmsTxt } from "../app/llms.txt/route";
@@ -33,7 +34,8 @@ describe("/llms.txt", () => {
     for (const plan of PLANS) expect(text).toContain(`${plan.name}: £${plan.price} a month`);
     expect(text).toContain(`${TRIAL_DAYS}-day free trial`);
     for (const page of ["/pricing", "/contact", "/privacy", "/terms"]) {
-      expect(text).toContain(`https://postbox.help${page}`);
+      // APP_URL, not the live host: CI builds against its own URL.
+      expect(text).toContain(`${APP_URL}${page}`);
     }
   });
 });
