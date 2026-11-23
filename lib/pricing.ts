@@ -127,6 +127,16 @@ export const PLANS: Plan[] = [
 export const TRIAL_DAYS = 30;
 
 /**
+ * Whether Postbox charges VAT. False: Jordan is not VAT-registered
+ * (confirmed 22 Nov 2026), so the price on the page is the whole price, and
+ * the pricing page says "no VAT added". Registering (the threshold is £90,000
+ * of sales a year) means changing this, the copy, and Stripe in one go;
+ * tests/pricing-comparison.test.tsx fails if checkout starts adding tax
+ * while this still says false.
+ */
+export const VAT_REGISTERED = false;
+
+/**
  * Usage ceilings during the trial, alongside TRIAL_DAYS.
  *
  * The trial ends on whichever runs out first — time or usage. Both exist for

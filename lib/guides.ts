@@ -1,4 +1,5 @@
 import { OPERATOR_LOCATION, OPERATOR_NAME, PUBLIC_CONTACT_EMAIL } from "@/lib/config";
+import { COMPETITORS_CHECKED, rival, teamMonthlyUsd } from "@/lib/competitor-prices";
 import { PLANS, TRIAL_DAYS, TRIAL_LIMITS, formatPrice, type Plan, type PlanId } from "@/lib/pricing";
 
 /**
@@ -59,6 +60,7 @@ function plan(id: PlanId): Plan {
   if (!found) throw new Error(`No plan ${id}`);
   return found;
 }
+const HELP_SCOUT = rival("Help Scout");
 const STARTER = plan("starter");
 const GROWTH = plan("growth");
 const BUSINESS = plan("business");
@@ -280,7 +282,7 @@ export const GUIDES: Guide[] = [
     answer: `Gmail works well while one person answers customers. Once two or more people share the job, a shared login or a Google Group makes it hard to tell what has been answered; Postbox is a shared inbox built for that, from ${FROM} a month for the whole business.`,
     comparison: {
       them: "Gmail",
-      checked: "November 2026",
+      checked: COMPETITORS_CHECKED,
       source: {
         label: "Google Workspace pricing",
         href: "https://workspace.google.com/intl/en_uk/pricing",
@@ -358,18 +360,18 @@ export const GUIDES: Guide[] = [
     answer: `Help Scout is a full help desk for support teams, with live chat, help-centre articles and AI answers, priced per user in US dollars. Postbox is a simpler shared inbox with newsletters for small UK businesses, at one flat price in pounds: ${formatPrice(GROWTH.price)} a month covers ${people(GROWTH.limits.seats)}.`,
     comparison: {
       them: "Help Scout",
-      checked: "November 2026",
+      checked: COMPETITORS_CHECKED,
       source: { label: "Help Scout pricing", href: "https://www.helpscout.com/pricing/" },
       rows: [
         {
           label: "Price",
           postbox: `${PLANS.map((p) => formatPrice(p.price)).join(", ")} a month, per business`,
-          them: "From $25 a user a month (yearly), $30 monthly",
+          them: `From $${HELP_SCOUT.perUserUsd} a user a month, billed yearly`,
         },
         {
           label: `A team of ${GROWTH.limits.seats}`,
           postbox: `${formatPrice(GROWTH.price)} a month`,
-          them: `From $${25 * GROWTH.limits.seats} a month`,
+          them: `From $${teamMonthlyUsd(HELP_SCOUT, GROWTH.limits.seats)} a month`,
         },
         {
           label: "Shared inbox",
@@ -432,7 +434,7 @@ export const GUIDES: Guide[] = [
     answer: `Mailchimp is a full email marketing platform, with automations, A/B tests and integrations, priced by the number of contacts. Postbox is a shared inbox that also sends simple newsletters: ${formatPrice(GROWTH.price)} a month covers the inbox and up to ${GROWTH.limits.subscribers.toLocaleString("en-GB")} subscribers, and replies land where your team already works.`,
     comparison: {
       them: "Mailchimp",
-      checked: "November 2026",
+      checked: COMPETITORS_CHECKED,
       source: { label: "Mailchimp pricing", href: "https://mailchimp.com/pricing/" },
       rows: [
         {

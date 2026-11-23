@@ -148,6 +148,95 @@
   color: var(--muted-2);
 }
 
+/* ── what a team pays ────────────────────────────────────────── */
+
+/*
+  A list of rows rather than a chart: five numbers read faster as text, and
+  each row names what the price buys, which a bar cannot.
+*/
+.prc-compare {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.prc-compare-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.5fr) auto;
+  align-items: baseline;
+  gap: 4px 18px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-soft);
+  font-size: 0.9375rem;
+  line-height: 1.5;
+}
+
+.prc-compare-row:first-child {
+  border-top: 0;
+}
+
+/* Ours, lifted with the accent ink on its name and price, not a badge. */
+.prc-compare-row--us {
+  background: var(--accent-soft);
+}
+
+.prc-compare-name {
+  font-weight: 700;
+  color: var(--text);
+}
+
+.prc-compare-what {
+  color: var(--text-4);
+}
+
+.prc-compare-price {
+  font-weight: 800;
+  color: var(--text);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.prc-compare-row--us .prc-compare-name,
+.prc-compare-row--us .prc-compare-price {
+  color: var(--accent-text);
+}
+
+.prc-compare-gbp {
+  font-weight: 600;
+  color: var(--muted-2);
+}
+
+.prc-compare-note {
+  margin: 14px 0 0;
+  font-size: 0.875rem;
+  line-height: 1.55;
+  color: var(--muted-2);
+  max-width: 46ch;
+}
+
+.prc-compare-note a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* On a phone: the name and price on one line, what it buys under them. */
+@media (max-width: 560px) {
+  .prc-compare-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .prc-compare-what {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    font-size: 0.875rem;
+  }
+}
+
 /* ── FAQ ─────────────────────────────────────────────────────── */
 
 /*

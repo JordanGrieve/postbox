@@ -4,7 +4,14 @@ import MarketingFooter from "@/components/marketing/MarketingFooter";
 import JsonLd from "@/components/marketing/JsonLd";
 import type { Metadata } from "next";
 import { OPERATOR_LOCATION, OPERATOR_NAME, PUBLIC_CONTACT_EMAIL } from "@/lib/config";
-import { PLANS, TRIAL_DAYS, TRIAL_LIMITS, formatPrice } from "@/lib/pricing";
+import { PLANS, TRIAL_DAYS, TRIAL_LIMITS, VAT_REGISTERED, formatPrice } from "@/lib/pricing";
+import {
+  COMPETITORS_CHECKED,
+  INBOX_RIVALS,
+  USD_TO_GBP,
+  aboutGbp,
+  teamMonthlyUsd,
+} from "@/lib/competitor-prices";
 import { pageMetadata } from "@/lib/page-metadata";
 import { faqJsonLd, softwareJsonLd } from "@/lib/structured-data";
 import { TRIAL_CTA, TRIAL_HREF, TRIAL_NOTE } from "@/lib/marketing-copy";
@@ -21,6 +28,13 @@ import "./pricing.css";
 // Prices from lib/pricing.ts, never typed here, so the snippet in search
 // results cannot disagree with the cards.
 const PRICES = PLANS.map((p) => formatPrice(p.price));
+
+/** The plan the comparison prices: the one for a small team. */
+const TEAM = (() => {
+  const growth = PLANS.find((p) => p.id === "growth");
+  if (!growth) throw new Error("No growth plan");
+  return growth;
+})();
 export const metadata: Metadata = pageMetadata({
   path: "/pricing",
   title: `Pricing: shared inbox from ${PRICES[0]} a month`,
@@ -66,7 +80,8 @@ export default function PricingPage() {
           </h1>
           <p className="home-sub prc-sub">
             Every plan starts with a {TRIAL_DAYS}-day free trial, and there is
-            no minimum term. One flat price per workspace, not per person.
+            no minimum term. One price for the whole team, not per person
+            {VAT_REGISTERED ? "." : ", and no VAT added: the price you see is what you pay."}
           </p>
           <p className="home-sub prc-sub prc-note">{TRIAL_NOTE}</p>
         </section>
@@ -138,6 +153,55 @@ export default function PricingPage() {
               </div>
             ))}
           </div>
+        </section>
+
+        {/*
+          The undercut, shown rather than claimed (Jordan, 23 Nov 2026). The
+          rivals charge per person; a team of three is where most small
+          businesses sit and where the difference is plainest. Their figures
+          come from lib/competitor-prices.ts, dated and linked, and
+          tests/pricing-comparison.test.tsx fails if any becomes cheaper.
+        */}
+        <section className="home-section home-wrap" aria-labelledby="prc-compare">
+          <h2 className="home-h2" id="prc-compare">
+            What a team of {TEAM.limits.seats} pays a month
+          </h2>
+          <ul className="prc-compare">
+            <li className="prc-compare-row prc-compare-row--us">
+              <span className="prc-compare-name">Postbox {TEAM.name}</span>
+              <span className="prc-compare-what">
+                Inbox and newsletters, whole team
+              </span>
+              <span className="prc-compare-price">{formatPrice(TEAM.price)}</span>
+            </li>
+            {INBOX_RIVALS.map((r) => {
+              const usd = teamMonthlyUsd(r, TEAM.limits.seats);
+              return (
+                <li className="prc-compare-row" key={r.name}>
+                  <span className="prc-compare-name">
+                    {r.name} {r.plan}
+                  </span>
+                  <span className="prc-compare-what">Inbox only, per person</span>
+                  <span className="prc-compare-price">
+                    ${usd} <span className="prc-compare-gbp">(about £{aboutGbp(usd)})</span>
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+          <p className="prc-compare-note">
+            Their cheapest plan, billed yearly, before any VAT, checked in{" "}
+            {COMPETITORS_CHECKED}:{" "}
+            {INBOX_RIVALS.map((r, i) => (
+              <span key={r.name}>
+                {i > 0 && ", "}
+                <a href={r.source} rel="noopener">
+                  {r.name}
+                </a>
+              </span>
+            ))}
+            . Pounds at $1 = £{USD_TO_GBP}.
+          </p>
         </section>
 
         <section className="home-section home-wrap">

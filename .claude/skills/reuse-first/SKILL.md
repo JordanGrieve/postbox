@@ -51,6 +51,8 @@ how the send path and the sweep path drift apart.
 | Public footer (who runs Postbox, contact) | `components/marketing/MarketingFooter.tsx`; the facts are `OPERATOR_*` and `PUBLIC_CONTACT_EMAIL` in `lib/config.ts` | a footer per page |
 | Clean up an inbound email's text | `stripQuotedReply` then `unwrapHardWrappedText` in `lib/tickets.ts` (quoted history out, the client's ~72-column wrapping undone) | joining or splitting lines in a route |
 | Which workspace an inbound address belongs to | `workspaceForInboundAddress` in `lib/inbound-address.ts` (routes hello@ to Postbox's own workspace) | calling `getWorkspaceByInboundEmail` directly from a route |
+| A competitor's price, or "about £N" from dollars | `INBOX_RIVALS`, `teamMonthlyUsd`, `aboutGbp` and `COMPETITORS_CHECKED` in `lib/competitor-prices.ts` (the pricing page and the guides both read it) | typing a rival's price into a page or guide |
+| Whether Postbox charges VAT | `VAT_REGISTERED` in `lib/pricing.ts` (false; `tests/pricing-comparison.test.tsx` fails if checkout adds tax) | writing "no VAT" or "+VAT" into copy directly |
 | Which conversation a reply belongs to when it has no ticket+ address | `findTicketByReferencedMessageIds` in `lib/data.ts` (In-Reply-To / References; one match or none) | matching on sender + subject, which a forged From could use |
 
 ## If a near-match exists
