@@ -5,9 +5,19 @@ import OnboardingDismiss from "@/components/mail/OnboardingDismiss";
 import { getOnboardingProgress } from "@/lib/onboarding-query";
 import { resolveViewer } from "@/lib/viewer";
 import { TICKETS_PAGE_SIZE } from "@/lib/data";
+import { inboxTitle } from "@/lib/page-metadata";
 import { listMailPage, mailCounts, parseInboxView, toMailRow } from "../queries";
 
-export const metadata = { title: "Inbox" };
+/*
+  "Inbox (3)": the count waiting for a reply, in the tab. mailCounts and
+  resolveViewer are React cache()d, so the page below reuses these reads.
+*/
+export async function generateMetadata() {
+  const viewer = await resolveViewer();
+  if (!viewer.workspace) return { title: "Inbox" };
+  const counts = await mailCounts(viewer.workspace.id);
+  return { title: inboxTitle(counts.inbox) };
+}
 
 /**
  * Desktop shows the list beside a "pick a thread" placeholder; the phone shows

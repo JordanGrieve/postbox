@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Spline_Sans_Mono } from "next/font/google";
 import { APP_URL } from "@/lib/config";
+import { TITLE_TEMPLATE } from "@/lib/page-metadata";
 import "./globals.css";
 
 const jakarta = Plus_Jakarta_Sans({
@@ -38,12 +39,12 @@ export const metadata: Metadata = {
 
   /*
     A template rather than a bare string, so a page setting title: "Pricing"
-    gets "Pricing — Postbox" without repeating the suffix at every call site.
+    gets "Pricing | Postbox" without repeating the suffix at every call site.
     `default` covers pages that set no title at all.
   */
   title: {
     default: TITLE,
-    template: "%s — Postbox",
+    template: TITLE_TEMPLATE,
   },
   description: DESCRIPTION,
   applicationName: "Postbox",

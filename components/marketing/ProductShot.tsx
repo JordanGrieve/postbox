@@ -95,10 +95,10 @@ const CARDS = [
 export type ShotFocus = "full" | "inbox" | "thread" | "newsletter";
 
 const TITLES: Record<ShotFocus, string> = {
-  full: "Inbox — Postbox",
-  inbox: "Inbox — Postbox",
-  thread: "Marcus Bell — Postbox",
-  newsletter: "New campaign — Postbox",
+  full: "Inbox | Postbox",
+  inbox: "Inbox | Postbox",
+  thread: "Marcus Bell | Postbox",
+  newsletter: "New campaign | Postbox",
 };
 
 /* Small line icons, drawn like the app's own (components/mail/icons.tsx). */

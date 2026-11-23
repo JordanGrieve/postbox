@@ -100,9 +100,9 @@ describe("share previews and canonicals", () => {
     expect(og.images[0]!.url).toBe("/opengraph-image");
     expect(og.siteName).toBe("Postbox");
     expect(og.locale).toBe("en_GB");
-    expect(og.title).toBe("Pricing — Postbox");
+    expect(og.title).toBe("Pricing | Postbox");
     const tw = m.twitter as { title: string; card: string; images: string[] };
-    expect(tw.title).toBe("Pricing — Postbox");
+    expect(tw.title).toBe("Pricing | Postbox");
     expect(tw.card).toBe("summary_large_image");
     expect(tw.images).toEqual(["/opengraph-image"]);
   });

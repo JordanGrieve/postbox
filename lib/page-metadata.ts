@@ -17,6 +17,21 @@ import type { Metadata } from "next";
  */
 export const SITE_NAME = "Postbox";
 
+/**
+ * Every tab's title: "Inbox | Postbox". The root layout's template, and the
+ * same shape in the share previews below. A bar since 23 Nov 2026 (Jordan's
+ * pick, "Inbox (3) | Postbox"); it was a long dash.
+ */
+export const TITLE_TEMPLATE = `%s | ${SITE_NAME}`;
+
+/**
+ * The inbox tab's title, with the conversations waiting for a reply, as
+ * Gmail shows unread: "Inbox (3)". Just "Inbox" when there are none.
+ */
+export function inboxTitle(toReply: number): string {
+  return toReply > 0 ? `Inbox (${toReply})` : "Inbox";
+}
+
 const OG_IMAGE = {
   url: "/opengraph-image",
   width: 1200,
@@ -27,13 +42,13 @@ const OG_IMAGE = {
 export function pageMetadata(input: {
   /** Path from the site root, e.g. "/pricing". Becomes the canonical. */
   path: string;
-  /** The page's own title. Templated to "… — Postbox" unless `absolute`. */
+  /** The page's own title. Templated to "… | Postbox" unless `absolute`. */
   title: string;
-  /** Used as-is, without the " — Postbox" template. For the homepage. */
+  /** Used as-is, without the " | Postbox" template. For the homepage. */
   absolute?: boolean;
   description: string;
 }): Metadata {
-  const fullTitle = input.absolute ? input.title : `${input.title} — ${SITE_NAME}`;
+  const fullTitle = input.absolute ? input.title : TITLE_TEMPLATE.replace("%s", input.title);
   return {
     title: input.absolute ? { absolute: input.title } : input.title,
     description: input.description,

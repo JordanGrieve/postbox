@@ -1,11 +1,12 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, relative } from "node:path";
+import { TITLE_TEMPLATE, inboxTitle, pageMetadata } from "../lib/page-metadata";
 
 /**
  * Every page's title is right once the root template has been applied.
  *
- * app/layout.tsx sets `template: "%s — Postbox"`, so a page names only itself.
+ * app/layout.tsx sets `template: "%s | Postbox"`, so a page names only itself.
  * Eleven signed-in pages also wrote "· Postbox" into their own title and
  * rendered as "Newsletters · Postbox — Postbox". Five more set no title at
  * all and inherited the marketing headline, which says nothing about the
@@ -39,6 +40,25 @@ const ALL = pages().map((file) => ({
 const SIGNED_IN = ALL.filter(
   (p) => p.name.startsWith("(dashboard)/") || p.name.startsWith("(admin)/"),
 );
+
+describe("the title format", () => {
+  /*
+    Jordan, 23 Nov 2026: "Inbox (3) | Postbox". A bar, not the long dash,
+    and the inbox tab carries the count waiting for a reply, like Gmail's.
+  */
+  it("is the page, a bar, then Postbox", () => {
+    expect(TITLE_TEMPLATE).toBe("%s | Postbox");
+    expect(readFileSync(join(APP, "layout.tsx"), "utf8")).toMatch(/template:\s*TITLE_TEMPLATE/);
+    const og = pageMetadata({ path: "/pricing", title: "Pricing", description: "x" }).openGraph as { title: string };
+    expect(og.title).toBe("Pricing | Postbox");
+  });
+
+  it("puts the to-reply count in the inbox tab, and nothing when there is none", () => {
+    expect(inboxTitle(3)).toBe("Inbox (3)");
+    expect(inboxTitle(120)).toBe("Inbox (120)");
+    expect(inboxTitle(0)).toBe("Inbox");
+  });
+});
 
 describe("page titles", () => {
   it("found the pages", () => {
