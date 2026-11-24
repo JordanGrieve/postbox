@@ -92,7 +92,7 @@ export default function CampaignList({
         second kind of thing to hold would put scheduling and audience
         controls one state bug away from something that has neither.
       */}
-      <Link
+      <Link prefetch={false}
         href="/newsletters/welcome"
         className="nl-item nl-item--welcome"
         aria-label={`Welcome newsletter — sent automatically on signup, currently ${

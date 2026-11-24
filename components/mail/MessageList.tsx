@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { useVisibleRefresh } from "@/lib/use-visible-refresh";
+import { useInboxLive } from "@/lib/use-inbox-live";
 import { SOURCE_META } from "@/lib/theme";
 import { Icon, SearchIcon } from "./icons";
 import type { MailRow } from "./types";
@@ -47,9 +47,10 @@ export default function MessageList({
   const [search, setSearch] = useState("");
 
   // Keep the list live: new tickets used to appear only on manual reload.
-  // Skipped while a thread is open — Thread runs its own 30s refresh for the
-  // whole route, and two timers on one page is just double the server work.
-  useVisibleRefresh(45_000, selectedId === undefined);
+  // Re-renders only when something changed (lib/use-inbox-live.ts). Skipped
+  // while a thread is open: Thread runs the same check for the whole route,
+  // and two on one page is just double the server work.
+  useInboxLive(selectedId === undefined);
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -94,7 +95,7 @@ export default function MessageList({
             back button and a shared link all land on the same tab. */}
         <nav className="pbm-tabs" aria-label="Inbox">
           {tabs.map((t) => (
-            <Link
+            <Link prefetch={false}
               key={t.key}
               href={t.href}
               className="pbm-tab"
@@ -150,7 +151,7 @@ export default function MessageList({
         {pageCount > 1 && (
           <nav className="pbm-pager" aria-label="Message pages">
             {page > 1 ? (
-              <Link href={`/inbox?${viewQuery}page=${page - 1}`}>← Newer</Link>
+              <Link prefetch={false} href={`/inbox?${viewQuery}page=${page - 1}`}>← Newer</Link>
             ) : (
               <span className="pbm-pager-off">← Newer</span>
             )}
@@ -158,7 +159,7 @@ export default function MessageList({
               Page {page} of {pageCount}
             </span>
             {page < pageCount ? (
-              <Link href={`/inbox?${viewQuery}page=${page + 1}`}>Older →</Link>
+              <Link prefetch={false} href={`/inbox?${viewQuery}page=${page + 1}`}>Older →</Link>
             ) : (
               <span className="pbm-pager-off">Older →</span>
             )}
@@ -189,7 +190,7 @@ function MailCard({
 }) {
   const src = SOURCE_META[row.source];
   return (
-    <Link
+    <Link prefetch={false}
       href={href}
       className="pbm-card"
       data-selected={selected || undefined}
@@ -250,7 +251,7 @@ function EmptyList({
           {/* The box filters THIS PAGE only; /search reads every message in
               the workspace. Offered at the point the page runs out. */}
           {search.trim() && (
-            <Link
+            <Link prefetch={false}
               className="pbm-btn pbm-btn--quiet"
               href={`/search?q=${encodeURIComponent(search.trim())}`}
             >
@@ -260,7 +261,7 @@ function EmptyList({
         </div>
       ) : (
         !hasAny && (
-          <Link className="pbm-btn" href="/settings/install">
+          <Link prefetch={false} className="pbm-btn" href="/settings/install">
             Connect your form
           </Link>
         )

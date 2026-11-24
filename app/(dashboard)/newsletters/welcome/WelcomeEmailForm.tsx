@@ -241,7 +241,7 @@ export default function WelcomeEmailForm({
   return (
     <div className="nw">
       <header className="nw-head">
-        <Link className="stg-button stg-button--secondary nw-back" href="/newsletters">
+        <Link prefetch={false} className="stg-button stg-button--secondary nw-back" href="/newsletters">
           ← Newsletter
         </Link>
         <div className="nw-head-row">
@@ -270,7 +270,7 @@ export default function WelcomeEmailForm({
         {!hasPostalAddress && (
           <p className="stg-identity-warn nw-warn" role="status">
             <b>Postal address missing.</b> It can&rsquo;t send until you add
-            one in <Link href="/settings">Settings</Link>.
+            one in <Link prefetch={false} href="/settings">Settings</Link>.
           </p>
         )}
       </header>

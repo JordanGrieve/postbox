@@ -52,7 +52,7 @@ export default function People({
     <section className="nl-people" aria-label="People">
       {counts.all > 0 && (
         <nav className="psb-filters" aria-label="Filter by status">
-          <Link
+          <Link prefetch={false}
             href={filterHref(null)}
             className="psb-filter"
             data-active={status === null}
@@ -62,7 +62,7 @@ export default function People({
             <span className="psb-filter-count">{counts.all.toLocaleString()}</span>
           </Link>
           {SUBSCRIBER_STATUSES.map((s) => (
-            <Link
+            <Link prefetch={false}
               key={s}
               href={filterHref(s)}
               className="psb-filter"
@@ -95,7 +95,7 @@ export default function People({
                 {page > 1
                   ? "That page is past the end of the list."
                   : "Nobody is in this state right now."}{" "}
-                <Link href={filterHref(null)}>Show everyone</Link>.
+                <Link prefetch={false} href={filterHref(null)}>Show everyone</Link>.
               </p>
             </>
           )}
@@ -106,7 +106,7 @@ export default function People({
             const consented = s.consentMethod !== null && s.consentAt !== null;
             return (
               <li key={s.id}>
-                <Link href={`/subscribers/${s.id}`} className="psb-row">
+                <Link prefetch={false} href={`/subscribers/${s.id}`} className="psb-row">
                   <span className="psb-avatar" aria-hidden>
                     {initials(s.name ?? s.email)}
                   </span>
@@ -147,7 +147,7 @@ export default function People({
         // .pbm-pager comes from mail.css, imported by the dashboard layout.
         <nav className="pbm-pager" aria-label="People pages">
           {page > 1 ? (
-            <Link href={pageHref(page - 1)}>← Newer</Link>
+            <Link prefetch={false} href={pageHref(page - 1)}>← Newer</Link>
           ) : (
             <span className="pbm-pager-off">← Newer</span>
           )}
@@ -159,7 +159,7 @@ export default function People({
                 ).toLocaleString()} of ${shown.toLocaleString()}`}
           </span>
           {hasMore ? (
-            <Link href={pageHref(page + 1)}>Older →</Link>
+            <Link prefetch={false} href={pageHref(page + 1)}>Older →</Link>
           ) : (
             <span className="pbm-pager-off">Older →</span>
           )}

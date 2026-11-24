@@ -97,7 +97,7 @@ export function RowLink({
   danger?: boolean;
 }) {
   return (
-    <Link
+    <Link prefetch={false}
       href={href}
       className={danger ? "stg-biz-action stg-biz-action--danger" : "stg-biz-action"}
       aria-label={label}

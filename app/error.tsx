@@ -38,7 +38,7 @@ export default function ErrorPage({
       <button onClick={() => reset()} style={ERROR_BUTTON}>
         Try again
       </button>
-      <Link href="/" style={ERROR_BUTTON_QUIET}>
+      <Link prefetch={false} href="/" style={ERROR_BUTTON_QUIET}>
         Go to the homepage
       </Link>
     </ErrorShell>

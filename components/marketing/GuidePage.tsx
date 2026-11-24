@@ -31,7 +31,7 @@ export default function GuidePage({ guide }: { guide: Guide }) {
           <p className="home-kicker">{guide.kicker}</p>
           <h1 className="home-h2 gd-title">{guide.h1}</h1>
           <p className="home-sub gd-answer">{guide.answer}</p>
-          <Link className="home-btn home-btn--primary" href={TRIAL_HREF}>
+          <Link prefetch={false} className="home-btn home-btn--primary" href={TRIAL_HREF}>
             {TRIAL_CTA}
           </Link>
           <p className="gd-note">{TRIAL_NOTE}</p>
@@ -123,7 +123,7 @@ export default function GuidePage({ guide }: { guide: Guide }) {
           <ul className="gd-more">
             {others.map((g) => (
               <li key={g.path}>
-                <Link href={g.path}>{g.title}</Link>
+                <Link prefetch={false} href={g.path}>{g.title}</Link>
               </li>
             ))}
           </ul>
@@ -136,11 +136,11 @@ export default function GuidePage({ guide }: { guide: Guide }) {
                 Try it with your own customers
               </h2>
               <p className="home-band-sub">
-                Questions first? <Link href="/contact">Get in touch</Link> or
-                see <Link href="/pricing">the plans</Link>.
+                Questions first? <Link prefetch={false} href="/contact">Get in touch</Link> or
+                see <Link prefetch={false} href="/pricing">the plans</Link>.
               </p>
             </div>
-            <Link className="home-btn home-btn--primary" href={TRIAL_HREF}>
+            <Link prefetch={false} className="home-btn home-btn--primary" href={TRIAL_HREF}>
               {TRIAL_CTA}
             </Link>
           </div>

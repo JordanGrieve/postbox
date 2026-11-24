@@ -35,7 +35,7 @@ export default function LegalLayout({
           padding: "22px 24px 0",
         }}
       >
-        <Link
+        <Link prefetch={false}
           href="/"
           /* 44px tall for 2.5.5: the lockup is 30px and this is the only
              control on the page, so it was the one under the floor. */

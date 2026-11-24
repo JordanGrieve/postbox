@@ -103,7 +103,7 @@ export default function PricingPage() {
                   <span className="prc-period">per month</span>
                 </p>
 
-                <Link
+                <Link prefetch={false}
                   className={
                     plan.featured
                       ? "home-btn home-btn--primary prc-cta"
@@ -248,10 +248,10 @@ export default function PricingPage() {
                 {TRIAL_LIMITS.subscribers} subscribers over {TRIAL_DAYS} days,
                 which is enough to connect your form and see it working with
                 real customers. Questions first?{" "}
-                <Link href="/contact">Get in touch</Link>.
+                <Link prefetch={false} href="/contact">Get in touch</Link>.
               </p>
             </div>
-            <Link className="home-btn home-btn--primary" href={TRIAL_HREF}>
+            <Link prefetch={false} className="home-btn home-btn--primary" href={TRIAL_HREF}>
               {TRIAL_CTA}
             </Link>
           </div>

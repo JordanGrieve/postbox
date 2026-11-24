@@ -107,10 +107,10 @@ export default function MarketingMenu({
         tabIndex={-1}
       >
         <nav className="home-menu-links" aria-label="Menu">
-          <Link className="home-menu-link" href="/#features" onClick={close}>
+          <Link prefetch={false} className="home-menu-link" href="/#features" onClick={close}>
             Features
           </Link>
-          <Link
+          <Link prefetch={false}
             className="home-menu-link"
             href="/pricing"
             aria-current={current === "pricing" ? "page" : undefined}
@@ -118,7 +118,7 @@ export default function MarketingMenu({
           >
             Pricing
           </Link>
-          <Link
+          <Link prefetch={false}
             className="home-menu-link"
             href="/contact"
             aria-current={current === "contact" ? "page" : undefined}
@@ -128,10 +128,10 @@ export default function MarketingMenu({
           </Link>
         </nav>
         <div className="home-menu-actions">
-          <Link className="home-btn home-btn--quiet" href="/sign-in" onClick={close}>
+          <Link prefetch={false} className="home-btn home-btn--quiet" href="/sign-in" onClick={close}>
             Sign in
           </Link>
-          <Link className="home-btn home-btn--primary" href={trialHref} onClick={close}>
+          <Link prefetch={false} className="home-btn home-btn--primary" href={trialHref} onClick={close}>
             {trialLabel}
           </Link>
         </div>

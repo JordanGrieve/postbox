@@ -21,7 +21,7 @@ export default function ThreadNotFound() {
       <p className="pbm-placeholder-title">Conversation not found</p>
       <p className="pbm-placeholder-body">
         This ticket does not exist, or it belongs to another workspace.{" "}
-        <Link href="/inbox">Back to the inbox</Link>
+        <Link prefetch={false} href="/inbox">Back to the inbox</Link>
       </p>
     </section>
   );

@@ -434,7 +434,7 @@ function NavRow({
 }) {
   const active = query.section === to;
   return (
-    <Link
+    <Link prefetch={false}
       href={hrefFor(query, { section: to, filter: "all" })}
       className={`pba-navrow${active ? " is-active" : ""}`}
     >

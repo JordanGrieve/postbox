@@ -37,16 +37,16 @@ export default function MarketingNav({
 }) {
   return (
     <header className="home-nav">
-      <Link href="/" className="home-nav-home" aria-label="Postbox home">
+      <Link prefetch={false} href="/" className="home-nav-home" aria-label="Postbox home">
         <PostboxLockup />
       </Link>
       {/* Named, because the footer has a nav too ("Footer"): two unnamed
           navigation landmarks read as the same one twice. */}
       <nav className="home-nav-links" aria-label="Main">
-        <Link className="home-nav-link home-nav-link--hide-sm" href="/#features">
+        <Link prefetch={false} className="home-nav-link home-nav-link--hide-sm" href="/#features">
           Features
         </Link>
-        <Link
+        <Link prefetch={false}
           className="home-nav-link home-nav-link--hide-sm"
           href="/pricing"
           // Announced by a screen reader, and styled below, so the current
@@ -55,7 +55,7 @@ export default function MarketingNav({
         >
           Pricing
         </Link>
-        <Link
+        <Link prefetch={false}
           className="home-nav-link home-nav-link--hide-sm"
           href="/contact"
           aria-current={current === "contact" ? "page" : undefined}
@@ -66,13 +66,13 @@ export default function MarketingNav({
             in is not a smaller afterthought beside the trial (home.css,
             .home-nav-actions). */}
         <div className="home-nav-actions">
-          <Link className="home-btn home-btn--sm home-btn--quiet" href="/sign-in">
+          <Link prefetch={false} className="home-btn home-btn--sm home-btn--quiet" href="/sign-in">
             Sign in
           </Link>
           {/* The way in, on every page and at every width (21 Nov 2026). The
               nav only offered Sign in, which is for people who already have
               an account. */}
-          <Link className="home-btn home-btn--sm home-btn--primary" href={TRIAL_HREF}>
+          <Link prefetch={false} className="home-btn home-btn--sm home-btn--primary" href={TRIAL_HREF}>
             {TRIAL_CTA}
           </Link>
         </div>

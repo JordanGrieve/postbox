@@ -75,10 +75,10 @@ export default function LandingPage() {
             </p>
 
             <div className="home-cta-row">
-              <Link className="home-btn home-btn--primary" href={TRIAL_HREF}>
+              <Link prefetch={false} className="home-btn home-btn--primary" href={TRIAL_HREF}>
                 {TRIAL_CTA}
               </Link>
-              <Link className="home-btn home-btn--ghost" href="/pricing">
+              <Link prefetch={false} className="home-btn home-btn--ghost" href="/pricing">
                 See pricing
               </Link>
             </div>
@@ -226,7 +226,7 @@ export default function LandingPage() {
               month for up to {TEAM_PLAN.limits.seats} people and{" "}
               {TEAM_PLAN.limits.subscribers.toLocaleString("en-GB")}{" "}
               subscribers, and every plan starts with a {TRIAL_DAYS}-day free
-              trial. <Link href="/pricing">Compare the plans</Link>.
+              trial. <Link prefetch={false} href="/pricing">Compare the plans</Link>.
             </p>
           </section>
         )}
@@ -274,7 +274,7 @@ export default function LandingPage() {
             {OPERATOR_NAME.split(" ")[0]} answers. Your data is stored in
             London, there are no ads and no tracking cookies, and you can
             download everything in your inbox whenever you like.{" "}
-            <Link href="/contact">Ask a question</Link>.
+            <Link prefetch={false} href="/contact">Ask a question</Link>.
           </p>
         </section>
 
@@ -287,7 +287,7 @@ export default function LandingPage() {
                 see real enquiries arrive.
               </p>
             </div>
-            <Link className="home-btn home-btn--primary" href={TRIAL_HREF}>
+            <Link prefetch={false} className="home-btn home-btn--primary" href={TRIAL_HREF}>
               {TRIAL_CTA}
             </Link>
           </div>

@@ -63,7 +63,7 @@ export default async function TrialBanner({
           </span>
         )}
       </span>
-      <Link className="pbt-cta" href="/settings/billing">
+      <Link prefetch={false} className="pbt-cta" href="/settings/billing">
         {notice.tone === "block" ? "Choose a plan" : "See plans"}
       </Link>
     </>

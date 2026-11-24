@@ -37,7 +37,7 @@ export default async function BillingSettingsPage() {
   const paying = !e.comped && plan !== null;
 
   const getInTouch = (
-    <Link href="/contact" className="stg-biz-inline">
+    <Link prefetch={false} href="/contact" className="stg-biz-inline">
       get in touch
     </Link>
   );

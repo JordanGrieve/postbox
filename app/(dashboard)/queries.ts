@@ -103,6 +103,29 @@ export const mailCounts = cache(
 );
 
 /**
+ * One short string that changes whenever the inbox would draw differently:
+ * a ticket arrives, is trashed or restored (the live count), changes tab
+ * (the open count), or gains a message or a status (the latest updated_at,
+ * which every message and status write bumps).
+ *
+ * GET /api/inbox/live returns it, and lib/use-inbox-live.ts re-renders the
+ * page only when it moves. A single aggregate over the
+ * (workspace_id, updated_at) index, where a refresh is the whole page.
+ */
+export async function inboxStamp(workspaceId: number): Promise<string> {
+  const [row] = await db
+    .select({
+      live: sql<number>`(count(*) FILTER (WHERE ${notDeleted}))::int`,
+      open: sql<number>`(count(*) FILTER (WHERE ${notDeleted} AND ${notClosed}))::int`,
+      latest: sql<string | null>`max(${tickets.updatedAt})::text`,
+    })
+    .from(tickets)
+    .where(eq(tickets.workspaceId, workspaceId));
+
+  return `${row?.live ?? 0}:${row?.open ?? 0}:${row?.latest ?? ""}`;
+}
+
+/**
  * Only the columns the list pane draws. Deliberately NOT `typeof
  * tickets.$inferSelect` — a column added to the schema should not silently
  * become part of this shape.

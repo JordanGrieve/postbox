@@ -21,6 +21,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh: vi.fn(), push: vi.fn() }),
   usePathname: () => "/inbox",
 }));
+// The "anything new?" check asks GET /api/inbox/live on mount, which would
+// be one more fetch in tests that count the conversation's own requests. It
+// has its own tests in tests/inbox-live.test.tsx.
+vi.mock("@/lib/use-inbox-live", () => ({ useInboxLive: () => undefined }));
 afterEach(() => {
   cleanup();
   vi.unstubAllGlobals();

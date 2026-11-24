@@ -36,18 +36,18 @@ export default function MarketingFooter() {
           </p>
         </div>
         <nav className="mkt-footer-links" aria-label="Footer">
-          <Link href="/">Home</Link>
-          <Link href="/pricing">Pricing</Link>
-          <Link href="/contact">Contact</Link>
-          <Link href="/terms">Terms</Link>
-          <Link href="/privacy">Privacy</Link>
+          <Link prefetch={false} href="/">Home</Link>
+          <Link prefetch={false} href="/pricing">Pricing</Link>
+          <Link prefetch={false} href="/contact">Contact</Link>
+          <Link prefetch={false} href="/terms">Terms</Link>
+          <Link prefetch={false} href="/privacy">Privacy</Link>
         </nav>
       </div>
       {/* Every guide, from every public page: how search engines find them,
           and how a reader on the homepage finds the comparison they wanted. */}
       <nav className="mkt-footer-links mkt-footer-guides" aria-label="Guides">
         {GUIDES.map((g) => (
-          <Link key={g.path} href={g.path}>
+          <Link prefetch={false} key={g.path} href={g.path}>
             {g.title}
           </Link>
         ))}

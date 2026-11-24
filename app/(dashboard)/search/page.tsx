@@ -210,7 +210,7 @@ function Placeholder({ title, body }: { title: string; body: string }) {
 function TicketResult({ hit, now }: { hit: TicketHit; now: Date }) {
   const src = SOURCE_META[hit.source];
   return (
-    <Link className="pbm-result" href={`/tickets/${hit.id}?folder=all`}>
+    <Link prefetch={false} className="pbm-result" href={`/tickets/${hit.id}?folder=all`}>
       <div className="pbm-result-top">
         <span className="pbm-result-title">
           <Marked segments={hit.subject} />
@@ -243,7 +243,7 @@ function TicketResult({ hit, now }: { hit: TicketHit; now: Date }) {
 
 function MessageResult({ hit, now }: { hit: MessageHit; now: Date }) {
   return (
-    <Link className="pbm-result" href={`/tickets/${hit.ticketId}?folder=all`}>
+    <Link prefetch={false} className="pbm-result" href={`/tickets/${hit.ticketId}?folder=all`}>
       <div className="pbm-result-top">
         <span className="pbm-result-title">{hit.subject}</span>
         <span className="pbm-result-time">{relativeTime(hit.sentAt, now)}</span>
@@ -267,7 +267,7 @@ function ContactResult({ hit, now }: { hit: ContactHit; now: Date }) {
   // There is no per-contact page in this product, so the useful destination is
   // this person's mail — which is this same search, narrowed to their address.
   return (
-    <Link
+    <Link prefetch={false}
       className="pbm-result pbm-result--person"
       href={`/search?q=${encodeURIComponent(hit.rawEmail)}`}
     >

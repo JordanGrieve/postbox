@@ -23,7 +23,7 @@ export default function SettingsBackLink() {
 
   return (
     <nav className="stg-back-bar" aria-label="Back">
-      <Link href={section.href} className="stg-back">
+      <Link prefetch={false} href={section.href} className="stg-back">
         <span aria-hidden>‹</span>
         {section.label}
       </Link>

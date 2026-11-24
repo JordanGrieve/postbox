@@ -146,7 +146,7 @@ export function CloseWorkspaceRow({
       note={
         <>
           Deletes your messages, newsletters and subscribers for good.{" "}
-          <Link href="/settings/website" className="stg-biz-inline">
+          <Link prefetch={false} href="/settings/website" className="stg-biz-inline">
             Download your data
           </Link>{" "}
           first if you want to keep it.

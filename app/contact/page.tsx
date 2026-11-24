@@ -67,7 +67,7 @@ export default function ContactPage() {
             Jordan, who runs Postbox, reads and answers every message.
           </p>
           <p className="ct-lede">
-            Ready to try it? <Link href="/sign-up">Start a free trial</Link>{" "}
+            Ready to try it? <Link prefetch={false} href="/sign-up">Start a free trial</Link>{" "}
             &mdash; no card needed.
           </p>
 

@@ -98,7 +98,7 @@ export default function OnboardingChecklist({
             </span>
 
             {!step.done && (
-              <Link
+              <Link prefetch={false}
                 className="pbo-go"
                 href={step.href}
                 /* 2.4.9: four "Do it" links to four places read identically in

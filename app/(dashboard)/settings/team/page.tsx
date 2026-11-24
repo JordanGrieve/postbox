@@ -176,7 +176,7 @@ export default async function TeamSettingsPage({
               </>
             )}{" "}
             {nextPlan && nextPlan.limits.seats > limit ? (
-              <Link href="/settings/billing" className="stg-biz-inline">
+              <Link prefetch={false} href="/settings/billing" className="stg-biz-inline">
                 Upgrade to {nextPlan.name} for {nextPlan.limits.seats}
               </Link>
             ) : (

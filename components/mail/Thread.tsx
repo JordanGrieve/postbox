@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useDismiss } from "@/lib/use-dismiss";
-import { useVisibleRefresh } from "@/lib/use-visible-refresh";
+import { useInboxLive } from "@/lib/use-inbox-live";
 import { useTipDismiss } from "@/lib/use-tip-dismiss";
 import type { TicketDTO, MessageDTO } from "@/lib/serialize";
 import { formatDateTime } from "@/lib/serialize";
@@ -107,7 +107,7 @@ export default function Thread({
   useTipDismiss();
 
   // Customer replies should appear without a manual reload.
-  useVisibleRefresh(30_000);
+  useInboxLive();
 
   // Land on the newest message, like every other messaging client.
   useEffect(() => {
@@ -193,7 +193,7 @@ export default function Thread({
     <>
       <section className="pbm-thread" aria-label="Conversation">
         <header className="pbm-thread-head">
-          <Link href={backHref} className="pbm-icon-btn pbm-back" aria-label="Back to the list">
+          <Link prefetch={false} href={backHref} className="pbm-icon-btn pbm-back" aria-label="Back to the list">
             <Icon name="back" size={17} strokeWidth={2.2} />
           </Link>
           <div className="pbm-thread-who">

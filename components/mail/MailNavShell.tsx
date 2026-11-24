@@ -199,7 +199,7 @@ export default function MailNavShell({
         </div>
 
         {isAdmin && (
-          <Link href="/admin" className="pbm-admin-link">
+          <Link prefetch={false} href="/admin" className="pbm-admin-link">
             <span aria-hidden>←</span> All clients
           </Link>
         )}
@@ -213,7 +213,7 @@ export default function MailNavShell({
           the Newsletter page's People tab now.
         */}
         <div className="pbm-folders">
-          <Link
+          <Link prefetch={false}
             href="/inbox"
             className="pbm-folder"
             data-active={inInbox}
@@ -225,7 +225,7 @@ export default function MailNavShell({
                 tab shows. */}
             <span className="pbm-folder-count">{counts.inbox}</span>
           </Link>
-          <Link
+          <Link prefetch={false}
             href="/newsletters"
             className="pbm-folder"
             data-active={newsletterActive}
@@ -251,7 +251,7 @@ export default function MailNavShell({
             Sections come from lib/settings-sections.ts, the same list the
             in-page tabs read, so the two cannot disagree.
           */}
-          <Link
+          <Link prefetch={false}
             href="/settings"
             className="pbm-folder"
             data-open={settingsSection ? "true" : undefined}
@@ -265,7 +265,7 @@ export default function MailNavShell({
                 const active = s.key === settingsSection.key;
                 return (
                   <li key={s.key}>
-                    <Link
+                    <Link prefetch={false}
                       href={s.href}
                       className="pbm-subnav-item"
                       data-active={active}
@@ -339,7 +339,7 @@ export default function MailNavShell({
             {/* A link, not a button. The old one was a disabled <button> with
                 nowhere to go; this is the same destination the trial banner
                 sends people to, so the two cannot disagree. */}
-            <Link className="pbm-pro-btn" href="/settings/billing">
+            <Link prefetch={false} className="pbm-pro-btn" href="/settings/billing">
               {billing.cta}
             </Link>
           </aside>

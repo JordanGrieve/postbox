@@ -53,6 +53,8 @@ how the send path and the sweep path drift apart.
 | Which workspace an inbound address belongs to | `workspaceForInboundAddress` in `lib/inbound-address.ts` (routes hello@ to Postbox's own workspace) | calling `getWorkspaceByInboundEmail` directly from a route |
 | A competitor's price, or "about £N" from dollars | `INBOX_RIVALS`, `teamMonthlyUsd`, `aboutGbp` and `COMPETITORS_CHECKED` in `lib/competitor-prices.ts` (the pricing page and the guides both read it) | typing a rival's price into a page or guide |
 | Whether Postbox charges VAT | `VAT_REGISTERED` in `lib/pricing.ts` (false; `tests/pricing-comparison.test.tsx` fails if checkout adds tax) | writing "no VAT" or "+VAT" into copy directly |
+| Keep a signed-in screen up to date | `useInboxLive` in `lib/use-inbox-live.ts` (asks `GET /api/inbox/live` for `inboxStamp`, refreshes only on a change, stops when idle) | a `setInterval` calling `router.refresh()`: that re-rendered the whole page every 30s and got postbox.help paused for using up Vercel's CPU allowance (24 Nov 2026) |
+| A `<Link>` | always `prefetch={false}` (`tests/link-prefetch.test.ts`) | a bare `<Link>`: each one in view is a server render of its page, before anyone clicks |
 | Which conversation a reply belongs to when it has no ticket+ address | `findTicketByReferencedMessageIds` in `lib/data.ts` (In-Reply-To / References; one match or none) | matching on sender + subject, which a forged From could use |
 
 ## If a near-match exists

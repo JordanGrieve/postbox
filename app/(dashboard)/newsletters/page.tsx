@@ -67,7 +67,7 @@ export default async function NewslettersPage({
               Send news and offers to people who signed up on your website.
             </p>
           </div>
-          <Link href="/newsletters/write" className="stg-button">
+          <Link prefetch={false} href="/newsletters/write" className="stg-button">
             Write a newsletter
           </Link>
         </header>
@@ -88,7 +88,7 @@ export default async function NewslettersPage({
         {/* Links, not buttons: each tab is its own URL. The inbox's segmented
             tabs (.pbm-tabs in mail.css), so both pages switch the same way. */}
         <nav className="pbm-tabs nl-ov-tabs" aria-label="Newsletter">
-          <Link
+          <Link prefetch={false}
             href="/newsletters"
             className="pbm-tab"
             data-on={!onPeople || undefined}
@@ -96,7 +96,7 @@ export default async function NewslettersPage({
           >
             Newsletters
           </Link>
-          <Link
+          <Link prefetch={false}
             href="/newsletters?tab=people"
             className="pbm-tab"
             data-on={onPeople || undefined}
@@ -133,7 +133,7 @@ export default async function NewslettersPage({
                     : "Off — nobody gets a welcome email"}
                 </p>
               </div>
-              <Link
+              <Link prefetch={false}
                 href="/newsletters/welcome"
                 className="stg-button stg-button--secondary nl-ov-act"
                 aria-label="Edit the welcome email"
@@ -162,7 +162,7 @@ export default async function NewslettersPage({
                       {STATUS_LABELS[c.status]}
                     </span>
                   )}
-                  <Link
+                  <Link prefetch={false}
                     href={`/newsletters/write?id=${c.id}`}
                     className="stg-button stg-button--secondary nl-ov-act"
                     // 2.4.9: "View" and "Keep writing" alone do not say which.

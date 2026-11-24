@@ -116,8 +116,24 @@ export default clerkMiddleware(
 
 export const config = {
   matcher: [
-    // Run on everything except Next internals and static files…
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    /*
+      Run on everything except Next internals, static files, and the public
+      pages that need no session.
+
+      Every matched request is a function invocation with Clerk's work in it,
+      even when the page behind it is a prerendered file on the CDN, and it
+      counts against Vercel's CPU allowance. Postbox was paused on 24 Nov 2026
+      for using that allowance up, so the marketing pages, the files crawlers
+      fetch and Sentry's tunnel skip the proxy. Each name is followed by "$"
+      so that only the exact page skips it: /pricingx is still protected.
+      They stay in isPublicRoute above as well, which is harmless, and keeps
+      tests/public-routes.test.ts reading one list.
+
+      "/" is NOT here: it sends a signed-in visitor to their inbox. Nor is
+      /contact, which renders per request. tests/proxy-matcher.test.ts asks
+      Next's own matcher which paths run.
+    */
+    "/((?!_next|monitoring|(?:pricing|terms|privacy|faq|shared-inbox|contact-form-to-inbox|newsletters-for-small-business|vs/gmail|vs/help-scout|vs/mailchimp|robots\\.txt|sitemap\\.xml|llms\\.txt|opengraph-image)$|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     // …and always on API routes.
     "/(api|trpc)(.*)",
     // Clerk's handshake / keyless proxy path.

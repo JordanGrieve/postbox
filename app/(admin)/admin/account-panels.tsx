@@ -75,7 +75,7 @@ export function DeletePanel({ target }: { target: WorkspaceSummary }) {
         <button type="submit" className="pba-btn pba-btn-danger">
           Permanently delete
         </button>
-        <Link href="/admin" className="pba-btn">
+        <Link prefetch={false} href="/admin" className="pba-btn">
           Cancel
         </Link>
       </form>
@@ -123,7 +123,7 @@ export function RotateKeyPanel({ target }: { target: WorkspaceSummary }) {
         <button type="submit" className="pba-btn pba-btn-danger">
           Replace the key
         </button>
-        <Link href="/admin" className="pba-btn">
+        <Link prefetch={false} href="/admin" className="pba-btn">
           Cancel
         </Link>
       </form>
@@ -356,13 +356,13 @@ export function AccountDetails({
         {/* Not styled as danger. It is genuinely less severe than the delete
             below it, and a column of red buttons is a column nobody reads. The
             panel it opens does the warning. */}
-        <Link
+        <Link prefetch={false}
           href={`${hrefFor(query, { account: account.id })}&rotate=${account.id}`}
           className="pba-btn pba-btn-block"
         >
           Replace ingestion key…
         </Link>
-        <Link
+        <Link prefetch={false}
           href={`${hrefFor(query, { account: account.id })}&delete=${account.id}`}
           className="pba-btn pba-btn-danger pba-btn-block"
         >

@@ -115,7 +115,9 @@ describe("the card cannot go stale again", () => {
   });
 
   it("takes people to billing rather than disabling the control", () => {
-    expect(SHELL).toContain('<Link className="pbm-pro-btn" href="/settings/billing">');
+    expect(SHELL).toContain(
+      '<Link prefetch={false} className="pbm-pro-btn" href="/settings/billing">',
+    );
     expect(SHELL).not.toMatch(/className="pbm-pro-btn"[^>]*disabled/);
   });
 });

@@ -249,7 +249,7 @@ export default async function AccessLogPage({
             {pageCount > 1 && (
               <nav className="stg-pager" aria-label="Visit pages">
                 {page > 1 ? (
-                  <Link href={`/settings/access-log?page=${page - 1}`}>← Newer</Link>
+                  <Link prefetch={false} href={`/settings/access-log?page=${page - 1}`}>← Newer</Link>
                 ) : (
                   <span className="stg-pager-off">← Newer</span>
                 )}
@@ -257,7 +257,7 @@ export default async function AccessLogPage({
                   Page {page} of {pageCount}
                 </span>
                 {page < pageCount ? (
-                  <Link href={`/settings/access-log?page=${page + 1}`}>Older →</Link>
+                  <Link prefetch={false} href={`/settings/access-log?page=${page + 1}`}>Older →</Link>
                 ) : (
                   <span className="stg-pager-off">Older →</span>
                 )}

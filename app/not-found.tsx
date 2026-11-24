@@ -27,7 +27,7 @@ export default function NotFoundPage() {
       title="This page doesn’t exist"
       body="The link may be out of date, or the page may have been moved."
     >
-      <Link href="/" style={ERROR_BUTTON}>
+      <Link prefetch={false} href="/" style={ERROR_BUTTON}>
         Go to the homepage
       </Link>
     </ErrorShell>

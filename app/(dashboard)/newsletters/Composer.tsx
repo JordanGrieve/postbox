@@ -1131,7 +1131,7 @@ export default function Composer({
         <header className="nl-head">
           <div className="nl-head-text">
             {!showRail && (
-              <Link href="/newsletters" className="nl-back">
+              <Link prefetch={false} href="/newsletters" className="nl-back">
                 ← Newsletters
               </Link>
             )}

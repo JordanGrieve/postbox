@@ -88,7 +88,7 @@ export default async function FormsSettingsPage() {
             </button>
           </div>
           <p className="pbf-hint">
-            <Link href="/settings/install">Setup steps</Link>
+            <Link prefetch={false} href="/settings/install">Setup steps</Link>
           </p>
         </form>
       </section>

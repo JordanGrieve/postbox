@@ -72,7 +72,7 @@ export default async function SubscriberDetailPage({
       <div className="psb-wrap">
         <div className="psb-col">
           {/* Back to the People tab, where the list lives since 19 Nov 2026. */}
-          <Link href="/newsletters?tab=people" className="psb-back">
+          <Link prefetch={false} href="/newsletters?tab=people" className="psb-back">
             ← People
           </Link>
 
