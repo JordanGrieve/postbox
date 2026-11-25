@@ -55,6 +55,34 @@ describe("the homepage's newsletter points", () => {
   });
 });
 
+describe("the homepage sells setup with no DNS changes", () => {
+  /*
+    Jordan, 25 Nov 2026: "one of our big advantages is they do not need to add
+    us to their DNS records ... this is a sell." Most rivals make a business
+    add records before they can send as its domain; Postbox sends from its own
+    verified address under the business's name, so there is nothing to add.
+  */
+  it("says so in a heading of its own", () => {
+    expect(PAGES.home).toMatch(/<h2 className="home-h2">[^<]*DNS[^<]*<\/h2>/);
+  });
+
+  it("explains it in whole rows of three", () => {
+    const block = PAGES.home.slice(PAGES.home.indexOf("const SETUP_POINTS"));
+    const array = block.slice(0, block.indexOf("];"));
+    expect(array.match(/title: "/g)?.length ?? 0).toBe(3);
+    expect(PAGES.home).toContain("SETUP_POINTS.map(");
+  });
+
+  it("stays true: replies go out from Postbox's own address, not the business's domain", () => {
+    // If replies ever send from a client's domain, that domain needs DNS
+    // records and the homepage claim becomes false. Change both together.
+    const reply = read("app/api/tickets/[id]/reply/route.ts");
+    expect(reply).toContain("from: EMAIL_FROM_ADDRESS");
+    const campaigns = read("lib/campaign-send.ts");
+    expect(campaigns).toContain("from: campaignFromHeader(input.workspaceName, input.from)");
+  });
+});
+
 describe("the pricing FAQ", () => {
   const css = read("app/pricing/pricing.css");
 

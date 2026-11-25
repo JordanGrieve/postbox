@@ -208,6 +208,31 @@ export default function LandingPage() {
         </section>
 
         {/*
+          Setup with nothing in the domain settings (Jordan, 25 Nov 2026:
+          "this is a sell"). True because replies and newsletters send from
+          Postbox's own verified address under the business's name;
+          tests/marketing-site.test.ts fails if the send path stops doing that.
+        */}
+        <section className="home-section home-wrap" id="setup">
+          <p className="home-kicker">Setup</p>
+          <h2 className="home-h2">Up and running in minutes, with no DNS records to add</h2>
+          <p className="home-sub">
+            Most email tools want records added to your domain before they will
+            send anything, which usually means finding whoever set up your
+            website. Postbox doesn&rsquo;t.
+          </p>
+
+          <div className="home-grid">
+            {SETUP_POINTS.map((f) => (
+              <div className="home-card" key={f.title}>
+                <h3 className="home-card-title">{f.title}</h3>
+                <p className="home-card-body">{f.body}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/*
           The price argument, which the page never made. Postbox replaces two
           tools that are each usually priced per person. Stated without
           naming anybody else's prices, which change; the claim that holds is
@@ -301,6 +326,25 @@ export default function LandingPage() {
     </div>
   );
 }
+
+/*
+ * How a business connects, none of it in the domain settings. Three, so the
+ * grid is one full row.
+ */
+const SETUP_POINTS = [
+  {
+    title: "Forward your email",
+    body: "Point your support address at your Postbox address in your email settings. Customers keep writing to the address they already know.",
+  },
+  {
+    title: "Connect your contact form",
+    body: "Your website's form sends straight to Postbox. Paste the setup instructions to whoever looks after your site; it's a few minutes' work.",
+  },
+  {
+    title: "Sending is already done",
+    body: "Replies and newsletters go out from Postbox's verified mail servers with your business's name on them, and customer replies come back to your inbox.",
+  },
+];
 
 /*
  * The deliverability points, kept as text. They are claims about PROCESS —
