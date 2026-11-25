@@ -346,7 +346,9 @@ integration, however well the submission works.
             become tickets automatically; anything mentioning an order id (like{" "}
             <code className="sti-inline-code">ORD-1234</code> or{" "}
             <code className="sti-inline-code">#4821</code>) is flagged as a
-            higher-priority order.
+            higher-priority order. Microsoft 365 blocks automatic forwarding to
+            outside addresses until your administrator allows it for that
+            mailbox.
           </p>
           <Field
             value={inboundEmail}

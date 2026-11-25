@@ -20,7 +20,7 @@ const read = (p: string) => readFileSync(join(process.cwd(), p), "utf8");
 
 describe("the guides", () => {
   it("are all there", () => {
-    expect(GUIDES.length).toBe(7);
+    expect(GUIDES.length).toBe(8);
     expect(new Set(GUIDES.map((g) => g.path)).size).toBe(GUIDES.length);
     expect(new Set(GUIDES.map((g) => g.title)).size).toBe(GUIDES.length);
   });

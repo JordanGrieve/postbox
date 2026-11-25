@@ -99,11 +99,11 @@ const NOT_THE_APP = {
 export const GUIDES: Guide[] = [
   {
     path: "/shared-inbox",
-    title: "Shared inbox for small businesses",
-    description: `One inbox your whole team answers customers from: your website contact form and support email together. Made for small UK businesses, from ${FROM} a month.`,
+    title: "Shared team inbox for UK small businesses",
+    description: `One inbox your whole team answers customers from: your contact form and your info@ or support@ email together. For UK small businesses, from ${FROM} a month.`,
     kicker: "Shared inbox",
     h1: "A shared inbox for a small business",
-    answer: `A shared inbox is one inbox a whole team reads and replies from, so every customer gets one answer and nobody's email sits unread in one person's account. Postbox gives a small business exactly that, for its website contact form and its support email together, from ${FROM} a month.`,
+    answer: `A shared inbox, or team inbox, is one inbox a whole team reads and replies from, so every customer gets one answer and nobody's email sits unread in one person's account. Postbox gives a small business exactly that, for its website contact form and its support email together, from ${FROM} a month.`,
     sections: [
       {
         heading: "Why one shared Gmail login stops working",
@@ -211,8 +211,8 @@ export const GUIDES: Guide[] = [
 
   {
     path: "/newsletters-for-small-business",
-    title: "Newsletters for small businesses",
-    description: `Send newsletters to customers who signed up on your website, with their consent recorded and replies landing in your shared inbox. Included from ${formatPrice(GROWTH.price)} a month.`,
+    title: "Email newsletters for UK small businesses",
+    description: `Simple email marketing: newsletters to customers who signed up on your website, consent recorded, replies in your shared inbox. From ${formatPrice(GROWTH.price)} a month.`,
     kicker: "Newsletters",
     h1: "Newsletters for a small business, sent from your inbox",
     answer: `Postbox sends newsletters to the people who signed up on your website, keeps a record of when and where each one agreed, and puts any replies into your shared inbox. Newsletters are included on ${GROWTH.name} (${formatPrice(GROWTH.price)} a month) and ${BUSINESS.name} (${formatPrice(BUSINESS.price)} a month).`,
@@ -492,6 +492,94 @@ export const GUIDES: Guide[] = [
     ],
   },
 
+  /*
+    Added 25 Nov 2026. Most UK small businesses run their email on Microsoft
+    365, and its shared mailbox is the free thing Postbox is weighed against.
+    Facts from Microsoft's own page (linked below): a shared mailbox needs no
+    licence of its own up to 50 GB, everyone using it needs a licensed
+    mailbox, and its read state is the mailbox's, so it is shared. Automatic
+    forwarding to outside addresses is off by default in Microsoft 365's
+    outbound spam policy.
+  */
+  {
+    path: "/vs/outlook",
+    title: "Postbox vs an Outlook shared mailbox",
+    description: `An Outlook shared mailbox comes with Microsoft 365. When it stops being enough for a small team answering customers, and what Postbox does instead.`,
+    kicker: "Compare",
+    h1: "Postbox or an Outlook shared mailbox?",
+    answer: `An Outlook shared mailbox comes with most Microsoft 365 business plans and works while a team handles a few emails a day. It cannot show what has been answered or turn contact form enquiries into conversations; Postbox does both, from ${FROM} a month for the whole business, and you keep Outlook for everything else.`,
+    comparison: {
+      them: "Outlook shared mailbox",
+      checked: COMPETITORS_CHECKED,
+      source: {
+        label: "Microsoft: about shared mailboxes",
+        href: "https://learn.microsoft.com/en-us/microsoft-365/admin/email/about-shared-mailboxes",
+      },
+      rows: [
+        {
+          label: "Price",
+          postbox: `From ${FROM} a month for the business`,
+          them: "No licence of its own up to 50 GB; everyone using it needs a paid Microsoft 365 mailbox",
+        },
+        {
+          label: "Marking an email as dealt with",
+          postbox: "To reply and Done, the same for everyone",
+          them: "Read or unread, flags and categories",
+        },
+        {
+          label: "Website contact form",
+          postbox: "Each enquiry is a conversation, labelled as from your form",
+          them: "Arrives as a notification email",
+        },
+        {
+          label: "Adding a colleague",
+          postbox: "Invite them from Settings",
+          them: "Your Microsoft 365 administrator grants access",
+        },
+        {
+          label: "Newsletters",
+          postbox: `Included from ${formatPrice(GROWTH.price)} a month, with consent records`,
+          them: "Not built for it; sending limits apply",
+        },
+      ],
+    },
+    sections: [
+      {
+        heading: "When a shared mailbox is enough",
+        paragraphs: [
+          "If your team already works in Outlook and gets a few customer emails a day, a shared mailbox such as info@ costs nothing extra and does the job. Postbox earns its price when several people answer, or when enquiries come from your website's contact form as well as by email.",
+        ],
+      },
+      {
+        heading: "Where it gets difficult",
+        paragraphs: [
+          "Everyone sees the same read and unread state, so an email one person opened looks dealt with to everybody, answered or not. Contact form enquiries arrive as notification emails mixed in with the rest. Nothing records which customer emails are still waiting.",
+          "In Postbox a conversation stays in To reply until someone marks it Done, each enquiry is labelled with where it came from, and each customer's earlier conversations sit beside the one you are reading.",
+        ],
+      },
+      {
+        heading: "Keeping Outlook as well",
+        paragraphs: [
+          "You do not have to leave Microsoft 365. Forward your info@ or support@ address to Postbox and customer emails go to the shared inbox, while everyone's own mail stays in Outlook.",
+          "Microsoft 365 blocks automatic forwarding to outside addresses by default, so your administrator allows it for that one mailbox first. Nothing else about your email changes, and there are no DNS records to add.",
+        ],
+      },
+      COSTS,
+    ],
+    faq: [
+      KEEP_ADDRESS,
+      {
+        q: "Why is my Microsoft 365 forwarding not working?",
+        a: "Microsoft 365 blocks automatic forwarding to outside addresses unless your administrator allows it, in the outbound spam policy in Microsoft Defender. Allow it for the mailbox you are forwarding, then send yourself a test.",
+      },
+      {
+        q: "Does Postbox replace Microsoft 365?",
+        a: "No. Your own email, calendar and files stay in Microsoft 365. Postbox is where your team answers customer emails and contact form enquiries.",
+      },
+      NOT_THE_APP,
+    ],
+  },
+
   {
     path: "/faq",
     title: "Questions about Postbox",
@@ -514,6 +602,18 @@ export const GUIDES: Guide[] = [
       {
         q: "Does it work on a phone?",
         a: "Yes. Postbox runs in the browser on a phone or a computer. There is no app to install.",
+      },
+      {
+        q: "Do I need to change my DNS or domain settings?",
+        a: "No. Replies and newsletters go out from Postbox's own verified mail servers with your business's name on them, so there are no records to add. You forward your email and connect your form, and that is all.",
+      },
+      {
+        q: "Does it work with Outlook, Microsoft 365 or Gmail?",
+        a: "Yes. Keep your email where it is and forward your info@ or support@ address to Postbox. Microsoft 365 blocks forwarding to outside addresses until your administrator allows it for that mailbox.",
+      },
+      {
+        q: "Is Postbox a help desk?",
+        a: "It is a simpler shared inbox. There is no live chat, no help-centre articles and no rules that hand conversations to particular people. It suits small teams who want one place to answer customers, with newsletters included.",
       },
       {
         q: "What happens to enquiries if I stop paying?",

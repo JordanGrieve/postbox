@@ -87,6 +87,7 @@ describe("every route has a skeleton", () => {
     "/vs/gmail",
     "/vs/help-scout",
     "/vs/mailchimp",
+    "/vs/outlook",
   ];
 
   it("the root has no loading.tsx", () => {

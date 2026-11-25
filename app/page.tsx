@@ -27,9 +27,9 @@ const TEAM_PLAN = PLANS.find((p) => p.limits.subscribers > 0 && p.limits.seats >
 */
 export const metadata: Metadata = pageMetadata({
   path: "/",
-  title: "Postbox | Shared inbox and newsletters for small UK businesses",
+  title: "Postbox | Shared inbox and newsletters for UK small businesses",
   absolute: true,
-  description: `Put your website's contact form and support email in one shared inbox your team answers from, and send newsletters from the same place. From ${FROM_PRICE} a month.`,
+  description: `A shared team inbox for your website's contact form and support email, with email newsletters built in. No DNS changes. From ${FROM_PRICE} a month.`,
 });
 
 /**
@@ -334,7 +334,7 @@ export default function LandingPage() {
 const SETUP_POINTS = [
   {
     title: "Forward your email",
-    body: "Point your support address at your Postbox address in your email settings. Customers keep writing to the address they already know.",
+    body: "Forward your info@ or support@ address to Postbox from Gmail, Outlook or your host. Customers keep writing to the address they already know.",
   },
   {
     title: "Connect your contact form",
@@ -365,7 +365,7 @@ const NEWSLETTER_POINTS = [
   },
   {
     title: "Proof, if anyone asks",
-    body: "For every subscriber Postbox keeps when they signed up and the page they did it on. If a customer ever asks why they are on your list, you can show them.",
+    body: "For every subscriber Postbox keeps when they signed up and the page they did it on: the consent record UK GDPR asks you to keep. If a customer asks why they are on your list, you can show them.",
   },
   {
     title: "Unsubscribing takes one click",

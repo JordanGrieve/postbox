@@ -124,7 +124,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${jakarta.variable} ${splineMono.variable}`}>
+    <html lang="en-GB" className={`${jakarta.variable} ${splineMono.variable}`}>
       {/*
         No ClerkProvider here — see components/AuthProvider.tsx. It is mounted
         by the five surfaces that actually authenticate, so the marketing,

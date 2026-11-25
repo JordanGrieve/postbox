@@ -50,7 +50,7 @@ describe("the homepage title", () => {
   it("uses the bar, like every other tab", () => {
     const title = homeMetadata.title;
     const text = typeof title === "object" && title && "absolute" in title ? title.absolute : title;
-    expect(text).toBe("Postbox | Shared inbox and newsletters for small UK businesses");
+    expect(text).toBe("Postbox | Shared inbox and newsletters for UK small businesses");
     const layout = readFileSync(join(process.cwd(), "app/layout.tsx"), "utf8");
     expect(layout).not.toMatch(/const TITLE = "[^"]*—/);
   });

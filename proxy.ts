@@ -23,6 +23,7 @@ const isPublicRoute = createRouteMatcher([
   "/vs/gmail",
   "/vs/help-scout",
   "/vs/mailchimp",
+  "/vs/outlook",
   // The pricing page. Public for the obvious reason — it is a marketing page
   // and the whole point is that people read it before they have an account —
   // but worth a line rather than folding it in silently: it is the first route
@@ -133,7 +134,7 @@ export const config = {
       /contact, which renders per request. tests/proxy-matcher.test.ts asks
       Next's own matcher which paths run.
     */
-    "/((?!_next|monitoring|(?:pricing|terms|privacy|faq|shared-inbox|contact-form-to-inbox|newsletters-for-small-business|vs/gmail|vs/help-scout|vs/mailchimp|robots\\.txt|sitemap\\.xml|llms\\.txt|opengraph-image)$|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next|monitoring|(?:pricing|terms|privacy|faq|shared-inbox|contact-form-to-inbox|newsletters-for-small-business|vs/gmail|vs/help-scout|vs/mailchimp|vs/outlook|robots\\.txt|sitemap\\.xml|llms\\.txt|opengraph-image)$|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     // …and always on API routes.
     "/(api|trpc)(.*)",
     // Clerk's handshake / keyless proxy path.

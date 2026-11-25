@@ -37,6 +37,7 @@ describe("proxy matcher", () => {
     "/vs/gmail",
     "/vs/help-scout",
     "/vs/mailchimp",
+    "/vs/outlook",
     "/robots.txt",
     "/sitemap.xml",
     "/llms.txt",
@@ -63,6 +64,7 @@ describe("proxy matcher", () => {
     "/pricingx",
     "/termsheet",
     "/vs/gmailx",
+    "/vs/outlookx",
   ])("still runs on %s", (path) => {
     expect(runsProxy(path)).toBe(true);
   });
