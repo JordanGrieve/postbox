@@ -189,7 +189,7 @@ const gates = {
   transactionalFeedback: false,
   campaignDeliveryLive: false,
   campaignFeedback: false,
-  contactFormLive: false,
+  contactForm: "unset",
 } satisfies ConsoleGates;
 
 /**

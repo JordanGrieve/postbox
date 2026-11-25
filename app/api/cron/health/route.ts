@@ -13,6 +13,8 @@ import { TRASH_RETENTION_DAYS } from "@/lib/trash";
 import { transactionalSentToday } from "@/lib/email-quota-store";
 import { verifyAdminActionLog } from "@/lib/admin-audit";
 import { adminChainAlert, describeAdminChain } from "@/lib/admin-actions-chain";
+import { POSTBOX_CONTACT_KEY } from "@/lib/config";
+import { contactFormAlert, contactFormState, type ContactFormState } from "@/lib/forms";
 
 /**
  * GET /api/cron/health — the daily "is anything broken?" sweep.
@@ -171,6 +173,34 @@ export async function GET(req: Request) {
     console.info("[cron/health] admin action log: %s", describeAdminChain(chain));
   }
 
+  /*
+    ── THE WAY IN ──
+    On 25 Nov 2026 Postbox's own workspace was deleted from the console while
+    POSTBOX_CONTACT_KEY still named it, so /contact showed a form whose every
+    post was refused and nothing said so. Asked the way the endpoint answers
+    (contactFormState), and a failed lookup is its own alert, not "live".
+  */
+  let contactForm: ContactFormState | "unchecked" = "unchecked";
+  try {
+    contactForm = await contactFormState(POSTBOX_CONTACT_KEY);
+    const contactAlert = contactFormAlert(contactForm);
+    if (contactAlert) {
+      console.error("[cron/health] %s", contactAlert.title);
+      Sentry.withScope((scope) => {
+        scope.setFingerprint([contactAlert.fingerprint]);
+        scope.setLevel(contactAlert.level);
+        scope.setTag("alert_kind", "contact_form");
+        scope.setContext("contact_form", { detail: contactAlert.detail });
+        Sentry.captureMessage(contactAlert.title, contactAlert.level);
+      });
+    } else {
+      console.info("[cron/health] contact form: live");
+    }
+  } catch (err) {
+    console.error("[cron/health] could not check the contact form:", err);
+    Sentry.captureMessage("Could not check whether /contact can deliver", "warning");
+  }
+
   for (const alert of report.alerts) {
     // withScope, not setTag on the global scope: these run in a loop, and a
     // tag set globally would leak from one alert onto the next.
@@ -224,6 +254,7 @@ export async function GET(req: Request) {
     prunedRateLimits: pruned,
     unconfirmedStamped: unconfirmed.stamped,
     purgedFromTrash: purgedTrash.purged,
+    contactForm,
     alerts: report.alerts.map((a) => ({
       kind: a.kind,
       level: a.level,

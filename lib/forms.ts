@@ -88,6 +88,59 @@ export async function resolveIngestKey(key: string): Promise<IngestTarget | null
   return { workspace: row.workspace, form: row.form };
 }
 
+/**
+ * Whether /contact can deliver, asked the way the endpoint would answer it.
+ *
+ * "unset": POSTBOX_CONTACT_KEY is empty, so /contact says it is not connected.
+ * "no-workspace": the key is set but resolves to nothing, so /contact shows a
+ * form whose every post is refused. Found 25 Nov 2026, when Postbox's own
+ * workspace was deleted from the console and the "set" check stayed quiet.
+ */
+export type ContactFormState = "live" | "unset" | "no-workspace";
+
+export async function contactFormState(
+  key: string | null,
+  resolve: (key: string) => Promise<IngestTarget | null> = resolveIngestKey,
+): Promise<ContactFormState> {
+  if (!key) return "unset";
+  return (await resolve(key)) ? "live" : "no-workspace";
+}
+
+export type ContactFormAlert = {
+  level: "warning" | "error";
+  /** Sentry groups on this, so a dead form is one issue whose count rises. */
+  fingerprint: string;
+  title: string;
+  detail: string;
+};
+
+/** What the daily health check raises for a contact form that cannot deliver. */
+export function contactFormAlert(state: ContactFormState): ContactFormAlert | null {
+  if (state === "no-workspace") {
+    return {
+      level: "error",
+      fingerprint: "contact-form-no-workspace",
+      title: "Nobody can contact Postbox: /contact posts to a deleted workspace",
+      detail:
+        "POSTBOX_CONTACT_KEY is set, but the workspace it names no longer exists, " +
+        "so every enquiry from /contact and hello@ is refused. Create a workspace " +
+        "for Postbox in the admin console, set the key from its form address in " +
+        "Vercel, and redeploy.",
+    };
+  }
+  if (state === "unset") {
+    return {
+      level: "warning",
+      fingerprint: "contact-form-unset",
+      title: "Nobody can contact Postbox: POSTBOX_CONTACT_KEY is not set",
+      detail:
+        "/contact says it is not connected and hello@ mail is dropped. Set the key " +
+        "from Postbox's own workspace in Vercel, and redeploy.",
+    };
+  }
+  return null;
+}
+
 /** Every form a workspace has defined, oldest first. */
 export async function listForms(workspaceId: number): Promise<Form[]> {
   return db

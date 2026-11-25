@@ -9,6 +9,7 @@ import { listWorkspaceSummaries } from "@/lib/data";
 import { recentAccessByWorkspace } from "@/lib/impersonation";
 import { readsForSessions } from "@/lib/impersonation-reads";
 import { POSTBOX_CONTACT_KEY } from "@/lib/config";
+import { contactFormState } from "@/lib/forms";
 import { stripeConfigured, stripePriceId } from "@/lib/stripe";
 import { PLANS } from "@/lib/pricing";
 import { deliveryModeFromEnv, isLiveDeliveryMode } from "@/lib/deliver";
@@ -280,7 +281,7 @@ export default async function AdminHomePage({
       process.env.RESEND_DELIVERY_WEBHOOK_SIGNING_SECRET ??
         process.env.RESEND_WEBHOOK_SIGNING_SECRET,
     ),
-    contactFormLive: Boolean(POSTBOX_CONTACT_KEY),
+    contactForm: await contactFormState(POSTBOX_CONTACT_KEY),
   };
 
   const pane = PANE[section];

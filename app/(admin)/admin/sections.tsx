@@ -12,6 +12,7 @@ import type {
   WorkspaceUsage,
 } from "./queries";
 import type { QuotaState } from "@/lib/email-quota";
+import type { ContactFormState } from "@/lib/forms";
 import "./console.css";
 import {
   formatDate,
@@ -54,7 +55,8 @@ export type ConsoleGates = {
   /** A campaign feedback channel is configured — Resend's webhook secret. */
   campaignFeedback: boolean;
   /**
-   * POSTBOX_CONTACT_KEY is set, so /contact can actually receive an enquiry.
+   * Whether /contact can actually receive an enquiry: POSTBOX_CONTACT_KEY is
+   * set AND names a workspace that still exists (contactFormState).
    *
    * Here because it is the only gate that breaks something a STRANGER sees.
    * Every other one degrades a number in this console or a feature a signed-in
@@ -64,7 +66,7 @@ export type ConsoleGates = {
    * ask about any of them. The page says so honestly to the visitor, which is
    * the right behaviour and also the reason it can sit like that unnoticed.
    */
-  contactFormLive: boolean;
+  contactForm: ContactFormState;
 };
 
 /* ────────────────────────────────────────────────────────────────────────
@@ -108,19 +110,29 @@ export function OverviewSection({
         nobody here finds out. Six weeks of a broken contact form is how this
         product lost its first pilot's enquiries, and that is the same shape.
       */}
-      {!gates.contactFormLive && (
+      {gates.contactForm !== "live" && (
         <div className="pba-card" data-alarm>
           <div className="pba-card-head">
             <h2 className="pba-card-title">
               Nobody can contact Postbox right now
             </h2>
           </div>
-          <p className="pba-note">
-            To fix it: create a workspace here for Postbox itself, copy its API
-            key, and set <code>POSTBOX_CONTACT_KEY</code> to that value. The
-            page reads the key per request, so it starts working without a
-            rebuild.
-          </p>
+          {gates.contactForm === "no-workspace" ? (
+            <p className="pba-note">
+              <code>POSTBOX_CONTACT_KEY</code> is set, but the workspace it
+              names no longer exists, so every enquiry from /contact and
+              hello@ is refused. To fix it: create a workspace here for
+              Postbox itself, copy the key from the end of its form address
+              (Settings, Install), set <code>POSTBOX_CONTACT_KEY</code> to it
+              in Vercel and redeploy.
+            </p>
+          ) : (
+            <p className="pba-note">
+              To fix it: create a workspace here for Postbox itself, copy the
+              key from the end of its form address (Settings, Install), set{" "}
+              <code>POSTBOX_CONTACT_KEY</code> to it in Vercel and redeploy.
+            </p>
+          )}
         </div>
       )}
 
