@@ -200,7 +200,7 @@ export default function MailNavShell({
 
         {isAdmin && (
           <Link prefetch={false} href="/admin" className="pbm-admin-link">
-            <span aria-hidden>←</span> All clients
+            All clients
           </Link>
         )}
 

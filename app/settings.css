@@ -1462,6 +1462,17 @@
   transition: background 160ms ease, color 160ms ease;
 }
 
+/* The icon set's `back` chevron, sized in rem so it follows text zoom. The
+   drawn stroke fills the middle 14 of 24 units, so a 1.125rem box gives a
+   chevron about the label's cap height. The "‹" character it replaced was a
+   speck (25 Nov 2026). */
+.stg-back-icon {
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  margin-left: -4px;
+}
+
 .stg-back:hover {
   background: var(--surface-3);
   color: var(--text);

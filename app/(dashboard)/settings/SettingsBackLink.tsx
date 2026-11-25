@@ -3,9 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { settingsSectionFor } from "@/lib/settings-sections";
+import { Icon } from "@/components/mail/icons";
 
 /**
- * "‹ Website & email" above Setup steps, Forms and Access log: the way back to
+ * "Website & email", with a back chevron, above Setup steps, Forms and Access log: the way back to
  * the page that linked to them.
  *
  * Those pages have no sidebar item of their own (the sidebar lists sections,
@@ -24,7 +25,7 @@ export default function SettingsBackLink() {
   return (
     <nav className="stg-back-bar" aria-label="Back">
       <Link prefetch={false} href={section.href} className="stg-back">
-        <span aria-hidden>‹</span>
+        <Icon name="back" className="stg-back-icon" />
         {section.label}
       </Link>
     </nav>
